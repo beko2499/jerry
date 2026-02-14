@@ -1,4 +1,4 @@
-import { ChevronLeft, Rocket, CreditCard, Gamepad2, Tv, Smartphone, Sparkles } from 'lucide-react';
+import { Smartphone, Sparkles } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { useLanguage } from '@/contexts/LanguageContext';
 

@@ -17,16 +17,20 @@ function AppContent() {
 
   useEffect(() => {
     // Simple URL check for admin route
-    // In a real app with react-router, we'd use Routes
+    // Using Hash routing to avoid 404s on static hosting (Render)
     const checkRoute = () => {
-      if (window.location.pathname === '/admin') {
+      if (window.location.hash === '#/admin' || window.location.pathname === '/admin') {
         setIsAdminMode(true);
       }
     };
 
     checkRoute();
+    window.addEventListener('hashchange', checkRoute);
     window.addEventListener('popstate', checkRoute);
-    return () => window.removeEventListener('popstate', checkRoute);
+    return () => {
+      window.removeEventListener('hashchange', checkRoute);
+      window.removeEventListener('popstate', checkRoute);
+    };
   }, []);
 
   const handleEnter = () => {

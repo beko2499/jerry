@@ -147,6 +147,7 @@ export const translations = {
         configure: 'Configure',
         termsOfService: 'Terms of Use',
         updates: 'Updates',
+        confirmDelete: 'Are you sure you want to delete this?',
         // Gateways
         paymentGateways: 'Payment Gateways',
         addNewGateway: 'Add New Gateway',
@@ -331,6 +332,7 @@ export const translations = {
         configure: 'تكوين',
         termsOfService: 'شروط الاستخدام',
         updates: 'التحديثات',
+        confirmDelete: 'هل أنت متأكد من الحذف؟',
         // Gateways
         paymentGateways: 'بوابات الدفع',
         addNewGateway: 'إضافة بوابة جديدة',
@@ -517,6 +519,7 @@ export const translations = {
         configure: 'ڕێکخستن',
         termsOfService: 'مەرجەکانی بەکارهێنان',
         updates: 'نوێکارییەکان',
+        confirmDelete: 'دڵنیایت لە سڕینەوە؟',
         // Gateways
         paymentGateways: 'دەروازەکانی پارەدان',
         addNewGateway: 'زیادکردنی دەروازەی نوێ',

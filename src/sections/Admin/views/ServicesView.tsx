@@ -9,7 +9,6 @@ import {
     ShieldCheck,
     Zap,
     DollarSign,
-    Edit,
     Trash,
     Pencil
 } from 'lucide-react';

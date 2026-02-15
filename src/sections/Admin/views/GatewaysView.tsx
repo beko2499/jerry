@@ -71,12 +71,11 @@ export default function GatewaysView() {
 
     return (
         <div className="p-4 md:p-8 space-y-6">
-            <div className="flex justify-between items-center mb-6">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
                 <h2 className="font-space text-2xl md:text-3xl text-white tracking-wide">{t.paymentGateways}</h2>
-                <Button className="bg-red-600 hover:bg-red-700 text-white shadow-lg shadow-red-600/20">
-                    <Plus className="w-4 h-4 mr-2 md:hidden" />
-                    <span className="hidden md:inline">{t.addNewGateway}</span>
-                    <span className="md:hidden">Add</span>
+                <Button className="w-full md:w-auto bg-red-600 hover:bg-red-700 text-white shadow-lg shadow-red-600/20">
+                    <Plus className="w-4 h-4 mr-2" />
+                    <span>{t.addNewGateway}</span>
                 </Button>
             </div>
 
@@ -145,11 +144,17 @@ export default function GatewaysView() {
                                             </div>
                                         </div>
                                     </div>
-                                    <Switch
-                                        checked={gateway.isEnabled}
-                                        onCheckedChange={() => toggleGateway(gateway.id)}
-                                        className="data-[state=checked]:bg-green-500 ml-2"
-                                    />
+                                    <label className="relative inline-flex items-center cursor-pointer group">
+                                        <input
+                                            type="checkbox"
+                                            className="sr-only peer"
+                                            checked={gateway.isEnabled}
+                                            onChange={() => toggleGateway(gateway.id)}
+                                        />
+                                        <div className="w-14 h-8 bg-black/40 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-cyan-500/50 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[4px] after:left-[4px] after:bg-white/50 after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-green-600/20 peer-checked:border-green-500/50 border border-white/10 peer-checked:after:bg-green-500 hover:border-white/30 transition-all shadow-inner"></div>
+                                        <span className="absolute left-2 text-[10px] font-bold text-white/20 peer-checked:opacity-0 transition-opacity">OFF</span>
+                                        <span className="absolute right-2 text-[10px] font-bold text-green-400 opacity-0 peer-checked:opacity-100 transition-opacity">ON</span>
+                                    </label>
                                 </div>
 
                                 <div className="p-3 md:p-4 rounded-xl bg-black/20 border border-white/5 space-y-2">

@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
+import useDetectKeyboard from '@/hooks/useDetectKeyboard';
 
 interface AdminSidebarProps {
     activeItem: string;
@@ -107,53 +108,55 @@ export default function AdminSidebar({ activeItem, onItemClick, onLogout }: Admi
             </aside>
 
             {/* Mobile Floating Bottom Bar */}
-            <div className="md:hidden fixed bottom-12 left-6 right-6 z-50">
-                <div className="bg-black/80 backdrop-blur-xl border border-white/10 rounded-2xl shadow-[0_0_30px_rgba(0,0,0,0.5)] h-16 px-4 flex items-center justify-between relative">
+            {!useDetectKeyboard() && (
+                <div className="md:hidden fixed bottom-12 left-6 right-6 z-50">
+                    <div className="bg-black/80 backdrop-blur-xl border border-white/10 rounded-2xl shadow-[0_0_30px_rgba(0,0,0,0.5)] h-16 px-4 flex items-center justify-between relative">
 
-                    {/* Left Side: Gateways & Services */}
-                    <div className="flex items-center gap-1 w-1/3 justify-around">
-                        <button
-                            onClick={() => onItemClick('gateways')}
-                            className={`p-2 rounded-xl transition-all ${activeItem === 'gateways' ? 'text-purple-400' : 'text-white/50'}`}
-                        >
-                            <CreditCard className="w-6 h-6" />
-                        </button>
-                        <button
-                            onClick={() => onItemClick('services')}
-                            className={`p-2 rounded-xl transition-all ${activeItem === 'services' ? 'text-yellow-400' : 'text-white/50'}`}
-                        >
-                            <Layers className="w-6 h-6" />
-                        </button>
+                        {/* Left Side: Gateways & Services */}
+                        <div className="flex items-center gap-1 w-1/3 justify-around">
+                            <button
+                                onClick={() => onItemClick('gateways')}
+                                className={`p-2 rounded-xl transition-all ${activeItem === 'gateways' ? 'text-purple-400' : 'text-white/50'}`}
+                            >
+                                <CreditCard className="w-6 h-6" />
+                            </button>
+                            <button
+                                onClick={() => onItemClick('services')}
+                                className={`p-2 rounded-xl transition-all ${activeItem === 'services' ? 'text-yellow-400' : 'text-white/50'}`}
+                            >
+                                <Layers className="w-6 h-6" />
+                            </button>
+                        </div>
+
+                        {/* Center: Dashboard/Stats (Floating FAB) */}
+                        <div className="absolute left-1/2 -translate-x-1/2 -top-6">
+                            <button
+                                onClick={() => onItemClick('stats')}
+                                className={`w-14 h-14 rounded-full bg-gradient-to-r from-red-500 to-purple-600 flex items-center justify-center shadow-[0_0_20px_rgba(239,68,68,0.5)] transition-transform duration-300 ${activeItem === 'stats' ? 'scale-110 ring-4 ring-black/50' : 'hover:scale-105'}`}
+                            >
+                                <LayoutDashboard className="w-8 h-8 text-white stroke-[2]" />
+                            </button>
+                        </div>
+
+                        {/* Right Side: Providers & Support */}
+                        <div className="flex items-center gap-1 w-1/3 justify-around">
+                            <button
+                                onClick={() => onItemClick('providers')}
+                                className={`p-2 rounded-xl transition-all ${activeItem === 'providers' ? 'text-pink-400' : 'text-white/50'}`}
+                            >
+                                <Users className="w-6 h-6" />
+                            </button>
+                            <button
+                                onClick={() => onItemClick('support')}
+                                className={`p-2 rounded-xl transition-all ${activeItem === 'support' ? 'text-green-400' : 'text-white/50'}`}
+                            >
+                                <MessageCircle className="w-6 h-6" />
+                            </button>
+                        </div>
+
                     </div>
-
-                    {/* Center: Dashboard/Stats (Floating FAB) */}
-                    <div className="absolute left-1/2 -translate-x-1/2 -top-6">
-                        <button
-                            onClick={() => onItemClick('stats')}
-                            className={`w-14 h-14 rounded-full bg-gradient-to-r from-red-500 to-purple-600 flex items-center justify-center shadow-[0_0_20px_rgba(239,68,68,0.5)] transition-transform duration-300 ${activeItem === 'stats' ? 'scale-110 ring-4 ring-black/50' : 'hover:scale-105'}`}
-                        >
-                            <LayoutDashboard className="w-8 h-8 text-white stroke-[2]" />
-                        </button>
-                    </div>
-
-                    {/* Right Side: Providers & Support */}
-                    <div className="flex items-center gap-1 w-1/3 justify-around">
-                        <button
-                            onClick={() => onItemClick('providers')}
-                            className={`p-2 rounded-xl transition-all ${activeItem === 'providers' ? 'text-pink-400' : 'text-white/50'}`}
-                        >
-                            <Users className="w-6 h-6" />
-                        </button>
-                        <button
-                            onClick={() => onItemClick('support')}
-                            className={`p-2 rounded-xl transition-all ${activeItem === 'support' ? 'text-green-400' : 'text-white/50'}`}
-                        >
-                            <MessageCircle className="w-6 h-6" />
-                        </button>
-                    </div>
-
                 </div>
-            </div>
+            )}
         </>
     );
 }

@@ -9,7 +9,9 @@ import {
     ShieldCheck,
     Zap,
     DollarSign,
-    Edit
+    Edit,
+    Trash,
+    Pencil
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -96,7 +98,9 @@ export default function ServicesView() {
 
     // UI Modals State
     const [isAddingFolder, setIsAddingFolder] = useState(false);
+    const [editingFolderId, setEditingFolderId] = useState<string | null>(null);
     const [isAddingFile, setIsAddingFile] = useState(false);
+    const [editingServiceId, setEditingServiceId] = useState<string | null>(null);
     const [newFolderName, setNewFolderName] = useState('');
     const [newFolderImage, setNewFolderImage] = useState('');
 
@@ -108,6 +112,7 @@ export default function ServicesView() {
         max: 1000,
         description: '',
         providerId: '',
+        autoId: '',
         speed: '',
         dropRate: '',
         guarantee: '',
@@ -133,25 +138,45 @@ export default function ServicesView() {
         return (t as any)[cat.nameKey] || cat.nameKey;
     };
 
-    // Recursive Update
-    const updateCategoryRecursive = (cats: Category[], targetId: string | null, updateFn: (cat: Category) => Category): Category[] => {
-        if (targetId === null) return cats; // Should be handled by caller for root
+    // Recursive Update - Supports Deletion if updateFn returns null
+    const updateCategoryRecursive = (cats: Category[], targetId: string | null, updateFn: (cat: Category) => Category | null): Category[] => {
+        if (targetId === null) return cats;
 
         return cats.map(cat => {
             if (cat.id === targetId) {
                 return updateFn(cat);
             }
             if (cat.subCategories.length > 0) {
-                return {
-                    ...cat,
-                    subCategories: updateCategoryRecursive(cat.subCategories, targetId, updateFn)
-                };
+                const updatedSub = updateCategoryRecursive(cat.subCategories, targetId, updateFn);
+                return { ...cat, subCategories: updatedSub };
             }
             return cat;
-        });
+        }).filter(Boolean) as Category[]; // Remove nulls (deleted items)
     };
 
     // Handlers
+    const handleDeleteFolder = (e: React.MouseEvent, folderId: string) => {
+        e.stopPropagation();
+        if (window.confirm(t.confirmDelete || 'Are you sure you want to delete this folder?')) {
+            if (!currentCategory) {
+                // Root level
+                setCategories(categories.filter(c => c.id !== folderId));
+            } else {
+                // Nested
+                setCategories(updateCategoryRecursive(categories, folderId, () => null));
+            }
+        }
+    };
+
+    const handleDeleteService = (serviceId: string) => {
+        if (window.confirm(t.confirmDelete || 'Are you sure you want to delete this service?')) {
+            const updatedCats = updateCategoryRecursive(categories, currentCategory!.id, (cat) => ({
+                ...cat,
+                services: cat.services.filter(s => s.id !== serviceId)
+            }));
+            setCategories(updatedCats);
+        }
+    };
     const handleOpenFolder = (category: Category) => {
         setCurrentPathIds([...currentPathIds, category.id]);
     };
@@ -162,24 +187,40 @@ export default function ServicesView() {
 
     const handleCreateFolder = () => {
         if (!newFolderName) return;
-        const newCat: Category = {
-            id: Date.now().toString(),
-            nameKey: newFolderName, // User input name treated as key/value
-            image: newFolderImage,
-            subCategories: [],
-            services: []
-        };
 
-        if (!currentCategory) {
-            // Add to root
-            setCategories([...categories, newCat]);
+        if (editingFolderId) {
+            // Update existing folder
+            if (!currentCategory) {
+                // Root level update
+                setCategories(categories.map(c => c.id === editingFolderId ? { ...c, nameKey: newFolderName, image: newFolderImage } : c));
+            } else {
+                // Nested level update
+                setCategories(updateCategoryRecursive(categories, editingFolderId, (cat) => ({
+                    ...cat,
+                    nameKey: newFolderName,
+                    image: newFolderImage
+                })));
+            }
+            setEditingFolderId(null);
         } else {
-            // Add to current nested category
-            const updatedCats = updateCategoryRecursive(categories, currentCategory.id, (cat) => ({
-                ...cat,
-                subCategories: [...cat.subCategories, newCat]
-            }));
-            setCategories(updatedCats);
+            // Create new folder
+            const newCat: Category = {
+                id: Date.now().toString(),
+                nameKey: newFolderName,
+                image: newFolderImage,
+                subCategories: [],
+                services: []
+            };
+
+            if (!currentCategory) {
+                setCategories([...categories, newCat]);
+            } else {
+                const updatedCats = updateCategoryRecursive(categories, currentCategory.id, (cat) => ({
+                    ...cat,
+                    subCategories: [...cat.subCategories, newCat]
+                }));
+                setCategories(updatedCats);
+            }
         }
 
         setNewFolderName('');
@@ -187,29 +228,48 @@ export default function ServicesView() {
         setIsAddingFolder(false);
     };
 
+    const handleEditFolder = (e: React.MouseEvent, folder: Category) => {
+        e.stopPropagation();
+        setNewFolderName(getCategoryName(folder));
+        setNewFolderImage(folder.image || '');
+        setEditingFolderId(folder.id);
+        setIsAddingFolder(true);
+    };
+
     const handleCreateService = () => {
         if (!newService.name || !currentCategory) return;
 
-        const serviceToAdd: Service = {
-            id: Date.now().toString(),
-            name: newService.name || 'New Service',
-            price: newService.price || 0,
-            min: newService.min || 100,
-            max: newService.max || 1000,
-            description: newService.description || '',
-            providerId: newService.providerId || '',
-            autoId: Math.floor(1000 + Math.random() * 9000).toString(),
-            speed: newService.speed,
-            dropRate: newService.dropRate,
-            guarantee: newService.guarantee,
-            startTime: newService.startTime
-        };
+        if (editingServiceId) {
+            // Update existing service
+            const updatedCats = updateCategoryRecursive(categories, currentCategory.id, (cat) => ({
+                ...cat,
+                services: cat.services.map(s => s.id === editingServiceId ? { ...s, ...newService } as Service : s)
+            }));
+            setCategories(updatedCats);
+            setEditingServiceId(null);
+        } else {
+            // Create new service
+            const serviceToAdd: Service = {
+                id: Date.now().toString(),
+                name: newService.name || 'New Service',
+                price: newService.price || 0,
+                min: newService.min || 100,
+                max: newService.max || 1000,
+                description: newService.description || '',
+                providerId: newService.providerId || '',
+                autoId: Math.floor(1000 + Math.random() * 9000).toString(),
+                speed: newService.speed,
+                dropRate: newService.dropRate,
+                guarantee: newService.guarantee,
+                startTime: newService.startTime
+            };
 
-        const updatedCats = updateCategoryRecursive(categories, currentCategory.id, (cat) => ({
-            ...cat,
-            services: [...cat.services, serviceToAdd]
-        }));
-        setCategories(updatedCats);
+            const updatedCats = updateCategoryRecursive(categories, currentCategory.id, (cat) => ({
+                ...cat,
+                services: [...cat.services, serviceToAdd]
+            }));
+            setCategories(updatedCats);
+        }
 
         setNewService({
             name: '',
@@ -218,12 +278,19 @@ export default function ServicesView() {
             max: 1000,
             description: '',
             providerId: '',
+            autoId: '',
             speed: '',
             dropRate: '',
             guarantee: '',
             startTime: ''
         });
         setIsAddingFile(false);
+    };
+
+    const handleEditService = (service: Service) => {
+        setNewService(service);
+        setEditingServiceId(service.id);
+        setIsAddingFile(true);
     };
 
     return (
@@ -286,7 +353,7 @@ export default function ServicesView() {
                 {/* New Folder Modal (Inline) */}
                 {isAddingFolder && (
                     <Card className="p-4 mb-6 bg-black/40 border border-cyan-500/30 animate-in fade-in">
-                        <h4 className="text-white font-bold mb-4">{t.add} {t.folderName}</h4>
+                        <h4 className="text-white font-bold mb-4">{editingFolderId ? t.edit : t.add} {t.folderName}</h4>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                             <div>
                                 <label className="text-xs text-white/40 mb-1 block">{t.folderName}</label>
@@ -328,7 +395,7 @@ export default function ServicesView() {
                                         onClick={() => handleOpenFolder(cat)}
                                         className="group cursor-pointer"
                                     >
-                                        <Card className="relative aspect-square mb-2 bg-white/5 border-white/10 hover:border-cyan-500/50 hover:bg-white/10 transition-all overflow-hidden">
+                                        <Card className="relative aspect-square mb-2 bg-white/5 border-white/10 hover:border-cyan-500/50 hover:bg-white/10 transition-all overflow-hidden group/card">
                                             {cat.image ? (
                                                 <img src={cat.image} alt={cat.nameKey} className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
                                             ) : (
@@ -336,8 +403,28 @@ export default function ServicesView() {
                                                     <Folder className="w-16 h-16 text-cyan-400/50 group-hover:text-cyan-400 transition-colors" />
                                                 </div>
                                             )}
-                                            <div className="absolute inset-x-0 bottom-0 p-3 bg-gradient-to-t from-black/80 to-transparent">
-                                                <p className="text-xs text-white/60 text-right">{cat.subCategories.length + cat.services.length} items</p>
+                                            <div className="absolute inset-x-0 bottom-0 p-3 bg-gradient-to-t from-black/80 to-transparent flex justify-between items-end">
+                                                <p className="text-xs text-white/60">{cat.subCategories.length + cat.services.length} items</p>
+                                            </div>
+
+                                            {/* Edit/Delete Actions */}
+                                            <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover/card:opacity-100 transition-opacity">
+                                                <Button
+                                                    size="icon"
+                                                    variant="ghost"
+                                                    className="h-8 w-8 bg-black/50 text-white hover:bg-cyan-500 hover:text-white rounded-full backdrop-blur-sm"
+                                                    onClick={(e) => handleEditFolder(e, cat)}
+                                                >
+                                                    <Pencil className="w-4 h-4" />
+                                                </Button>
+                                                <Button
+                                                    size="icon"
+                                                    variant="ghost"
+                                                    className="h-8 w-8 bg-black/50 text-white hover:bg-red-500 hover:text-white rounded-full backdrop-blur-sm"
+                                                    onClick={(e) => handleDeleteFolder(e, cat.id)}
+                                                >
+                                                    <Trash className="w-4 h-4" />
+                                                </Button>
                                             </div>
                                         </Card>
                                         <h3 className="text-center text-white font-medium group-hover:text-cyan-400 transition-colors truncate px-2">{getCategoryName(cat)}</h3>
@@ -354,7 +441,7 @@ export default function ServicesView() {
 
                             {isAddingFile && (
                                 <Card className="p-4 bg-black/40 border border-green-500/30 animate-in fade-in mb-6">
-                                    <h4 className="text-white font-bold mb-4">{t.createService}</h4>
+                                    <h4 className="text-white font-bold mb-4">{editingServiceId ? t.edit : t.createService}</h4>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                                         <div className="col-span-1 md:col-span-2">
                                             <label className="text-xs text-white/40 mb-1 block">{t.serviceName}</label>
@@ -500,8 +587,21 @@ export default function ServicesView() {
                                                 </div>
                                             </div>
                                             <div className="flex gap-1">
-                                                <Button size="icon" variant="ghost" className="h-8 w-8 text-white/40 hover:text-white">
-                                                    <Edit className="w-4 h-4" />
+                                                <Button
+                                                    size="icon"
+                                                    variant="ghost"
+                                                    className="h-8 w-8 text-white/40 hover:text-white"
+                                                    onClick={() => handleEditService(srv)}
+                                                >
+                                                    <Pencil className="w-4 h-4" />
+                                                </Button>
+                                                <Button
+                                                    size="icon"
+                                                    variant="ghost"
+                                                    className="h-8 w-8 text-white/40 hover:text-red-400"
+                                                    onClick={() => handleDeleteService(srv.id)}
+                                                >
+                                                    <Trash className="w-4 h-4" />
                                                 </Button>
                                             </div>
                                         </div>

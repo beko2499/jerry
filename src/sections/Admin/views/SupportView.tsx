@@ -27,9 +27,9 @@ export default function SupportView() {
 
     return (
         <div className="p-4 md:p-8 space-y-6">
-            <div className="flex justify-between items-center mb-6">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
                 <h2 className="font-space text-2xl md:text-3xl text-white tracking-wide">{t.supportSettings}</h2>
-                <Button onClick={handleSave} className="bg-green-600 hover:bg-green-700 text-white gap-2">
+                <Button onClick={handleSave} className="w-full md:w-auto bg-green-600 hover:bg-green-700 text-white gap-2">
                     <Save className="w-4 h-4" /> {t.saveChanges}
                 </Button>
             </div>

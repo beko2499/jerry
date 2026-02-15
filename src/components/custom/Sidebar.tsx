@@ -11,6 +11,7 @@ import {
 import { Logo } from '@/components/Logo';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
+import useDetectKeyboard from '@/hooks/useDetectKeyboard';
 
 interface SidebarProps {
   activeItem: string;
@@ -88,55 +89,55 @@ export default function Sidebar({ activeItem, onItemClick }: SidebarProps) {
       </aside>
 
       {/* Mobile Floating Bottom Bar */}
-      {/* Mobile Floating Bottom Bar */}
-      {/* Mobile Floating Bottom Bar */}
-      <div className="md:hidden fixed bottom-12 left-6 right-6 z-50">
-        <div className="bg-black/80 backdrop-blur-xl border border-white/10 rounded-2xl shadow-[0_0_30px_rgba(0,0,0,0.5)] h-16 px-4 flex items-center justify-between relative">
+      {!useDetectKeyboard() && (
+        <div className="md:hidden fixed bottom-12 left-6 right-6 z-50">
+          <div className="bg-black/80 backdrop-blur-xl border border-white/10 rounded-2xl shadow-[0_0_30px_rgba(0,0,0,0.5)] h-16 px-4 flex items-center justify-between relative">
 
-          {/* Left Side: Search & Orders */}
-          <div className="flex items-center gap-1 w-1/3 justify-around">
-            <button
-              onClick={() => onItemClick('search')}
-              className={`p-2 rounded-xl transition-all ${activeItem === 'search' ? 'text-cyan-400' : 'text-white/50'}`}
-            >
-              <Search className="w-6 h-6" />
-            </button>
-            <button
-              onClick={() => onItemClick('orders')}
-              className={`p-2 rounded-xl transition-all ${activeItem === 'orders' ? 'text-cyan-400' : 'text-white/50'}`}
-            >
-              <ShoppingCart className="w-6 h-6" />
-            </button>
+            {/* Left Side: Search & Orders */}
+            <div className="flex items-center gap-1 w-1/3 justify-around">
+              <button
+                onClick={() => onItemClick('search')}
+                className={`p-2 rounded-xl transition-all ${activeItem === 'search' ? 'text-cyan-400' : 'text-white/50'}`}
+              >
+                <Search className="w-6 h-6" />
+              </button>
+              <button
+                onClick={() => onItemClick('orders')}
+                className={`p-2 rounded-xl transition-all ${activeItem === 'orders' ? 'text-cyan-400' : 'text-white/50'}`}
+              >
+                <ShoppingCart className="w-6 h-6" />
+              </button>
+            </div>
+
+            {/* Center: New Order (Floating FAB) */}
+            <div className="absolute left-1/2 -translate-x-1/2 -top-6">
+              <button
+                onClick={() => onItemClick('new-order')}
+                className={`w-12 h-12 rounded-full bg-gradient-to-r from-cyan-500 to-purple-600 flex items-center justify-center shadow-[0_0_20px_rgba(34,211,238,0.5)] transition-transform duration-300 ${activeItem === 'new-order' ? 'scale-110 ring-4 ring-black/50' : 'hover:scale-105'}`}
+              >
+                <Plus className="w-6 h-6 text-white stroke-[3]" />
+              </button>
+            </div>
+
+            {/* Right Side: Settings & Support */}
+            <div className="flex items-center gap-1 w-1/3 justify-around">
+              <button
+                onClick={() => onItemClick('settings')}
+                className={`p-2 rounded-xl transition-all ${activeItem === 'settings' ? 'text-cyan-400' : 'text-white/50'}`}
+              >
+                <Settings className="w-6 h-6" />
+              </button>
+              <button
+                onClick={() => onItemClick('support')}
+                className={`p-2 rounded-xl transition-all ${activeItem === 'support' ? 'text-cyan-400' : 'text-white/50'}`}
+              >
+                <MessageCircle className="w-6 h-6" />
+              </button>
+            </div>
+
           </div>
-
-          {/* Center: New Order (Floating FAB) */}
-          <div className="absolute left-1/2 -translate-x-1/2 -top-6">
-            <button
-              onClick={() => onItemClick('new-order')}
-              className={`w-12 h-12 rounded-full bg-gradient-to-r from-cyan-500 to-purple-600 flex items-center justify-center shadow-[0_0_20px_rgba(34,211,238,0.5)] transition-transform duration-300 ${activeItem === 'new-order' ? 'scale-110 ring-4 ring-black/50' : 'hover:scale-105'}`}
-            >
-              <Plus className="w-6 h-6 text-white stroke-[3]" />
-            </button>
-          </div>
-
-          {/* Right Side: Settings & Support */}
-          <div className="flex items-center gap-1 w-1/3 justify-around">
-            <button
-              onClick={() => onItemClick('settings')}
-              className={`p-2 rounded-xl transition-all ${activeItem === 'settings' ? 'text-cyan-400' : 'text-white/50'}`}
-            >
-              <Settings className="w-6 h-6" />
-            </button>
-            <button
-              onClick={() => onItemClick('support')}
-              className={`p-2 rounded-xl transition-all ${activeItem === 'support' ? 'text-cyan-400' : 'text-white/50'}`}
-            >
-              <MessageCircle className="w-6 h-6" />
-            </button>
-          </div>
-
         </div>
-      </div>
+      )}
     </>
   );
 }

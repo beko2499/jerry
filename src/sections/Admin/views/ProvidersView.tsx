@@ -12,6 +12,7 @@ interface Provider {
     apiKey: string;
     balance: string;
     status: 'active' | 'inactive';
+    image?: string;
 }
 
 export default function ProvidersView() {
@@ -19,8 +20,8 @@ export default function ProvidersView() {
 
     // Mock Data
     const [providers, setProviders] = useState<Provider[]>([
-        { id: '1', name: 'DarkStore Panel', url: 'https://darkfollow.shop/api/v2', apiKey: '****************', balance: '$120.50', status: 'active' },
-        { id: '2', name: 'JustAnotherPanel', url: 'https://jap.com/api/v2', apiKey: '****************', balance: '$5.00', status: 'active' },
+        { id: '1', name: 'DarkStore Panel', url: 'https://darkfollow.shop/api/v2', apiKey: '****************', balance: '$120.50', status: 'active', image: '' },
+        { id: '2', name: 'JustAnotherPanel', url: 'https://jap.com/api/v2', apiKey: '****************', balance: '$5.00', status: 'active', image: '' },
     ]);
 
     const [isAdding, setIsAdding] = useState(false);
@@ -34,7 +35,8 @@ export default function ProvidersView() {
                 url: newProvider.url,
                 apiKey: newProvider.apiKey,
                 balance: '$0.00',
-                status: 'active'
+                status: 'active',
+                image: newProvider.image || ''
             } as Provider]);
             setIsAdding(false);
             setNewProvider({ status: 'active' });
@@ -91,6 +93,15 @@ export default function ProvidersView() {
                             </div>
                         </div>
                         <div className="col-span-1 md:col-span-2">
+                            <label className="text-sm text-white/60 mb-1 block">{t.providerImage} (URL) - Optional</label>
+                            <Input
+                                value={newProvider.image || ''}
+                                onChange={e => setNewProvider({ ...newProvider, image: e.target.value })}
+                                className="bg-black/30 border-white/10 text-white"
+                                placeholder="https://..."
+                            />
+                        </div>
+                        <div className="col-span-1 md:col-span-2">
                             <label className="text-sm text-white/60 mb-1 block">{t.apiKey}</label>
                             <Input
                                 value={newProvider.apiKey || ''}
@@ -113,8 +124,12 @@ export default function ProvidersView() {
                     <Card key={provider.id} className="p-4 md:p-6 bg-white/5 border border-white/10 backdrop-blur-sm group hover:border-cyan-500/30 transition-all">
                         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                             <div className="flex items-center gap-4 w-full md:w-auto">
-                                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-white font-bold text-lg shadow-lg shrink-0">
-                                    {provider.name.charAt(0)}
+                                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-white font-bold text-lg shadow-lg shrink-0 overflow-hidden border border-white/10">
+                                    {provider.image ? (
+                                        <img src={provider.image} alt={provider.name} className="w-full h-full object-cover" />
+                                    ) : (
+                                        provider.name.charAt(0)
+                                    )}
                                 </div>
                                 <div className="overflow-hidden">
                                     <h3 className="text-lg font-bold text-white group-hover:text-cyan-400 transition-colors truncate">{provider.name}</h3>

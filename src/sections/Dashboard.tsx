@@ -13,8 +13,6 @@ import {
   CheckCircle,
   XCircle,
   Search,
-  Filter,
-  Download,
   Instagram,
   Facebook,
   Send,
@@ -27,6 +25,7 @@ import {
 // Orders View Component
 function OrdersView() {
   const [statusFilter, setStatusFilter] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
   const { t } = useLanguage();
 
   const filters = [
@@ -36,10 +35,24 @@ function OrdersView() {
     { id: 'cancelled', label: t.cancelled, icon: XCircle, color: 'text-red-400', activeBg: 'bg-red-500/20 border-red-500/50 text-red-400' },
   ];
 
+  const allOrders = [
+    { id: '#12345', service: 'متابعين انستقرام', quantity: '1000', price: '$5.00', status: 'مكتمل', date: '2025-02-14', statusColor: 'text-green-400 bg-green-500/20 border-green-500/30' },
+    { id: '#12344', service: 'لايكات فيسبوك', quantity: '500', price: '$2.50', status: 'قيد الانتظار', date: '2025-02-14', statusColor: 'text-yellow-400 bg-yellow-500/20 border-yellow-500/30' },
+    { id: '#12343', service: 'مشاهدات يوتيوب', quantity: '5000', price: '$10.00', status: 'مكتمل', date: '2025-02-13', statusColor: 'text-green-400 bg-green-500/20 border-green-500/30' },
+    { id: '#12342', service: 'متابعين تيك توك', quantity: '2000', price: '$8.00', status: 'ملغي', date: '2025-02-13', statusColor: 'text-red-400 bg-red-500/20 border-red-500/30' },
+  ];
+
+  const filteredOrders = allOrders.filter(order => {
+    if (searchQuery) {
+      return order.id.toLowerCase().includes(searchQuery.toLowerCase().replace('#', ''));
+    }
+    return true;
+  });
+
   return (
-    <div className="p-8 space-y-6">
+    <div className="p-4 md:p-8 space-y-4">
       {/* Filter Tabs */}
-      <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
+      <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
         {filters.map((filter) => {
           const Icon = filter.icon;
           const isActive = statusFilter === filter.id;
@@ -48,77 +61,170 @@ function OrdersView() {
               key={filter.id}
               onClick={() => setStatusFilter(filter.id)}
               className={`
-                flex items-center gap-2 px-6 py-3 rounded-xl border transition-all duration-300 whitespace-nowrap
+                flex items-center gap-2 px-4 md:px-6 py-2.5 md:py-3 rounded-xl border transition-all duration-300 whitespace-nowrap text-sm md:text-base
                 ${isActive
                   ? `${filter.activeBg} shadow-[0_0_15px_rgba(0,0,0,0.3)]`
                   : 'bg-white/5 border-white/10 text-white/60 hover:bg-white/10 hover:text-white'
                 }
               `}
             >
-              <Icon className={`w-5 h-5 ${isActive ? 'scale-110' : 'opacity-70'} transition-transform`} />
+              <Icon className={`w-4 h-4 md:w-5 md:h-5 ${isActive ? 'scale-110' : 'opacity-70'} transition-transform`} />
               <span className="font-body font-medium">{filter.label}</span>
             </button>
           );
         })}
       </div>
 
+      {/* Title */}
+      <h3 className="font-space text-2xl md:text-3xl text-white tracking-wide">{t.myOrders}</h3>
+
+      {/* Search Bar */}
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
+        <Input
+          placeholder={`${t.search} ${t.orderId}...`}
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="pl-10 w-full bg-white/5 border-white/10 text-white placeholder:text-white/40 focus:border-cyan-500/50 focus:ring-cyan-500/20 h-11"
+        />
+      </div>
+
       {/* Orders Table */}
       <Card className="bg-white/5 border-white/10 overflow-hidden backdrop-blur-sm">
-        <div className="p-6 border-b border-white/10 flex items-center justify-between">
-          <h3 className="font-space text-xl text-white">{t.myOrders}</h3>
-          <div className="flex items-center gap-3">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
-              <Input
-                placeholder={t.search}
-                className="pl-10 w-64 bg-white/5 border-white/10 text-white placeholder:text-white/40 focus:border-cyan-500/50 focus:ring-cyan-500/20"
-              />
-            </div>
-            <Button variant="outline" size="icon" className="border-white/10 text-white/60 hover:text-white hover:bg-white/10">
-              <Filter className="w-4 h-4" />
-            </Button>
-            <Button variant="outline" size="icon" className="border-white/10 text-white/60 hover:text-white hover:bg-white/10">
-              <Download className="w-4 h-4" />
-            </Button>
-          </div>
-        </div>
-
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
               <tr className="border-b border-white/10">
-                <th className="px-6 py-4 text-right font-body text-white/60 text-sm">{t.orderId}</th>
-                <th className="px-6 py-4 text-right font-body text-white/60 text-sm">{t.service}</th>
-                <th className="px-6 py-4 text-right font-body text-white/60 text-sm">{t.quantity}</th>
-                <th className="px-6 py-4 text-right font-body text-white/60 text-sm">{t.price}</th>
-                <th className="px-6 py-4 text-right font-body text-white/60 text-sm">{t.status}</th>
-                <th className="px-6 py-4 text-right font-body text-white/60 text-sm">{t.date}</th>
+                <th className="px-4 md:px-6 py-3 md:py-4 text-right font-body text-white/60 text-xs md:text-sm">{t.orderId}</th>
+                <th className="px-4 md:px-6 py-3 md:py-4 text-right font-body text-white/60 text-xs md:text-sm">{t.service}</th>
+                <th className="px-4 md:px-6 py-3 md:py-4 text-right font-body text-white/60 text-xs md:text-sm">{t.quantity}</th>
+                <th className="px-4 md:px-6 py-3 md:py-4 text-right font-body text-white/60 text-xs md:text-sm">{t.price}</th>
+                <th className="px-4 md:px-6 py-3 md:py-4 text-right font-body text-white/60 text-xs md:text-sm">{t.status}</th>
+                <th className="px-4 md:px-6 py-3 md:py-4 text-right font-body text-white/60 text-xs md:text-sm">{t.date}</th>
               </tr>
             </thead>
             <tbody>
-              {[
-                { id: '#12345', service: 'متابعين انستقرام', quantity: '1000', price: '$5.00', status: 'مكتمل', date: '2025-02-14', statusColor: 'text-green-400 bg-green-500/20 border-green-500/30' },
-                { id: '#12344', service: 'لايكات فيسبوك', quantity: '500', price: '$2.50', status: 'قيد الانتظار', date: '2025-02-14', statusColor: 'text-yellow-400 bg-yellow-500/20 border-yellow-500/30' },
-                { id: '#12343', service: 'مشاهدات يوتيوب', quantity: '5000', price: '$10.00', status: 'مكتمل', date: '2025-02-13', statusColor: 'text-green-400 bg-green-500/20 border-green-500/30' },
-                { id: '#12342', service: 'متابعين تيك توك', quantity: '2000', price: '$8.00', status: 'ملغي', date: '2025-02-13', statusColor: 'text-red-400 bg-red-500/20 border-red-500/30' },
-              ].map((order) => (
+              {filteredOrders.map((order) => (
                 <tr key={order.id} className="border-b border-white/5 hover:bg-white/5 transition-colors group">
-                  <td className="px-6 py-4 font-space text-cyan-400 group-hover:text-cyan-300 transition-colors">{order.id}</td>
-                  <td className="px-6 py-4 font-body text-white">{order.service}</td>
-                  <td className="px-6 py-4 font-body text-white/80">{order.quantity}</td>
-                  <td className="px-6 py-4 font-space text-white">{order.price}</td>
-                  <td className="px-6 py-4">
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium border ${order.statusColor}`}>
+                  <td className="px-4 md:px-6 py-3 md:py-4 font-space text-cyan-400 group-hover:text-cyan-300 transition-colors text-sm">{order.id}</td>
+                  <td className="px-4 md:px-6 py-3 md:py-4 font-body text-white text-sm">{order.service}</td>
+                  <td className="px-4 md:px-6 py-3 md:py-4 font-body text-white/80 text-sm">{order.quantity}</td>
+                  <td className="px-4 md:px-6 py-3 md:py-4 font-space text-white text-sm">{order.price}</td>
+                  <td className="px-4 md:px-6 py-3 md:py-4">
+                    <span className={`px-2 md:px-3 py-1 rounded-full text-[10px] md:text-xs font-medium border ${order.statusColor}`}>
                       {order.status}
                     </span>
                   </td>
-                  <td className="px-6 py-4 font-body text-white/60 text-sm">{order.date}</td>
+                  <td className="px-4 md:px-6 py-3 md:py-4 font-body text-white/60 text-xs md:text-sm">{order.date}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
       </Card>
+    </div>
+  );
+}
+
+// Search View Component
+interface SearchViewProps {
+  onNavigate: (item: string) => void;
+}
+
+function SearchView({ onNavigate }: SearchViewProps) {
+  const [query, setQuery] = useState('');
+  const { t } = useLanguage();
+
+  const searchableItems = [
+    { id: '1', name: (t as any).jerryServicesCard || 'Jerry Services', category: (t as any).categories || 'Categories', target: 'jerry-services', image: '/jerry-services.png' },
+    { id: '2', name: (t as any).cardsSection || 'Cards Section', category: (t as any).categories || 'Categories', target: 'new-order', image: '/cards.png' },
+    { id: '3', name: (t as any).gamingSection || 'Gaming Section', category: (t as any).categories || 'Categories', target: 'new-order', image: '/games.png' },
+    { id: '4', name: (t as any).subscriptionsSection || 'Subscriptions', category: (t as any).categories || 'Categories', target: 'new-order', image: '/subscriptions.png' },
+    { id: '5', name: (t as any).phoneTopUp || 'Phone Top-Up', category: (t as any).categories || 'Categories', target: 'new-order' },
+    { id: '6', name: (t as any).miscServices || 'Misc Services', category: (t as any).categories || 'Categories', target: 'new-order' },
+    // Telegram services
+    { id: '1823', name: 'اعضاء تليجرام حسابات محذوفه', category: (t as any).telegramServicesName || 'Telegram', target: 'telegram-services' },
+    { id: '1824', name: 'اعضاء تليجرام بدون نزول للابد (مملوكه)', category: (t as any).telegramServicesName || 'Telegram', target: 'telegram-services' },
+    { id: '1825', name: 'اعضاء تليجرام بدون نزول للابد للكروبات (مملوكه)', category: (t as any).telegramServicesName || 'Telegram', target: 'telegram-services' },
+    { id: '1826', name: 'اعضاء تليجرام رخيص (مملوكه)', category: (t as any).telegramServicesName || 'Telegram', target: 'telegram-services' },
+    { id: '1827', name: 'مشاهدات تليجرام', category: (t as any).telegramServicesName || 'Telegram', target: 'telegram-services' },
+    // Instagram
+    { id: 'insta-1', name: 'متابعين انستقرام', category: (t as any).instaServices || 'Instagram', target: 'jerry-services' },
+    { id: 'insta-2', name: 'لايكات انستقرام', category: (t as any).instaServices || 'Instagram', target: 'jerry-services' },
+    // TikTok
+    { id: 'tiktok-1', name: 'متابعين تيك توك', category: (t as any).tiktokServices || 'TikTok', target: 'jerry-services' },
+    { id: 'tiktok-2', name: 'مشاهدات تيك توك', category: (t as any).tiktokServices || 'TikTok', target: 'jerry-services' },
+    // Facebook
+    { id: 'fb-1', name: 'لايكات فيسبوك', category: (t as any).facebookServices || 'Facebook', target: 'jerry-services' },
+    { id: 'fb-2', name: 'متابعين فيسبوك', category: (t as any).facebookServices || 'Facebook', target: 'jerry-services' },
+  ];
+
+  const results = query.length > 0
+    ? searchableItems.filter(item =>
+      item.name.toLowerCase().includes(query.toLowerCase()) ||
+      item.category.toLowerCase().includes(query.toLowerCase())
+    )
+    : [];
+
+  return (
+    <div className="p-4 md:p-8 space-y-4">
+      <h2 className="font-space text-2xl md:text-3xl text-white tracking-wide">{t.search}</h2>
+
+      {/* Search Input */}
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
+        <Input
+          placeholder={t.searchPlaceholder}
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          className="pl-12 w-full h-12 bg-white/5 border-white/10 text-white placeholder:text-white/40 focus:border-cyan-500/50 focus:ring-cyan-500/20 rounded-xl text-base"
+          autoFocus
+        />
+      </div>
+
+      {/* Results */}
+      {query.length > 0 && (
+        <div className="space-y-2">
+          {results.length > 0 ? (
+            results.map(item => (
+              <Card
+                key={item.id}
+                className="p-3 bg-white/5 border-white/10 hover:border-cyan-500/30 hover:bg-white/10 transition-all cursor-pointer backdrop-blur-sm"
+                onClick={() => onNavigate(item.target)}
+              >
+                <div className="flex items-center gap-3">
+                  {item.image ? (
+                    <div className="w-12 h-12 rounded-xl overflow-hidden shrink-0">
+                      <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                    </div>
+                  ) : (
+                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500/20 to-purple-500/20 flex items-center justify-center shrink-0">
+                      <Search className="w-5 h-5 text-cyan-400" />
+                    </div>
+                  )}
+                  <div className="overflow-hidden">
+                    <h4 className="text-white font-medium text-sm truncate">{item.name}</h4>
+                    <p className="text-white/40 text-xs truncate">{item.category}</p>
+                  </div>
+                </div>
+              </Card>
+            ))
+          ) : (
+            <div className="text-center py-12">
+              <Search className="w-12 h-12 text-white/10 mx-auto mb-4" />
+              <p className="text-white/40 text-sm">لا توجد نتائج</p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Empty state when no query */}
+      {query.length === 0 && (
+        <div className="text-center py-16">
+          <Search className="w-16 h-16 text-white/10 mx-auto mb-4" />
+          <p className="text-white/50 text-base">{t.searchPlaceholder}</p>
+        </div>
+      )}
     </div>
   );
 }
@@ -717,6 +823,71 @@ function SupportView() {
   );
 }
 
+// Terms of Use View
+function TermsView() {
+  const { t } = useLanguage();
+  return (
+    <div className="p-4 md:p-8 space-y-4 max-w-3xl">
+      <h2 className="font-space text-2xl md:text-3xl text-white tracking-wide">{t.termsOfService}</h2>
+      <Card className="p-5 md:p-8 bg-white/5 border-white/10 backdrop-blur-sm space-y-4">
+        <div className="space-y-3 text-white/70 text-sm leading-relaxed font-body">
+          <h3 className="text-white font-bold text-base">1. القبول بالشروط</h3>
+          <p>باستخدامك لمنصة Jerry، فإنك توافق على جميع الشروط والأحكام المذكورة أدناه. يرجى قراءتها بعناية قبل استخدام أي خدمة.</p>
+
+          <h3 className="text-white font-bold text-base">2. الخدمات المقدمة</h3>
+          <p>نقدم خدمات التسويق الرقمي بما في ذلك زيادة المتابعين والمشاهدات واللايكات عبر منصات التواصل الاجتماعي المختلفة.</p>
+
+          <h3 className="text-white font-bold text-base">3. سياسة الاسترداد</h3>
+          <p>لا يمكن استرداد المبالغ بعد بدء تنفيذ الطلب. في حالة عدم اكتمال الطلب، سيتم إرجاع الرصيد المتبقي إلى حسابك.</p>
+
+          <h3 className="text-white font-bold text-base">4. المسؤولية</h3>
+          <p>لا تتحمل المنصة أي مسؤولية عن أي إجراءات تتخذها منصات التواصل الاجتماعي تجاه حساباتك نتيجة استخدام خدماتنا.</p>
+
+          <h3 className="text-white font-bold text-base">5. الخصوصية</h3>
+          <p>نحترم خصوصيتك ولا نشارك بياناتك الشخصية مع أي طرف ثالث. يتم استخدام بياناتك فقط لتقديم الخدمات المطلوبة.</p>
+        </div>
+      </Card>
+    </div>
+  );
+}
+
+// Updates View
+function UpdatesView() {
+  const { t } = useLanguage();
+  const updates = [
+    { version: 'v2.5', date: '2025-02-15', title: 'تحسينات واجهة المستخدم', description: 'تحسين التصميم العام وإضافة قائمة جانبية جديدة للموبايل مع تحسين سرعة التطبيق.', type: 'تحسين' },
+    { version: 'v2.4', date: '2025-02-10', title: 'إضافة خدمات تليجرام', description: 'تمت إضافة خدمات جديدة لتليجرام تشمل الأعضاء والمشاهدات بضمانات متعددة.', type: 'جديد' },
+    { version: 'v2.3', date: '2025-02-01', title: 'نظام البحث الذكي', description: 'إضافة خاصية البحث عن الخدمات والأقسام بالاسم من الشريط السفلي.', type: 'جديد' },
+    { version: 'v2.2', date: '2025-01-25', title: 'دعم اللغة الكردية', description: 'إضافة دعم كامل للغة الكردية مع تحسينات على اللغة العربية والإنجليزية.', type: 'جديد' },
+  ];
+
+  return (
+    <div className="p-4 md:p-8 space-y-4 max-w-3xl">
+      <h2 className="font-space text-2xl md:text-3xl text-white tracking-wide">{t.updates}</h2>
+
+      <div className="space-y-3">
+        {updates.map((update, i) => (
+          <Card key={i} className="p-4 md:p-5 bg-white/5 border-white/10 backdrop-blur-sm hover:border-cyan-500/20 transition-all">
+            <div className="flex items-start justify-between gap-3 mb-2">
+              <div className="flex items-center gap-2">
+                <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">
+                  {update.version}
+                </span>
+                <span className={`px-2 py-0.5 rounded-full text-xs font-medium border ${update.type === 'جديد' ? 'bg-green-500/20 text-green-400 border-green-500/30' : 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30'}`}>
+                  {update.type}
+                </span>
+              </div>
+              <span className="text-white/30 text-xs font-mono">{update.date}</span>
+            </div>
+            <h3 className="text-white font-bold text-sm mb-1">{update.title}</h3>
+            <p className="text-white/50 text-xs leading-relaxed">{update.description}</p>
+          </Card>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function Dashboard() {
   const [activeItem, setActiveItem] = useState('new-order');
   const [selectedService, setSelectedService] = useState<string | null>(null);
@@ -747,6 +918,8 @@ export default function Dashboard() {
           serviceId={selectedService || ''}
           onBack={() => setActiveItem('telegram-services')}
         />;
+      case 'search':
+        return <SearchView onNavigate={setActiveItem} />;
       case 'orders':
         return <OrdersView />;
       case 'settings':
@@ -755,6 +928,10 @@ export default function Dashboard() {
         return <SupportView />;
       case 'add-funds':
         return <AddFundsView />;
+      case 'terms':
+        return <TermsView />;
+      case 'updates':
+        return <UpdatesView />;
       default:
         return <NewOrderView onServiceClick={() => { }} />;
     }
@@ -769,7 +946,7 @@ export default function Dashboard() {
 
       <Sidebar activeItem={activeItem} onItemClick={setActiveItem} />
       <div className="flex-1 flex flex-col overflow-hidden relative z-10 bg-black/20 backdrop-blur-[2px]">
-        <Header onAddFundsClick={() => setActiveItem('add-funds')} />
+        <Header onAddFundsClick={() => setActiveItem('add-funds')} onNavigate={setActiveItem} />
         <main className="flex-1 overflow-y-auto custom-scrollbar pb-32 md:pb-0">
           {renderContent()}
         </main>

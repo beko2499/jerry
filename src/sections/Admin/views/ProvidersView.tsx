@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Trash2, Edit2, Link, Globe, Save, X } from 'lucide-react';
+import { Plus, Trash2, Edit2, Link, Globe } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,7 +15,7 @@ interface Provider {
 }
 
 export default function ProvidersView() {
-    const { isRTL, t } = useLanguage();
+    const { t } = useLanguage();
 
     // Mock Data
     const [providers, setProviders] = useState<Provider[]>([

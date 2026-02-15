@@ -4,24 +4,16 @@ import {
     FileText,
     Plus,
     ChevronRight,
-    Search,
-    MoreVertical,
     Edit,
     Trash,
     Save,
-    Image as ImageIcon,
     DollarSign
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useLanguage } from '@/contexts/LanguageContext';
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+
 
 // Types
 interface Category {
@@ -46,7 +38,7 @@ interface Service {
 }
 
 export default function ServicesView() {
-    const { isRTL, t } = useLanguage();
+    const { t } = useLanguage();
     const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
 
     // Mock Data
@@ -74,8 +66,7 @@ export default function ServicesView() {
     const [isAddingService, setIsAddingService] = useState(false);
     const [newCatName, setNewCatName] = useState('');
 
-    // New Service Form State
-    const [newService, setNewService] = useState<Partial<Service>>({});
+
 
     const handleAddCategory = () => {
         if (!newCatName) return;

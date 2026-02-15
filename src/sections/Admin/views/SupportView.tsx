@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function SupportView() {
-    const { isRTL, t } = useLanguage();
+    const { t } = useLanguage();
 
     const [supportConfig, setSupportConfig] = useState({
         whatsapp: '07800000000',

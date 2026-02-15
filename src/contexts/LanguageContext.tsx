@@ -169,7 +169,6 @@ export const translations = {
         noServices: 'No services in this category yet',
         // Support
         supportSettings: 'Support Settings',
-        saveChanges: 'Save Changes',
         contactChannels: 'Contact Channels',
         whatsappNumber: 'WhatsApp Number',
         telegramUsername: 'Telegram Username',
@@ -342,7 +341,6 @@ export const translations = {
         noServices: 'لا توجد خدمات في هذا القسم بعد',
         // Support
         supportSettings: 'إعدادات الدعم',
-        saveChanges: 'حفظ التغييرات',
         contactChannels: 'قنوات التواصل',
         whatsappNumber: 'رقم الواتساب',
         telegramUsername: 'ايميل التليجرام',
@@ -515,7 +513,6 @@ export const translations = {
         noServices: 'هیچ خزمەتگوزارییەک لەم بەشەدا نییە',
         // Support
         supportSettings: 'ڕێکخستنەکانی پشتگیری',
-        saveChanges: 'پاشەکەوتکردنی گۆڕانکارییەکان',
         contactChannels: 'کەناڵەکانی پەیوەندی',
         whatsappNumber: 'ژمارەی واتسئەپ',
         telegramUsername: 'ناوی بەکارهێنەری تێلێگرام',

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Power, CheckCircle, XCircle, Settings, Save } from 'lucide-react';
+import { CheckCircle, XCircle, Settings, Save } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,7 +17,7 @@ interface Gateway {
 }
 
 export default function GatewaysView() {
-    const { isRTL, t } = useLanguage();
+    const { t } = useLanguage();
 
     // Mock Data
     const [gateways, setGateways] = useState<Gateway[]>([

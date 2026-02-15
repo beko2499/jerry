@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function AdminHeader() {
-    const { lang, isRTL, t } = useLanguage();
+    const { isRTL, t } = useLanguage();
 
     return (
         <header className="h-20 border-b border-white/10 flex items-center justify-between px-8 bg-black/20 backdrop-blur-md sticky top-0 z-10">

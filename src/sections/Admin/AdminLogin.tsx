@@ -2,9 +2,10 @@ import { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Lock, ShieldCheck, AlertCircle, Globe } from 'lucide-react';
+import { Lock, AlertCircle, Globe } from 'lucide-react';
 import Starfield from '@/components/Starfield';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { Logo } from '@/components/Logo';
 
 interface AdminLoginProps {
     onLogin: () => void;
@@ -51,9 +52,7 @@ export default function AdminLogin({ onLogin }: AdminLoginProps) {
                     </div>
 
                     <div className="flex justify-center mb-4">
-                        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-red-500 to-purple-600 flex items-center justify-center shadow-lg shadow-red-500/20">
-                            <ShieldCheck className="w-8 h-8 text-white" />
-                        </div>
+                        <Logo />
                     </div>
                     <h1 className="text-3xl font-space font-bold text-white mb-2">
                         {t.adminAccess}

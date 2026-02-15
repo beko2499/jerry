@@ -26,15 +26,15 @@ export default function SupportView() {
     };
 
     return (
-        <div className="p-8 space-y-6">
+        <div className="p-4 md:p-8 space-y-6">
             <div className="flex justify-between items-center mb-6">
-                <h2 className="font-space text-3xl text-white tracking-wide">{t.supportSettings}</h2>
+                <h2 className="font-space text-2xl md:text-3xl text-white tracking-wide">{t.supportSettings}</h2>
                 <Button onClick={handleSave} className="bg-green-600 hover:bg-green-700 text-white gap-2">
                     <Save className="w-4 h-4" /> {t.saveChanges}
                 </Button>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
                 {/* Contact Methods */}
                 <Card className="p-6 bg-white/5 border border-white/10 backdrop-blur-md space-y-6">
                     <h3 className="text-xl font-bold text-white flex items-center gap-2">

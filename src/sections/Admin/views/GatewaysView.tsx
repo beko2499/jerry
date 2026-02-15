@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { CheckCircle, XCircle, Settings, Save } from 'lucide-react';
+import { CheckCircle, XCircle, Settings, Save, Plus } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -70,17 +70,19 @@ export default function GatewaysView() {
     };
 
     return (
-        <div className="p-8 space-y-6">
+        <div className="p-4 md:p-8 space-y-6">
             <div className="flex justify-between items-center mb-6">
-                <h2 className="font-space text-3xl text-white tracking-wide">{t.paymentGateways}</h2>
-                <Button className="bg-red-600 hover:bg-red-700 text-white">
-                    {t.addNewGateway}
+                <h2 className="font-space text-2xl md:text-3xl text-white tracking-wide">{t.paymentGateways}</h2>
+                <Button className="bg-red-600 hover:bg-red-700 text-white shadow-lg shadow-red-600/20">
+                    <Plus className="w-4 h-4 mr-2 md:hidden" />
+                    <span className="hidden md:inline">{t.addNewGateway}</span>
+                    <span className="md:hidden">Add</span>
                 </Button>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
                 {gateways.map((gateway) => (
-                    <Card key={gateway.id} className={`p-6 border transition-all ${gateway.isEnabled ? 'bg-white/5 border-white/10' : 'bg-white/5 border-red-500/20 opacity-70'} backdrop-blur-sm`}>
+                    <Card key={gateway.id} className={`p-4 md:p-6 border transition-all ${gateway.isEnabled ? 'bg-white/5 border-white/10' : 'bg-white/5 border-red-500/20 opacity-70'} backdrop-blur-sm`}>
                         {editingId === gateway.id ? (
                             // Edit Mode
                             <div className="space-y-4 animate-in fade-in">
@@ -125,18 +127,18 @@ export default function GatewaysView() {
                             <div className="space-y-4">
                                 <div className="flex justify-between items-start">
                                     <div className="flex items-center gap-4">
-                                        <div className="w-16 h-16 rounded-xl bg-white/10 p-2 border border-white/5">
+                                        <div className="w-14 h-14 md:w-16 md:h-16 rounded-xl bg-white/10 p-2 border border-white/5 shrink-0">
                                             <img src={gateway.image} alt={gateway.name} className="w-full h-full object-contain" />
                                         </div>
                                         <div>
-                                            <h3 className="text-xl font-bold text-white">{gateway.name}</h3>
-                                            <div className="flex items-center gap-2 mt-1">
+                                            <h3 className="text-lg md:text-xl font-bold text-white">{gateway.name}</h3>
+                                            <div className="flex items-center gap-2 mt-1 flex-wrap">
                                                 {gateway.isConnected ? (
-                                                    <span className="flex items-center gap-1 text-xs text-green-400 bg-green-500/10 px-2 py-0.5 rounded-full border border-green-500/20">
+                                                    <span className="flex items-center gap-1 text-[10px] md:text-xs text-green-400 bg-green-500/10 px-2 py-0.5 rounded-full border border-green-500/20">
                                                         <CheckCircle className="w-3 h-3" /> Connected
                                                     </span>
                                                 ) : (
-                                                    <span className="flex items-center gap-1 text-xs text-red-400 bg-red-500/10 px-2 py-0.5 rounded-full border border-red-500/20">
+                                                    <span className="flex items-center gap-1 text-[10px] md:text-xs text-red-400 bg-red-500/10 px-2 py-0.5 rounded-full border border-red-500/20">
                                                         <XCircle className="w-3 h-3" /> Offline
                                                     </span>
                                                 )}
@@ -146,18 +148,18 @@ export default function GatewaysView() {
                                     <Switch
                                         checked={gateway.isEnabled}
                                         onCheckedChange={() => toggleGateway(gateway.id)}
-                                        className="data-[state=checked]:bg-green-500"
+                                        className="data-[state=checked]:bg-green-500 ml-2"
                                     />
                                 </div>
 
-                                <div className="p-4 rounded-xl bg-black/20 border border-white/5 space-y-2">
-                                    <div className="flex justify-between text-sm">
+                                <div className="p-3 md:p-4 rounded-xl bg-black/20 border border-white/5 space-y-2">
+                                    <div className="flex flex-col md:flex-row md:justify-between text-sm gap-1">
                                         <span className="text-white/40">Destination:</span>
-                                        <span className="text-white font-mono">{gateway.destination}</span>
+                                        <span className="text-white font-mono break-all">{gateway.destination}</span>
                                     </div>
                                     <div className="text-sm">
                                         <span className="text-white/40 block mb-1">Cliché:</span>
-                                        <p className="text-white/80 italic">"{gateway.instructionText}"</p>
+                                        <p className="text-white/80 italic text-sm line-clamp-2">"{gateway.instructionText}"</p>
                                     </div>
                                 </div>
 
@@ -165,7 +167,7 @@ export default function GatewaysView() {
                                     onClick={() => startEdit(gateway)}
                                     className="w-full bg-white/5 hover:bg-white/10 text-white border border-white/10 hover:border-white/20"
                                 >
-                                    <Settings className="w-4 h-4 mr-2" /> Configure
+                                    <Settings className="w-4 h-4 mr-2" /> {t.configure}
                                 </Button>
                             </div>
                         )}

@@ -13,22 +13,22 @@ export default function StatsView() {
     ];
 
     return (
-        <div className="p-8 space-y-8">
-            <h2 className="font-space text-3xl text-white tracking-wide">{t.dashboardOverview}</h2>
+        <div className="p-4 md:p-8 space-y-6 md:space-y-8">
+            <h2 className="font-space text-2xl md:text-3xl text-white tracking-wide">{t.dashboardOverview}</h2>
 
             {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
                 {stats.map((stat, index) => {
                     const Icon = stat.icon;
                     return (
-                        <Card key={index} className={`p-6 border ${stat.bg} backdrop-blur-sm`}>
+                        <Card key={index} className={`p-3 md:p-6 border ${stat.bg} backdrop-blur-sm`}>
                             <div className="flex justify-between items-start">
                                 <div>
-                                    <p className="text-white/60 text-sm font-body mb-1">{stat.label}</p>
-                                    <h3 className="text-3xl font-bold text-white font-space">{stat.value}</h3>
+                                    <p className="text-white/60 text-xs md:text-sm font-body mb-1">{stat.label}</p>
+                                    <h3 className="text-xl md:text-3xl font-bold text-white font-space">{stat.value}</h3>
                                 </div>
-                                <div className={`p-3 rounded-xl bg-white/5 ${stat.color}`}>
-                                    <Icon className="w-6 h-6" />
+                                <div className={`p-1.5 md:p-3 rounded-xl bg-white/5 ${stat.color}`}>
+                                    <Icon className="w-4 h-4 md:w-6 md:h-6" />
                                 </div>
                             </div>
                         </Card>
@@ -37,15 +37,15 @@ export default function StatsView() {
             </div>
 
             {/* Recent Activity Placeholder */}
-            <Card className="p-6 bg-white/5 border-white/10 backdrop-blur-sm">
-                <h3 className="text-xl font-bold text-white mb-4">{t.recentActivity}</h3>
-                <div className="space-y-4">
+            <Card className="p-4 md:p-6 bg-white/5 border-white/10 backdrop-blur-sm">
+                <h3 className="text-base md:text-xl font-bold text-white mb-4">{t.recentActivity}</h3>
+                <div className="space-y-3 md:space-y-4">
                     {[1, 2, 3].map((i) => (
-                        <div key={i} className="flex items-center gap-4 p-4 rounded-xl bg-white/5 border border-white/5">
-                            <div className="w-10 h-10 rounded-full bg-cyan-500/20 flex items-center justify-center text-cyan-400 font-bold">U{i}</div>
+                        <div key={i} className="flex items-center gap-3 md:gap-4 p-2 md:p-4 rounded-xl bg-white/5 border border-white/5">
+                            <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-cyan-500/20 flex items-center justify-center text-cyan-400 font-bold text-xs md:text-sm">U{i}</div>
                             <div>
-                                <p className="text-white font-medium">User #{i} placed a new order</p>
-                                <p className="text-white/40 text-xs">2 minutes ago</p>
+                                <p className="text-white font-medium text-xs md:text-base">User #{i} placed a new order</p>
+                                <p className="text-white/40 text-[10px] md:text-xs">2 minutes ago</p>
                             </div>
                         </div>
                     ))}

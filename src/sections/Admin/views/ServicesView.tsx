@@ -4,22 +4,30 @@ import {
     FileText,
     Plus,
     ChevronRight,
-    Edit,
-    Trash,
+    Search,
+    ArrowLeft,
+    Image as ImageIcon,
+    MoreVertical,
+    Clock,
+    TrendingDown,
+    ShieldCheck,
+    Zap,
+    DollarSign,
     Save,
-    DollarSign
+    Trash,
+    Edit
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useLanguage } from '@/contexts/LanguageContext';
 
-
 // Types
 interface Category {
     id: string;
-    name: string;
+    nameKey: string; // Translation key
     image?: string;
+    icon?: React.ElementType; // For cases without image
     subCategories: Category[];
     services: Service[];
 }
@@ -31,212 +39,514 @@ interface Service {
     min: number;
     max: number;
     description: string;
-    thumbnail?: string;
     providerId: string;
-    providerLink?: string;
-    autoId: string; // Read-only internal ID
+    autoId: string;
+    speed?: string;
+    dropRate?: string;
+    guarantee?: string;
+    startTime?: string;
 }
 
 export default function ServicesView() {
-    const { t } = useLanguage();
-    const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
+    const { t, isRTL } = useLanguage();
 
-    // Mock Data
+    // Navigation State
+    // We store IDs path to easily reconstruct the view from source validation
+    const [currentPathIds, setCurrentPathIds] = useState<string[]>([]);
+
+    // Data State
     const [categories, setCategories] = useState<Category[]>([
         {
-            id: 'cat1',
-            name: 'Instagram Services',
+            id: 'cat_jerry',
+            nameKey: 'jerryServicesCard',
+            image: '/jerry-services.png',
             subCategories: [],
-            services: [
-                { id: 'srv1', name: 'Instagram Followers (HQ)', price: 0.50, min: 100, max: 10000, description: 'High quality followers', providerId: '1', autoId: '1001' }
-            ]
+            services: []
         },
         {
-            id: 'cat2',
-            name: 'Telegram Services',
-            subCategories: [
-                { id: 'sub1', name: 'Telegram Members', subCategories: [], services: [] }
-            ],
+            id: 'cat_cards',
+            nameKey: 'cardsSection',
+            image: '/cards.png',
+            subCategories: [],
+            services: []
+        },
+        {
+            id: 'cat_gaming',
+            nameKey: 'gamingSection',
+            image: '/games.png',
+            subCategories: [],
+            services: []
+        },
+        {
+            id: 'cat_subs',
+            nameKey: 'subscriptionsSection',
+            image: '/subscriptions.png',
+            subCategories: [],
+            services: []
+        },
+        {
+            id: 'cat_phone',
+            nameKey: 'phoneTopUp',
+            // No image in original for this one, typically icon
+            subCategories: [],
+            services: []
+        },
+        {
+            id: 'cat_misc',
+            nameKey: 'miscServices',
+            // No image in original for this one
+            subCategories: [],
             services: []
         }
     ]);
 
-    // UI State
-    const [isAddingCategory, setIsAddingCategory] = useState(false);
-    const [isAddingService, setIsAddingService] = useState(false);
-    const [newCatName, setNewCatName] = useState('');
+    // UI Modals State
+    const [isAddingFolder, setIsAddingFolder] = useState(false);
+    const [isAddingFile, setIsAddingFile] = useState(false);
+    const [newFolderName, setNewFolderName] = useState('');
+    const [newFolderImage, setNewFolderImage] = useState('');
 
+    // Service Form State
+    const [newService, setNewService] = useState<Partial<Service>>({
+        name: '',
+        price: 0,
+        min: 100,
+        max: 1000,
+        description: '',
+        providerId: '',
+        speed: '',
+        dropRate: '',
+        guarantee: '',
+        startTime: ''
+    });
 
+    // Determine Current View Data
+    const getCurrentCategory = (ids: string[], cats: Category[]): Category | null => {
+        if (ids.length === 0) return null;
+        let current: Category | undefined = cats.find(c => c.id === ids[0]);
+        for (let i = 1; i < ids.length; i++) {
+            if (!current) break;
+            current = current.subCategories.find(c => c.id === ids[i]);
+        }
+        return current || null;
+    };
 
-    const handleAddCategory = () => {
-        if (!newCatName) return;
+    const currentCategory = getCurrentCategory(currentPathIds, categories);
+    const currentViewItems = currentCategory ? { folders: currentCategory.subCategories, files: currentCategory.services } : { folders: categories, files: [] };
+
+    // Helpers
+    const getCategoryName = (cat: Category) => {
+        return (t as any)[cat.nameKey] || cat.nameKey;
+    };
+
+    // Recursive Update
+    const updateCategoryRecursive = (cats: Category[], targetId: string | null, updateFn: (cat: Category) => Category): Category[] => {
+        if (targetId === null) return cats; // Should be handled by caller for root
+
+        return cats.map(cat => {
+            if (cat.id === targetId) {
+                return updateFn(cat);
+            }
+            if (cat.subCategories.length > 0) {
+                return {
+                    ...cat,
+                    subCategories: updateCategoryRecursive(cat.subCategories, targetId, updateFn)
+                };
+            }
+            return cat;
+        });
+    };
+
+    // Handlers
+    const handleOpenFolder = (category: Category) => {
+        setCurrentPathIds([...currentPathIds, category.id]);
+    };
+
+    const handleBreadcrumbClick = (index: number) => {
+        setCurrentPathIds(currentPathIds.slice(0, index + 1));
+    };
+
+    const handleCreateFolder = () => {
+        if (!newFolderName) return;
         const newCat: Category = {
             id: Date.now().toString(),
-            name: newCatName,
+            nameKey: newFolderName, // User input name treated as key/value
+            image: newFolderImage,
             subCategories: [],
             services: []
         };
 
-        if (selectedCategory) {
-            // Add as sub-category
-            // Note: For simplicity in this mock, this logic might need deep update recursion 
-            // but here we just update topmost or selected for demo
-            alert("Sub-category logic would go here in full implementation");
-        } else {
+        if (!currentCategory) {
+            // Add to root
             setCategories([...categories, newCat]);
+        } else {
+            // Add to current nested category
+            const updatedCats = updateCategoryRecursive(categories, currentCategory.id, (cat) => ({
+                ...cat,
+                subCategories: [...cat.subCategories, newCat]
+            }));
+            setCategories(updatedCats);
         }
-        setNewCatName('');
-        setIsAddingCategory(false);
+
+        setNewFolderName('');
+        setNewFolderImage('');
+        setIsAddingFolder(false);
+    };
+
+    const handleCreateService = () => {
+        if (!newService.name || !currentCategory) return;
+
+        const serviceToAdd: Service = {
+            id: Date.now().toString(),
+            name: newService.name || 'New Service',
+            price: newService.price || 0,
+            min: newService.min || 100,
+            max: newService.max || 1000,
+            description: newService.description || '',
+            providerId: newService.providerId || '',
+            autoId: Math.floor(1000 + Math.random() * 9000).toString(),
+            speed: newService.speed,
+            dropRate: newService.dropRate,
+            guarantee: newService.guarantee,
+            startTime: newService.startTime
+        };
+
+        const updatedCats = updateCategoryRecursive(categories, currentCategory.id, (cat) => ({
+            ...cat,
+            services: [...cat.services, serviceToAdd]
+        }));
+        setCategories(updatedCats);
+
+        setNewService({
+            name: '',
+            price: 0,
+            min: 100,
+            max: 1000,
+            description: '',
+            providerId: '',
+            speed: '',
+            dropRate: '',
+            guarantee: '',
+            startTime: ''
+        });
+        setIsAddingFile(false);
     };
 
     return (
-        <div className="p-8 h-full flex flex-col">
-            <div className="flex justify-between items-center mb-6">
-                <h2 className="font-space text-3xl text-white tracking-wide">{t.servicesCategories}</h2>
-            </div>
-
-            <div className="flex gap-6 h-[calc(100vh-200px)]">
-                {/* Left Column: Categories Tree */}
-                <Card className="w-1/3 bg-white/5 border border-white/10 backdrop-blur-md flex flex-col">
-                    <div className="p-4 border-b border-white/10 flex justify-between items-center bg-black/20">
-                        <span className="font-bold text-white">{t.servicesCategories}</span>
-                        <Button size="sm" variant="ghost" onClick={() => { setSelectedCategory(null); setIsAddingCategory(true); }}>
-                            <Plus className="w-4 h-4" />
+        <div className="p-4 md:p-8 h-full flex flex-col">
+            {/* Header & Navigation */}
+            <div className="flex flex-col gap-4 mb-6">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <h2 className="font-space text-xl md:text-3xl text-white tracking-wide break-words max-w-full">
+                        {currentCategory ? getCategoryName(currentCategory) : t.servicesCategories}
+                    </h2>
+                    <div className="flex flex-wrap gap-2 w-full md:w-auto">
+                        <Button onClick={() => setIsAddingFolder(true)} className="bg-cyan-600 hover:bg-cyan-700 text-white gap-2 flex-1 md:flex-none">
+                            <Plus className="w-4 h-4" /> {t.add} {t.folderName}
                         </Button>
+                        {currentCategory && (
+                            <Button onClick={() => setIsAddingFile(true)} className="bg-green-600 hover:bg-green-700 text-white gap-2 flex-1 md:flex-none">
+                                <Plus className="w-4 h-4" /> {t.add} {t.serviceName}
+                            </Button>
+                        )}
                     </div>
+                </div>
 
-                    <div className="flex-1 overflow-y-auto p-2 space-y-1 custom-scrollbar">
-                        {/* Add Category Input */}
-                        {isAddingCategory && !selectedCategory && (
-                            <div className="p-2 mb-2 flex gap-2 animate-in fade-in">
-                                <Input
-                                    value={newCatName}
-                                    onChange={e => setNewCatName(e.target.value)}
-                                    placeholder={t.categoryName}
-                                    className="h-8 bg-black/40 border-white/20 text-white text-xs"
-                                    autoFocus
-                                />
-                                <Button size="sm" className="h-8 w-8 p-0 bg-green-600" onClick={handleAddCategory}>
-                                    <Save className="w-3 h-3" />
+                {/* Breadcrumbs / File Path */}
+                <div className="flex items-center gap-2 p-3 bg-white/5 border border-white/10 rounded-xl overflow-x-auto">
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setCurrentPathIds([])}
+                        className={`text-white/60 hover:text-white ${currentPathIds.length === 0 ? 'bg-white/10 text-white' : ''}`}
+                    >
+                        Home
+                    </Button>
+                    {currentPathIds.map((id, index) => {
+                        // Reconstruct path object for display
+                        // This is a bit inefficient but safe for display
+                        const pathSoFar = currentPathIds.slice(0, index + 1);
+                        const cat = getCurrentCategory(pathSoFar, categories);
+                        if (!cat) return null;
+
+                        return (
+                            <div key={id} className="flex items-center gap-2 shrink-0">
+                                <ChevronRight className={`w-4 h-4 text-white/40 ${isRTL ? 'rotate-180' : ''}`} />
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleBreadcrumbClick(index)}
+                                    className={`text-white/60 hover:text-white ${index === currentPathIds.length - 1 ? 'bg-white/10 text-white font-bold' : ''}`}
+                                >
+                                    {getCategoryName(cat)}
                                 </Button>
                             </div>
-                        )}
+                        );
+                    })}
+                </div>
+            </div>
 
-                        {categories.map(cat => (
-                            <div
-                                key={cat.id}
-                                onClick={() => setSelectedCategory(cat)}
-                                className={`p-3 rounded-lg cursor-pointer flex items-center justify-between transition-colors ${selectedCategory?.id === cat.id ? 'bg-cyan-500/20 border border-cyan-500/30' : 'hover:bg-white/5 border border-transparent'}`}
-                            >
-                                <div className="flex items-center gap-3">
-                                    <Folder className={`w-4 h-4 ${selectedCategory?.id === cat.id ? 'text-cyan-400' : 'text-white/40'}`} />
-                                    <span className={`text-sm ${selectedCategory?.id === cat.id ? 'text-white font-bold' : 'text-white/80'}`}>{cat.name}</span>
-                                </div>
-                                <ChevronRight className="w-3 h-3 text-white/20" />
+            {/* Content Area */}
+            <div className="flex-1 overflow-y-auto custom-scrollbar">
+
+                {/* New Folder Modal (Inline) */}
+                {isAddingFolder && (
+                    <Card className="p-4 mb-6 bg-black/40 border border-cyan-500/30 animate-in fade-in">
+                        <h4 className="text-white font-bold mb-4">{t.add} {t.folderName}</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <label className="text-xs text-white/40 mb-1 block">{t.folderName}</label>
+                                <Input
+                                    value={newFolderName}
+                                    onChange={e => setNewFolderName(e.target.value)}
+                                    className="bg-black/40 border-white/10 text-white"
+                                    autoFocus
+                                />
                             </div>
-                        ))}
-                    </div>
-                </Card>
+                            <div>
+                                <label className="text-xs text-white/40 mb-1 block">{t.serviceImage} (URL)</label>
+                                <Input
+                                    value={newFolderImage}
+                                    onChange={e => setNewFolderImage(e.target.value)}
+                                    className="bg-black/40 border-white/10 text-white"
+                                    placeholder="https://..."
+                                />
+                            </div>
+                        </div>
+                        <div className="flex justify-end gap-2">
+                            <Button variant="ghost" size="sm" onClick={() => setIsAddingFolder(false)} className="text-white/60">{t.cancel}</Button>
+                            <Button size="sm" onClick={handleCreateFolder} className="bg-cyan-600 text-white">{t.save}</Button>
+                        </div>
+                    </Card>
+                )}
 
-                {/* Right Column: Content (Services or Subcats) */}
-                <Card className="flex-1 bg-white/5 border border-white/10 backdrop-blur-md flex flex-col overflow-hidden">
-                    {selectedCategory ? (
-                        <>
-                            <div className="p-6 border-b border-white/10 bg-black/20">
-                                <div className="flex justify-between items-start">
-                                    <div>
-                                        <h3 className="text-2xl font-bold text-white mb-1">{selectedCategory.name}</h3>
-                                        <p className="text-white/40 text-sm">ID: {selectedCategory.id} • {selectedCategory.services.length} {t.adminServices}</p>
+                {/* MIXED View: Folders and Files */}
+                <div className="space-y-8">
+
+                    {/* Folders Grid */}
+                    {currentViewItems.folders.length > 0 && (
+                        <div>
+                            <h3 className="text-white/40 text-sm font-bold mb-3 uppercase tracking-wider">{t.folderName}s</h3>
+                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
+                                {currentViewItems.folders.map(cat => (
+                                    <div
+                                        key={cat.id}
+                                        onClick={() => handleOpenFolder(cat)}
+                                        className="group cursor-pointer"
+                                    >
+                                        <Card className="relative aspect-square mb-2 bg-white/5 border-white/10 hover:border-cyan-500/50 hover:bg-white/10 transition-all overflow-hidden">
+                                            {cat.image ? (
+                                                <img src={cat.image} alt={cat.nameKey} className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
+                                            ) : (
+                                                <div className="w-full h-full flex items-center justify-center bg-white/5">
+                                                    <Folder className="w-16 h-16 text-cyan-400/50 group-hover:text-cyan-400 transition-colors" />
+                                                </div>
+                                            )}
+                                            <div className="absolute inset-x-0 bottom-0 p-3 bg-gradient-to-t from-black/80 to-transparent">
+                                                <p className="text-xs text-white/60 text-right">{cat.subCategories.length + cat.services.length} items</p>
+                                            </div>
+                                        </Card>
+                                        <h3 className="text-center text-white font-medium group-hover:text-cyan-400 transition-colors truncate px-2">{getCategoryName(cat)}</h3>
                                     </div>
-                                    <div className="flex gap-2">
-                                        <Button variant="outline" className="border-white/10 text-white hover:bg-white/10">
-                                            {t.edit}
-                                        </Button>
-                                        <Button className="bg-gradient-to-r from-cyan-600 to-blue-600 text-white border-0 shadow-lg shadow-cyan-500/20" onClick={() => setIsAddingService(true)}>
-                                            <Plus className="w-4 h-4 mr-2" /> {t.createService}
-                                        </Button>
-                                    </div>
-                                </div>
+                                ))}
                             </div>
-
-                            <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
-                                {isAddingService && (
-                                    <Card className="p-4 mb-6 bg-black/20 border border-dashed border-cyan-500/30 animate-in zoom-in-95">
-                                        <h4 className="text-white font-bold mb-4">{t.createService}</h4>
-                                        <div className="grid grid-cols-2 gap-4 mb-4">
-                                            <div className="col-span-2">
-                                                <label className="text-xs text-white/40 mb-1 block">{t.serviceName}</label>
-                                                <Input className="bg-black/40 border-white/10 text-white" placeholder="e.g. 1000 Likes" />
-                                            </div>
-                                            <div>
-                                                <label className="text-xs text-white/40 mb-1 block">{t.amount} / 1000</label>
-                                                <div className="relative">
-                                                    <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 text-white/40" />
-                                                    <Input className="pl-8 bg-black/40 border-white/10 text-white" placeholder="0.00" type="number" />
-                                                </div>
-                                            </div>
-                                            <div>
-                                                <label className="text-xs text-white/40 mb-1 block">{t.minMax}</label>
-                                                <div className="flex gap-2">
-                                                    <Input className="bg-black/40 border-white/10 text-white" placeholder="Min" type="number" />
-                                                    <Input className="bg-black/40 border-white/10 text-white" placeholder="Max" type="number" />
-                                                </div>
-                                            </div>
-                                            <div className="col-span-2">
-                                                <label className="text-xs text-white/40 mb-1 block">{t.providerIntegration}</label>
-                                                <div className="flex gap-2">
-                                                    <Input className="flex-1 bg-black/40 border-white/10 text-white" placeholder="Provider ID" />
-                                                    <Button variant="outline" className="border-white/10 text-white/60">{t.autoFetch}</Button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div className="flex justify-end gap-2">
-                                            <Button variant="ghost" size="sm" onClick={() => setIsAddingService(false)} className="text-white/60">{t.cancel}</Button>
-                                            <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white">{t.save}</Button>
-                                        </div>
-                                    </Card>
-                                )}
-
-                                <div className="space-y-3">
-                                    {selectedCategory.services.length === 0 && !isAddingService && (
-                                        <div className="text-center py-20 text-white/20">
-                                            <FileText className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                                            <p>No services in this category yet.</p>
-                                        </div>
-                                    )}
-
-                                    {selectedCategory.services.map(srv => (
-                                        <div key={srv.id} className="p-4 rounded-xl bg-white/5 border border-white/5 hover:border-white/20 transition-all flex items-center justify-between group">
-                                            <div className="flex items-center gap-4">
-                                                <div className="w-10 h-10 rounded-lg bg-black/30 flex items-center justify-center text-white/40">
-                                                    <span className="font-mono text-xs">#{srv.autoId}</span>
-                                                </div>
-                                                <div>
-                                                    <h4 className="text-white font-bold">{srv.name}</h4>
-                                                    <p className="text-white/40 text-xs">${srv.price} / 1000 • Min: {srv.min} - Max: {srv.max}</p>
-                                                </div>
-                                            </div>
-
-                                            <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <Button size="icon" variant="ghost" className="h-8 w-8 text-white/40 hover:text-cyan-400">
-                                                    <Edit className="w-4 h-4" />
-                                                </Button>
-                                                <Button size="icon" variant="ghost" className="h-8 w-8 text-white/40 hover:text-red-400">
-                                                    <Trash className="w-4 h-4" />
-                                                </Button>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        </>
-                    ) : (
-                        <div className="flex-1 flex flex-col items-center justify-center text-white/30">
-                            <Folder className="w-16 h-16 mb-4 opacity-50" />
-                            <p>Select a category to manage services</p>
                         </div>
                     )}
-                </Card>
+
+                    {/* Files Grid (Services) */}
+                    {(currentViewItems.files.length > 0 || isAddingFile) && (
+                        <div>
+                            {currentCategory && <h3 className="text-white/40 text-sm font-bold mb-3 uppercase tracking-wider">{t.servicesCategories}</h3>}
+
+                            {isAddingFile && (
+                                <Card className="p-4 bg-black/40 border border-green-500/30 animate-in fade-in mb-6">
+                                    <h4 className="text-white font-bold mb-4">{t.createService}</h4>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                        <div className="col-span-1 md:col-span-2">
+                                            <label className="text-xs text-white/40 mb-1 block">{t.serviceName}</label>
+                                            <Input
+                                                value={newService.name}
+                                                onChange={e => setNewService({ ...newService, name: e.target.value })}
+                                                className="bg-black/40 border-white/10 text-white"
+                                                placeholder="e.g. Instagram Followers (HQ)"
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <label className="text-xs text-white/40 mb-1 block">{t.pricePer1000}</label>
+                                            <div className="relative">
+                                                <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 text-white/40" />
+                                                <Input
+                                                    type="number"
+                                                    value={newService.price}
+                                                    onChange={e => setNewService({ ...newService, price: parseFloat(e.target.value) })}
+                                                    className="pl-8 bg-black/40 border-white/10 text-white"
+                                                    placeholder="0.00"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className="flex gap-2">
+                                            <div className="flex-1">
+                                                <label className="text-xs text-white/40 mb-1 block">Min</label>
+                                                <Input
+                                                    type="number"
+                                                    value={newService.min}
+                                                    onChange={e => setNewService({ ...newService, min: parseInt(e.target.value) })}
+                                                    className="bg-black/40 border-white/10 text-white"
+                                                    placeholder="100"
+                                                />
+                                            </div>
+                                            <div className="flex-1">
+                                                <label className="text-xs text-white/40 mb-1 block">Max</label>
+                                                <Input
+                                                    type="number"
+                                                    value={newService.max}
+                                                    onChange={e => setNewService({ ...newService, max: parseInt(e.target.value) })}
+                                                    className="bg-black/40 border-white/10 text-white"
+                                                    placeholder="10000"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        {/* New SMM Fields */}
+                                        <div>
+                                            <label className="text-xs text-white/40 mb-1 block">{t.startTime}</label>
+                                            <div className="relative">
+                                                <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 text-white/40" />
+                                                <Input
+                                                    value={newService.startTime}
+                                                    onChange={e => setNewService({ ...newService, startTime: e.target.value })}
+                                                    className="pl-8 bg-black/40 border-white/10 text-white"
+                                                    placeholder="e.g. Instant - 1 Hour"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <label className="text-xs text-white/40 mb-1 block">{t.speed}</label>
+                                            <div className="relative">
+                                                <Zap className="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 text-white/40" />
+                                                <Input
+                                                    value={newService.speed}
+                                                    onChange={e => setNewService({ ...newService, speed: e.target.value })}
+                                                    className="pl-8 bg-black/40 border-white/10 text-white"
+                                                    placeholder="e.g. 10k/Day"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <label className="text-xs text-white/40 mb-1 block">{t.dropRate}</label>
+                                            <div className="relative">
+                                                <TrendingDown className="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 text-white/40" />
+                                                <Input
+                                                    value={newService.dropRate}
+                                                    onChange={e => setNewService({ ...newService, dropRate: e.target.value })}
+                                                    className="pl-8 bg-black/40 border-white/10 text-white"
+                                                    placeholder="e.g. Non-Drop, 5%"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <label className="text-xs text-white/40 mb-1 block">{t.guarantee}</label>
+                                            <div className="relative">
+                                                <ShieldCheck className="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 text-white/40" />
+                                                <Input
+                                                    value={newService.guarantee}
+                                                    onChange={e => setNewService({ ...newService, guarantee: e.target.value })}
+                                                    className="pl-8 bg-black/40 border-white/10 text-white"
+                                                    placeholder="e.g. 30 Days, Lifetime"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className="col-span-1 md:col-span-2">
+                                            <label className="text-xs text-white/40 mb-1 block">{t.serviceDesc}</label>
+                                            <Input
+                                                value={newService.description}
+                                                onChange={e => setNewService({ ...newService, description: e.target.value })}
+                                                className="bg-black/40 border-white/10 text-white"
+                                                placeholder="Service description..."
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <label className="text-xs text-white/40 mb-1 block">{t.providerIntegration}</label>
+                                            <div className="flex gap-2">
+                                                <Input
+                                                    value={newService.providerId}
+                                                    onChange={e => setNewService({ ...newService, providerId: e.target.value })}
+                                                    className="flex-1 bg-black/40 border-white/10 text-white"
+                                                    placeholder="Provider ID"
+                                                />
+                                                <Button variant="outline" className="border-white/10 text-white/60">{t.autoFetch}</Button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="flex justify-end gap-2">
+                                        <Button variant="ghost" size="sm" onClick={() => setIsAddingFile(false)} className="text-white/60">{t.cancel}</Button>
+                                        <Button size="sm" onClick={handleCreateService} className="bg-green-600 hover:bg-green-700 text-white">{t.save}</Button>
+                                    </div>
+                                </Card>
+                            )}
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                                {currentViewItems.files.map(srv => (
+                                    <Card key={srv.id} className="bg-white/5 border border-white/10 hover:border-white/20 p-4 transition-all group relative overflow-hidden">
+                                        <div className="flex justify-between items-start mb-3">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-10 h-10 rounded-lg bg-cyan-500/20 flex items-center justify-center text-cyan-400">
+                                                    <FileText className="w-5 h-5" />
+                                                </div>
+                                                <div>
+                                                    <h4 className="font-bold text-white line-clamp-1">{srv.name}</h4>
+                                                    <span className="text-xs font-mono text-white/40">ID: {srv.autoId}</span>
+                                                </div>
+                                            </div>
+                                            <div className="flex gap-1">
+                                                <Button size="icon" variant="ghost" className="h-8 w-8 text-white/40 hover:text-white">
+                                                    <Edit className="w-4 h-4" />
+                                                </Button>
+                                            </div>
+                                        </div>
+
+                                        <div className="grid grid-cols-2 gap-2 text-xs mb-3">
+                                            <div className="bg-black/20 p-2 rounded flex items-center gap-2">
+                                                <DollarSign className="w-3 h-3 text-green-400" />
+                                                <span className="text-white">${srv.price}</span>
+                                            </div>
+                                            <div className="bg-black/20 p-2 rounded flex items-center gap-2">
+                                                <Zap className="w-3 h-3 text-yellow-400" />
+                                                <span className="text-white truncate">{srv.speed || 'N/A'}</span>
+                                            </div>
+                                            <div className="bg-black/20 p-2 rounded flex items-center gap-2">
+                                                <TrendingDown className="w-3 h-3 text-red-400" />
+                                                <span className="text-white truncate">{srv.dropRate || 'N/A'}</span>
+                                            </div>
+                                            <div className="bg-black/20 p-2 rounded flex items-center gap-2">
+                                                <ShieldCheck className="w-3 h-3 text-blue-400" />
+                                                <span className="text-white truncate">{srv.guarantee || 'N/A'}</span>
+                                            </div>
+                                        </div>
+
+                                        <p className="text-white/60 text-xs line-clamp-2">{srv.description}</p>
+                                    </Card>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Empty State */}
+                    {currentViewItems.folders.length === 0 && currentViewItems.files.length === 0 && !isAddingFile && (
+                        <div className="col-span-full py-20 text-center text-white/30">
+                            <Folder className="w-16 h-16 mx-auto mb-4 opacity-30" />
+                            <p>{t.noServices || "Empty Folder"}</p>
+                        </div>
+                    )}
+
+                </div>
             </div>
         </div>
     );

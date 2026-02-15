@@ -175,7 +175,15 @@ export const translations = {
         supportEmail: 'Support Email',
         messagesCliches: 'Messages & Clichés',
         supportIntroMessage: 'Support Intro Message',
-        ticketAutoReply: 'Ticket Auto-Reply',
+        // Provider Instructions
+        howToConnect: 'How to connect:',
+        connectInstructions: 'Copy the API URL and API Key from your provider\'s "API" or "Settings" page.',
+        panelName: 'Panel Name / Domain',
+        // Service Manager
+        startTime: 'Start Time',
+        serviceImage: 'Service Image',
+        folderName: 'Folder Name',
+        files: 'Files',
     },
     ar: {
         dir: 'rtl',
@@ -348,6 +356,17 @@ export const translations = {
         messagesCliches: 'الرسائل والنصوص الجاهزة',
         supportIntroMessage: 'رسالة ترحيب الدعم',
         ticketAutoReply: 'الرد التلقائي للتذاكر',
+
+        // Provider Instructions
+        howToConnect: 'طريقة الربط:',
+        connectInstructions: 'انسخ رابط API ومفتاح API من صفحة "API" أو "الإعدادات" الخاصة بالمزود.',
+        panelName: 'اسم اللوحة / النطاق',
+
+        // Service Manager
+        startTime: 'وقت البدء',
+        serviceImage: 'صورة الخدمة',
+        folderName: 'اسم المجلد',
+        files: 'ملفات',
     },
     ku: {
         dir: 'rtl',
@@ -520,6 +539,17 @@ export const translations = {
         messagesCliches: 'نامە و دەقە ئامادەکان',
         supportIntroMessage: 'پەیامی بەخێرهاتنی پشتگیری',
         ticketAutoReply: 'وەڵامدانەوەی ئۆتۆماتیکی تیکێت',
+
+        // Provider Instructions
+        howToConnect: 'چۆن پەیوەست دەبێت:',
+        connectInstructions: 'بەستەری API و کلیلی API کۆپی بکە لە پەڕەی "API" یان "Settings"ی دابینکەرەکەت.',
+        panelName: 'ناوی پانێڵ / دۆمەین',
+
+        // Service Manager
+        startTime: 'کاتی دەستپێکردن',
+        serviceImage: 'وێنەی خزمەتگوزاری',
+        folderName: 'ناوی فۆڵدەر',
+        files: 'فایلەکان',
     },
 };
 

@@ -47,7 +47,7 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
 
             <div className="flex-1 flex flex-col overflow-hidden relative z-10 bg-black/20 backdrop-blur-[2px]">
                 <AdminHeader />
-                <main className="flex-1 overflow-y-auto custom-scrollbar">
+                <main className="flex-1 overflow-y-auto custom-scrollbar pb-32 md:pb-0">
                     {renderContent()}
                 </main>
             </div>

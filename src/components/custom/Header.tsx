@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Search, Bell, Plus, LogOut, Menu, X, Wallet, MessageCircle, FileText, Megaphone } from 'lucide-react';
+import { Search, Bell, Plus, LogOut, Menu, X, Wallet, MessageCircle, FileText, Megaphone, Globe, ShoppingBag, ClipboardList } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -9,19 +9,22 @@ import { useLanguage } from '@/contexts/LanguageContext';
 interface HeaderProps {
   onAddFundsClick?: () => void;
   onNavigate?: (item: string) => void;
+  showMobileMenu: boolean;
+  setShowMobileMenu: (show: boolean) => void;
 }
 
-export default function Header({ onAddFundsClick, onNavigate }: HeaderProps) {
+export default function Header({ onAddFundsClick, onNavigate, showMobileMenu, setShowMobileMenu }: HeaderProps) {
   const { user, logout } = useAuth();
-  const { t, isRTL } = useLanguage();
+  const { t, isRTL, lang, toggleLanguage } = useLanguage();
   const [showUserMenu, setShowUserMenu] = useState(false);
-  const [showMobileMenu, setShowMobileMenu] = useState(false);
 
   const initials = user
     ? `${user.firstName.charAt(0)}${user.lastName.charAt(0)}`
     : '?';
 
   const mobileMenuItems = [
+    { id: 'new-order', label: t.newOrder || 'خدماتنا', icon: ShoppingBag, color: 'text-cyan-400' },
+    { id: 'orders', label: t.myOrders || 'سجل الطلبات', icon: ClipboardList, color: 'text-orange-400' },
     { id: 'add-funds', label: t.addFunds || 'شحن الرصيد', icon: Wallet, color: 'text-green-400' },
     { id: 'support', label: t.support || 'الدعم', icon: MessageCircle, color: 'text-yellow-400' },
     { id: 'terms', label: t.termsOfService || 'شروط الاستخدام', icon: FileText, color: 'text-blue-400' },
@@ -30,14 +33,14 @@ export default function Header({ onAddFundsClick, onNavigate }: HeaderProps) {
 
   return (
     <>
-      <header className="h-14 md:h-20 glass border-b border-white/10 px-3 md:px-6 flex items-center justify-between sticky top-0 z-30 bg-black/40 backdrop-blur-xl">
+      <header dir="ltr" className="h-14 md:h-20 glass border-b border-white/10 px-3 md:px-6 flex items-center justify-between sticky top-0 z-30 bg-black/40 backdrop-blur-xl">
 
-        {/* Mobile: Hamburger Menu (Left/Start) */}
+        {/* Mobile: Hamburger Menu — ALWAYS on the left via dir=ltr */}
         <Button
           variant="ghost"
           size="icon"
           onClick={() => setShowMobileMenu(true)}
-          className="md:hidden w-9 h-9 rounded-lg bg-white/5 hover:bg-white/10 text-white/70 hover:text-white transition-all"
+          className="md:hidden w-9 h-9 rounded-lg bg-white/5 hover:bg-white/10 text-white/70 hover:text-white transition-all shrink-0"
         >
           <Menu className="w-5 h-5" />
         </Button>
@@ -54,11 +57,11 @@ export default function Header({ onAddFundsClick, onNavigate }: HeaderProps) {
           </div>
         </div>
 
-        {/* Mobile: Title (Center/Right) */}
-        <h1 className="md:hidden font-space text-lg font-bold text-white tracking-[0.2em] bg-gradient-to-r from-white to-cyan-300 bg-clip-text text-transparent">JERRY</h1>
+        {/* Mobile: Title (Center) */}
+        <h1 className="md:hidden font-space text-lg font-bold text-white tracking-[0.2em] bg-gradient-to-r from-white to-cyan-300 bg-clip-text text-transparent flex-1 text-center">JERRY</h1>
 
         {/* Right Section */}
-        <div className="flex items-center gap-2 md:gap-4">
+        <div className="flex items-center gap-2 md:gap-4 shrink-0">
 
           {/* Add Balance Button */}
           <Button
@@ -128,17 +131,17 @@ export default function Header({ onAddFundsClick, onNavigate }: HeaderProps) {
         </div>
       </header>
 
-      {/* Mobile Slide-Out Drawer */}
+      {/* Mobile Slide-Out Drawer — ALWAYS from the LEFT side */}
       {showMobileMenu && (
         <>
           {/* Backdrop */}
           <div
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] md:hidden"
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[200] md:hidden"
             onClick={() => setShowMobileMenu(false)}
           />
 
-          {/* Drawer */}
-          <div className={`fixed top-0 ${isRTL ? 'right-0' : 'left-0'} h-full w-72 bg-[#0d0d1a] border-${isRTL ? 'l' : 'r'} border-white/10 z-[70] md:hidden animate-in ${isRTL ? 'slide-in-from-right' : 'slide-in-from-left'} duration-300`}>
+          {/* Drawer — always left-0 */}
+          <div className="fixed top-0 left-0 h-full w-72 bg-[#0d0d1a] border-r border-white/10 z-[210] md:hidden animate-in slide-in-from-left duration-300 flex flex-col">
 
             {/* Drawer Header */}
             <div className="p-5 border-b border-white/10 flex items-center justify-between">
@@ -166,7 +169,7 @@ export default function Header({ onAddFundsClick, onNavigate }: HeaderProps) {
             </div>
 
             {/* Menu Items */}
-            <nav className="p-3 space-y-1">
+            <nav className="p-3 space-y-1 flex-1 overflow-y-auto">
               {mobileMenuItems.map(item => {
                 const Icon = item.icon;
                 return (
@@ -187,10 +190,26 @@ export default function Header({ onAddFundsClick, onNavigate }: HeaderProps) {
                   </button>
                 );
               })}
+
+              {/* Language Toggle */}
+              <button
+                onClick={() => {
+                  toggleLanguage();
+                }}
+                className="w-full flex items-center justify-between px-4 py-3.5 rounded-xl text-white/70 hover:text-white hover:bg-white/5 transition-all"
+              >
+                <div className="flex items-center gap-3">
+                  <Globe className="w-5 h-5 text-indigo-400" />
+                  <span className="font-body text-sm">{lang === 'ar' ? 'اللغة' : 'Language'}</span>
+                </div>
+                <span className="text-xs px-2 py-1 rounded-full bg-white/10 text-white/60 font-space">
+                  {lang === 'ar' ? 'EN' : 'عربي'}
+                </span>
+              </button>
             </nav>
 
-            {/* Logout at Bottom */}
-            <div className="absolute bottom-8 left-0 right-0 px-3">
+            {/* Logout — pinned to bottom, safe from being cut off */}
+            <div className="p-3 border-t border-white/10">
               <button
                 onClick={() => {
                   setShowMobileMenu(false);

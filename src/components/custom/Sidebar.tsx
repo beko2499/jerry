@@ -16,9 +16,10 @@ import useDetectKeyboard from '@/hooks/useDetectKeyboard';
 interface SidebarProps {
   activeItem: string;
   onItemClick: (item: string) => void;
+  hideBottomBar?: boolean;
 }
 
-export default function Sidebar({ activeItem, onItemClick }: SidebarProps) {
+export default function Sidebar({ activeItem, onItemClick, hideBottomBar }: SidebarProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const { t } = useLanguage();
 
@@ -89,8 +90,8 @@ export default function Sidebar({ activeItem, onItemClick }: SidebarProps) {
       </aside>
 
       {/* Mobile Floating Bottom Bar */}
-      {!useDetectKeyboard() && (
-        <div className="md:hidden fixed bottom-12 left-6 right-6 z-50">
+      {!useDetectKeyboard() && !hideBottomBar && (
+        <div className="md:hidden fixed bottom-12 left-6 right-6 z-40">
           <div className="bg-black/80 backdrop-blur-xl border border-white/10 rounded-2xl shadow-[0_0_30px_rgba(0,0,0,0.5)] h-16 px-4 flex items-center justify-between relative">
 
             {/* Left Side: Search & Orders */}

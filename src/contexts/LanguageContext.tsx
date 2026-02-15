@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
 
-export type Language = 'en' | 'ar' | 'ku';
+export type Language = 'en' | 'ar';
 
 // All translations for the entire app
 export const translations = {
@@ -365,204 +365,15 @@ export const translations = {
         messagesCliches: 'الرسائل والنصوص الجاهزة',
         supportIntroMessage: 'رسالة ترحيب الدعم',
         ticketAutoReply: 'الرد التلقائي للتذاكر',
-
         // Provider Instructions
         howToConnect: 'طريقة الربط:',
         connectInstructions: 'انسخ رابط API ومفتاح API من صفحة "API" أو "الإعدادات" الخاصة بالمزود.',
         panelName: 'اسم اللوحة / النطاق',
-
         // Service Manager
         startTime: 'وقت البدء',
         serviceImage: 'صورة الخدمة',
         folderName: 'اسم المجلد',
         files: 'ملفات',
-    },
-    ku: {
-        dir: 'rtl',
-        // Landing
-        brand: 'جێری',
-        hero: 'جێری',
-        subtitle: 'ئامادەبوونی کۆمەڵایەتیت بەهێز بکە',
-        launch: 'دەست پێ بکە',
-        // Auth
-        authTitle: 'پلاتفۆرمی خزمەتگوزاری دیجیتاڵ',
-        loginTab: 'چوونەژوورەوە',
-        registerTab: 'دروستکردنی هەژمار',
-        username: 'ناوی بەکارهێنەر',
-        password: 'وشەی نهێنی',
-        confirmPassword: 'دووپاتکردنەوەی وشەی نهێنی',
-        firstName: 'ناوی یەکەم',
-        lastName: 'ناوی کۆتایی',
-        phone: 'ژمارەی مۆبایل',
-        email: 'ئیمەیل',
-        loginBtn: 'چوونەژوورەوە',
-        registerBtn: 'دروستکردنی هەژمارێکی نوێ',
-        testAccount: 'هەژماری تاقیکردنەوە',
-        fillAllFields: 'تکایە هەموو خانەکان پڕبکەوە',
-        wrongCredentials: 'ناوی بەکارهێنەر یان وشەی نهێنی هەڵەیە',
-        passwordMismatch: 'وشەی نهێنی یەک ناگرنەوە',
-        passwordTooShort: 'وشەی نهێنی دەبێت لانیکەم ٤ پیت بێت',
-        usernameExists: 'ناوی بەکارهێنەر پێشتر هەیە',
-        accountCreated: 'هەژمار بە سەرکەوتوویی دروستکرا!',
-        promoCode: 'کۆدی داشکاندنم هەیە',
-        enterPromo: 'کۆدی داشکاندن بنووسە',
-        // Dashboard
-        searchPlaceholder: 'گەڕان بۆ خزمەتگوزاری یان ژمارەی داواکاری',
-        addFunds: 'زیادکردنی پارە',
-        logout: 'چوونەدەرەوە',
-        backToCategories: '← گەڕانەوە بۆ بەشەکان',
-        backToJerry: '← گەڕانەوە بۆ خزمەتگوزارییەکانی جێری',
-        backToList: '← گەڕانەوە بۆ لیست',
-        jerryServices: 'خزمەتگوزارییەکانی جێری',
-        telegramServices: 'خزمەتگوزارییەکانی تێلێگرام | جێری',
-        quantity: 'بڕ',
-        link: 'بەستەر (بەستەری بانگهێشت)',
-        totalCost: 'کۆی گشتی',
-        pricePer1000: 'نرخ بۆ ١٠٠٠',
-        confirmOrder: 'پشتڕاستکردنەوەی داواکاری',
-        buyService: 'کڕینی خزمەتگوزاری',
-        serviceDesc: 'وەسفی خزمەتگوزاری',
-        serviceSpeed: 'خێرایی خزمەتگوزاری',
-        dropRate: 'ڕێژەی کەمبوونەوە',
-        guarantee: 'گەرەنتی',
-        speed: 'خێرایی',
-        // Service names
-        instaServices: 'خزمەتگوزارییەکانی ئینستاگرام | جێری',
-        tiktokServices: 'خزمەتگوزارییەکانی تیکتۆک | جێری',
-        facebookServices: 'خزمەتگوزارییەکانی فەیسبووک | جێری',
-        telegramServicesName: 'خزمەتگوزارییەکانی تێلێگرام | جێری',
-        merchantServices: 'خزمەتگوزارییەکانی بازرگانان | جێری',
-        premiumTelegram: 'خزمەتگوزاری تێلێگرامی تایبەت | جێری',
-        telegramStars: 'ئەستێرە و دیارییەکانی تێلێگرام | جێری',
-        // Orders
-        orders: 'داواکارییەکان',
-        orderId: 'ژمارەی داواکاری',
-        service: 'خزمەتگوزاری',
-        status: 'بارودۆخ',
-        date: 'بەروار',
-        noOrders: 'هیچ داواکارییەک نییە',
-        // Settings
-        settings: 'ڕێکخستنەکان',
-        // Support
-        support: 'پشتگیری',
-        // Sidebar
-        newOrder: 'داواکارییەکی نوێ',
-        // Add Funds
-        selectPayment: 'شێوازی پارەدان هەڵبژێرە',
-        // Extra Dashboard
-        categories: 'بەشەکان',
-        createOrder: 'دروستکردنی داواکاری',
-        allOrders: 'هەموو داواکارییەکان',
-        pending: 'چاوەڕوانە',
-        completed: 'تەواوبوو',
-        cancelled: 'هەڵوەشێنراوە',
-        search: 'گەڕان...',
-        price: 'نرخ',
-        myOrders: 'داواکارییەکانم',
-        // ServicesList
-        jerryServicesCard: 'خزمەتگوزارییەکانی جێری',
-        cardsSection: 'بەشی کارتەکان',
-        gamingSection: 'پڕکردنەوەی یاری',
-        subscriptionsSection: 'بەشی بەشداربوون',
-        phoneTopUp: 'پڕکردنەوەی باڵانسی مۆبایل',
-        miscServices: 'خزمەتگوزاری جۆراوجۆر',
-        // Settings
-        name: 'ناو',
-        currentPassword: 'وشەی نهێنی ئێستا',
-        newPassword: 'وشەی نهێنی نوێ',
-        saveChanges: 'پاشەکەوتکردنی گۆڕانکارییەکان',
-        // Support
-        subject: 'بابەت',
-        ticketSubject: 'بابەتی تیکێت',
-        message: 'نامە',
-        writeMessage: 'نامەکەت لێرە بنووسە...',
-        sendTicket: 'ناردنی تیکێت',
-        // Add Funds extra
-        autoPayment: 'پارەدانی ئۆتۆماتیک',
-        manualPayment: 'گواستنەوەی دەستی',
-        discountCode: 'کۆدی داشکاندن/پڕکردنەوە',
-        backToPayments: '← گەڕانەوە بۆ شێوازەکانی پارەدان',
-        transferTo: 'تکایە بڕەکە بگوازەوە بۆ ئەم ژمارەیەو و وێنەکەی بنێرە بۆ بەڕێوەبەرایەتی:',
-        copy: 'لەبەرگرتنەوە',
-        amountTransferred: 'بڕی گوازراوە',
-        sendProof: 'ناردنی بەڵگەی گواستنەوە (تێلێگرام)',
-        code: 'کۆد',
-        redeemCode: 'بەکارهێنانی کۆد',
-        amount: 'بڕ ($)',
-        continuePayment: 'بەردەوامبوون لە پارەدان',
-        // Admin
-        adminAccess: 'چوونەژوورەوەی ئەدمین',
-        restrictedArea: 'ناوچەی تایبەت',
-        enterDashboard: 'چوونە ناو داشبۆرد',
-        invalidCredentials: 'زانیاری چوونەژوورەوە هەڵەیە',
-        overview: 'تێڕوانینی گشتی',
-        gateways: 'دەروازەکانی پارەدان',
-        providers: 'دابینکەران',
-        adminServices: 'خزمەتگوزارییەکان',
-        adminSupport: 'پشتگیری',
-        adminPanel: 'تەختەی کۆنترۆڵ',
-        searchAdmin: 'گەڕان بۆ ئەدمین/بەکارهێنەر...',
-        adminUser: 'بەکارھێنەری ئەدمین',
-        superAdmin: 'سەرپەرشتیاری گشتی',
-        dashboardOverview: 'تێڕوانینی گشتی',
-        totalUsers: 'کۆی بەکارهێنەران',
-        totalOrders: 'کۆی داواکارییەکان',
-        totalRevenue: 'داهات',
-        activeNow: 'چالاک لە ئێستادا',
-        recentActivity: 'چالاکی دوایی',
-        // Common
-        add: 'زیادکردن',
-        cancel: 'هەڵوەشاندنەوە',
-        save: 'پاشەکەوتکردن',
-        edit: 'دەستکاری',
-        delete: 'سڕینەوە',
-        configure: 'ڕێکخستن',
-        termsOfService: 'مەرجەکانی بەکارهێنان',
-        updates: 'نوێکارییەکان',
-        confirmDelete: 'دڵنیایت لە سڕینەوە؟',
-        // Gateways
-        paymentGateways: 'دەروازەکانی پارەدان',
-        addNewGateway: 'زیادکردنی دەروازەی نوێ',
-        destination: 'مەبەست',
-        instructionText: 'دەقی ڕێنمایی',
-        apiConnected: 'پەیوەستە بە API',
-        // Providers
-        serviceProviders: 'دابینکەرانی خزمەتگوزاری',
-        addNewProvider: 'زیادکردنی دابینکەری نوێ',
-        providerName: 'ناوی دابینکەر',
-        providerImage: 'وێنەی دابینکەر',
-        apiUrl: 'بەستەری API',
-        apiKey: 'کلیل API',
-        balance: 'باڵانس',
-        // Services
-        servicesCategories: 'خزمەتگوزاری و بەشەکان',
-        categoryName: 'ناوی بەش',
-        serviceName: 'ناوی خزمەتگوزاری',
-        minMax: 'کەمترین / زۆرترین',
-        providerIntegration: 'پەیوەستکردنی دابینکەر',
-        autoFetch: 'هێنانی ئۆتۆماتیکی',
-        createService: 'دروستکردنی خزمەتگوزاری',
-        noServices: 'هیچ خزمەتگوزارییەک لەم بەشەدا نییە',
-        // Support
-        supportSettings: 'ڕێکخستنەکانی پشتگیری',
-        contactChannels: 'کەناڵەکانی پەیوەندی',
-        whatsappNumber: 'ژمارەی واتسئەپ',
-        telegramUsername: 'ناوی بەکارهێنەری تێلێگرام',
-        supportEmail: 'ئیمەیڵی پشتگیری',
-        messagesCliches: 'نامە و دەقە ئامادەکان',
-        supportIntroMessage: 'پەیامی بەخێرهاتنی پشتگیری',
-        ticketAutoReply: 'وەڵامدانەوەی ئۆتۆماتیکی تیکێت',
-
-        // Provider Instructions
-        howToConnect: 'چۆن پەیوەست دەبێت:',
-        connectInstructions: 'بەستەری API و کلیلی API کۆپی بکە لە پەڕەی "API" یان "Settings"ی دابینکەرەکەت.',
-        panelName: 'ناوی پانێڵ / دۆمەین',
-
-        // Service Manager
-        startTime: 'کاتی دەستپێکردن',
-        serviceImage: 'وێنەی خزمەتگوزاری',
-        folderName: 'ناوی فۆڵدەر',
-        files: 'فایلەکان',
     },
 };
 
@@ -590,11 +401,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     }, [lang, t.dir]);
 
     const toggleLanguage = () => {
-        setLang(prev => {
-            if (prev === 'en') return 'ar';
-            if (prev === 'ar') return 'ku';
-            return 'en';
-        });
+        setLang(prev => prev === 'en' ? 'ar' : 'en');
     };
 
     return (

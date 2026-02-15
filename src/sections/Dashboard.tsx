@@ -891,6 +891,7 @@ function UpdatesView() {
 export default function Dashboard() {
   const [activeItem, setActiveItem] = useState('new-order');
   const [selectedService, setSelectedService] = useState<string | null>(null);
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
 
   const renderContent = () => {
     switch (activeItem) {
@@ -944,9 +945,9 @@ export default function Dashboard() {
         <Starfield starCount={1000} speed={0.03} />
       </div>
 
-      <Sidebar activeItem={activeItem} onItemClick={setActiveItem} />
+      <Sidebar activeItem={activeItem} onItemClick={setActiveItem} hideBottomBar={showMobileMenu} />
       <div className="flex-1 flex flex-col overflow-hidden relative z-10 bg-black/20 backdrop-blur-[2px]">
-        <Header onAddFundsClick={() => setActiveItem('add-funds')} onNavigate={setActiveItem} />
+        <Header onAddFundsClick={() => setActiveItem('add-funds')} onNavigate={setActiveItem} showMobileMenu={showMobileMenu} setShowMobileMenu={setShowMobileMenu} />
         <main className="flex-1 overflow-y-auto custom-scrollbar pb-32 md:pb-0">
           {renderContent()}
         </main>

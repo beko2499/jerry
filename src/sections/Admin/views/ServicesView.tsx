@@ -4,17 +4,11 @@ import {
     FileText,
     Plus,
     ChevronRight,
-    Search,
-    ArrowLeft,
-    Image as ImageIcon,
-    MoreVertical,
     Clock,
     TrendingDown,
     ShieldCheck,
     Zap,
     DollarSign,
-    Save,
-    Trash,
     Edit
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';

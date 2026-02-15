@@ -184,6 +184,7 @@ export const translations = {
         serviceImage: 'Service Image',
         folderName: 'Folder Name',
         files: 'Files',
+        ticketAutoReply: 'Ticket Auto Reply',
     },
     ar: {
         dir: 'rtl',

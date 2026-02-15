@@ -89,7 +89,8 @@ export default function Sidebar({ activeItem, onItemClick }: SidebarProps) {
 
       {/* Mobile Floating Bottom Bar */}
       {/* Mobile Floating Bottom Bar */}
-      <div className="md:hidden fixed bottom-6 left-6 right-6 z-50">
+      {/* Mobile Floating Bottom Bar */}
+      <div className="md:hidden fixed bottom-12 left-6 right-6 z-50">
         <div className="bg-black/80 backdrop-blur-xl border border-white/10 rounded-2xl shadow-[0_0_30px_rgba(0,0,0,0.5)] h-16 px-4 flex items-center justify-between relative">
 
           {/* Left Side: Search & Orders */}
@@ -112,9 +113,9 @@ export default function Sidebar({ activeItem, onItemClick }: SidebarProps) {
           <div className="absolute left-1/2 -translate-x-1/2 -top-6">
             <button
               onClick={() => onItemClick('new-order')}
-              className={`w-14 h-14 rounded-full bg-gradient-to-r from-cyan-500 to-purple-600 flex items-center justify-center shadow-[0_0_20px_rgba(34,211,238,0.5)] transition-transform duration-300 ${activeItem === 'new-order' ? 'scale-110 ring-4 ring-black/50' : 'hover:scale-105'}`}
+              className={`w-12 h-12 rounded-full bg-gradient-to-r from-cyan-500 to-purple-600 flex items-center justify-center shadow-[0_0_20px_rgba(34,211,238,0.5)] transition-transform duration-300 ${activeItem === 'new-order' ? 'scale-110 ring-4 ring-black/50' : 'hover:scale-105'}`}
             >
-              <Plus className="w-8 h-8 text-white stroke-[3]" />
+              <Plus className="w-6 h-6 text-white stroke-[3]" />
             </button>
           </div>
 

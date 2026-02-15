@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import Starfield from '@/components/Starfield';
 import { User, Lock, Mail, Phone, UserPlus, LogIn, Eye, EyeOff, AlertCircle, CheckCircle2, Globe } from 'lucide-react';
+import { Logo } from '@/components/Logo';
 
 export default function AuthPage() {
     const [mode, setMode] = useState<'login' | 'register'>('login');
@@ -94,9 +95,9 @@ export default function AuthPage() {
                             <span className="font-space font-bold text-cyan-400 text-xs tracking-widest">{lang.toUpperCase()}</span>
                         </button>
                     </div>
-                    <h1 className="text-4xl font-space font-bold bg-gradient-to-r from-cyan-400 via-purple-400 to-cyan-400 bg-clip-text text-transparent mb-2">
-                        JERRY
-                    </h1>
+                    <div className="flex justify-center mb-6 scale-110">
+                        <Logo />
+                    </div>
                     <p className="text-white/50 text-sm font-body">{t.authTitle}</p>
                 </div>
 
@@ -105,8 +106,8 @@ export default function AuthPage() {
                     <button
                         onClick={() => { setMode('login'); setRegError(''); setRegSuccess(false); }}
                         className={`flex-1 py-3 rounded-xl text-sm font-bold font-body transition-all duration-300 flex items-center justify-center gap-2 ${mode === 'login'
-                                ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/20'
-                                : 'text-white/50 hover:text-white/80'
+                            ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/20'
+                            : 'text-white/50 hover:text-white/80'
                             }`}
                     >
                         <LogIn className="w-4 h-4" />
@@ -115,8 +116,8 @@ export default function AuthPage() {
                     <button
                         onClick={() => { setMode('register'); setLoginError(''); }}
                         className={`flex-1 py-3 rounded-xl text-sm font-bold font-body transition-all duration-300 flex items-center justify-center gap-2 ${mode === 'register'
-                                ? 'bg-gradient-to-r from-purple-500 to-pink-600 text-white shadow-lg shadow-purple-500/20'
-                                : 'text-white/50 hover:text-white/80'
+                            ? 'bg-gradient-to-r from-purple-500 to-pink-600 text-white shadow-lg shadow-purple-500/20'
+                            : 'text-white/50 hover:text-white/80'
                             }`}
                     >
                         <UserPlus className="w-4 h-4" />

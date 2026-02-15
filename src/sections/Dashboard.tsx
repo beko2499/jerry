@@ -490,26 +490,33 @@ function JerryServicesView({ onBack, onServiceClick }: JerryServicesViewProps) {
         {services.map((service) => {
           const Icon = service.icon;
           return (
-            <Card
+            <div
               key={service.id}
               onClick={() => onServiceClick && onServiceClick(service.id)}
-              className={`p-0 overflow-hidden bg-white/5 border hover:bg-white/10 ${service.bg} border-white/10 rounded-3xl cursor-pointer transition-all duration-300 backdrop-blur-sm group hover:-translate-y-1 hover:shadow-xl`}
+              className="flex flex-col gap-3 group cursor-pointer"
             >
-              {/* Card Content Container */}
-              <div className="p-6 flex flex-col items-center gap-4 text-center">
-                <div className={`w-20 h-20 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform ${service.bg} overflow-hidden`}>
-                  {/* Render Image if available, otherwise Icon */}
-                  {service.image ? (
-                    <img src={service.image} alt={service.name} className="w-full h-full object-cover" />
-                  ) : (
-                    <Icon className={`w-8 h-8 ${service.color}`} />
-                  )}
-                </div>
-                <h3 className="font-body text-lg text-white font-medium group-hover:text-cyan-400 transition-colors">
+              <Card className="relative w-full aspect-square md:aspect-[4/3] rounded-3xl border-0 bg-transparent overflow-hidden shadow-lg transition-all duration-300 group-hover:-translate-y-2 group-hover:shadow-cyan-500/20">
+                {service.image ? (
+                  <img
+                    src={service.image}
+                    alt={service.name}
+                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                  />
+                ) : (
+                  <div className={`absolute inset-0 w-full h-full flex items-center justify-center ${service.bg} transition-colors`}>
+                    <Icon className={`w-16 h-16 md:w-20 md:h-20 ${service.color} transition-transform duration-300 group-hover:scale-110`} />
+                  </div>
+                )}
+                {/* Shine Effect */}
+                <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/10 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+              </Card>
+
+              <div className="text-center">
+                <h3 className="font-body text-base md:text-lg text-white font-bold group-hover:text-cyan-400 transition-colors">
                   {service.name}
                 </h3>
               </div>
-            </Card>
+            </div>
           );
         })}
       </div>
@@ -763,7 +770,7 @@ export default function Dashboard() {
       <Sidebar activeItem={activeItem} onItemClick={setActiveItem} />
       <div className="flex-1 flex flex-col overflow-hidden relative z-10 bg-black/20 backdrop-blur-[2px]">
         <Header onAddFundsClick={() => setActiveItem('add-funds')} />
-        <main className="flex-1 overflow-y-auto custom-scrollbar">
+        <main className="flex-1 overflow-y-auto custom-scrollbar pb-32 md:pb-0">
           {renderContent()}
         </main>
       </div>

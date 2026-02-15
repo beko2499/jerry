@@ -67,7 +67,7 @@ export default function ServicesList({ onServiceClick }: ServicesListProps) {
     <div className="p-8">
       <h2 className="font-space text-2xl text-white mb-6 tracking-wide drop-shadow-md">{t.categories}</h2>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-10">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
         {serviceKeys.map((service) => {
           const Icon = service.icon;
           const name = (t as any)[service.nameKey] || service.nameKey;
@@ -75,13 +75,10 @@ export default function ServicesList({ onServiceClick }: ServicesListProps) {
             <div
               key={service.id}
               onClick={() => onServiceClick?.(service.id)}
-              className="flex flex-col gap-4 group cursor-pointer"
+              className="flex flex-col gap-3 group cursor-pointer"
             >
               {/* Card Container */}
-              <Card className="relative w-full aspect-video md:aspect-[4/3] rounded-3xl border-0 bg-transparent overflow-hidden shadow-lg transition-all duration-300 group-hover:-translate-y-2 group-hover:shadow-cyan-500/20">
-                {/* Image or Icon Background */}
-                <div className={`absolute inset-0 w-full h-full bg-gradient-to-br ${service.iconBg} opacity-20 group-hover:opacity-30 transition-opacity`} />
-
+              <Card className="relative w-full aspect-square md:aspect-[4/3] rounded-3xl border-0 bg-transparent overflow-hidden shadow-lg transition-all duration-300 group-hover:-translate-y-2 group-hover:shadow-cyan-500/20">
                 {service.image ? (
                   <img
                     src={service.image}
@@ -89,8 +86,8 @@ export default function ServicesList({ onServiceClick }: ServicesListProps) {
                     className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                   />
                 ) : (
-                  <div className={`absolute inset-0 w-full h-full flex items-center justify-center bg-white/5 backdrop-blur-sm border border-white/10`}>
-                    {Icon && <Icon className={`w-12 h-12 ${service.iconColor} drop-shadow-lg`} />}
+                  <div className={`absolute inset-0 w-full h-full flex items-center justify-center bg-white/5 border border-white/10 ${service.iconBg ? `bg-gradient-to-br ${service.iconBg}` : ''}`}>
+                    {Icon && <Icon className={`w-20 h-20 md:w-24 md:h-24 ${service.iconColor} drop-shadow-xl transition-transform duration-300 group-hover:scale-110`} />}
                   </div>
                 )}
 
@@ -99,9 +96,11 @@ export default function ServicesList({ onServiceClick }: ServicesListProps) {
               </Card>
 
               {/* Service Name (Below Card) */}
-              <span className="font-space text-base md:text-xl text-center font-bold text-white/80 group-hover:text-cyan-400 transition-colors tracking-wide">
-                {name}
-              </span>
+              <div className="text-center">
+                <h3 className="font-arabic text-lg md:text-2xl font-bold text-white group-hover:text-cyan-400 transition-colors tracking-wide">
+                  {name}
+                </h3>
+              </div>
             </div>
           );
         })}

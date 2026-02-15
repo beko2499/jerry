@@ -12,7 +12,7 @@ interface HeaderProps {
 
 export default function Header({ onAddFundsClick }: HeaderProps) {
   const { user, logout } = useAuth();
-  const { t } = useLanguage();
+  const { t, isRTL } = useLanguage();
   const [showUserMenu, setShowUserMenu] = useState(false);
 
   const initials = user
@@ -88,12 +88,12 @@ export default function Header({ onAddFundsClick }: HeaderProps) {
           {showUserMenu && (
             <>
               <div className="fixed inset-0 z-40" onClick={() => setShowUserMenu(false)} />
-              <div className="absolute top-full right-0 mt-2 z-50 w-56 bg-[#1a1a2e] border border-white/10 rounded-xl shadow-2xl shadow-black/50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+              <div className={`absolute top-full mt-2 z-50 w-56 bg-[#1a1a2e] border border-white/10 rounded-xl shadow-2xl shadow-black/50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 ${isRTL ? 'left-0' : 'right-0'}`}>
                 {user && (
                   <div className="p-4 border-b border-white/10">
-                    <p className="text-white font-bold font-body text-sm">{user.firstName} {user.lastName}</p>
-                    <p className="text-white/50 text-xs mt-1 font-mono">@{user.username}</p>
-                    <p className="text-white/40 text-xs mt-0.5">{user.email}</p>
+                    <p className="text-white font-bold font-body text-sm align-start text-start">{user.firstName} {user.lastName}</p>
+                    <p className="text-white/50 text-xs mt-1 font-mono align-start text-start">@{user.username}</p>
+                    <p className="text-white/40 text-xs mt-0.5 align-start text-start">{user.email}</p>
                   </div>
                 )}
                 <button

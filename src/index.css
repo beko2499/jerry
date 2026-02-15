@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Orbitron:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -55,6 +55,10 @@
 
 .font-body {
   font-family: 'Cairo', 'Inter', sans-serif;
+}
+
+.font-arabic {
+  font-family: 'Cairo', sans-serif;
 }
 
 /* RTL Support */
@@ -257,4 +261,24 @@
 
 .animate-glitch-2 {
   animation: glitch-2 3s infinite linear alternate-reverse;
+}
+
+/* Moving Gradient Animation */
+@keyframes gradient-x {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.animate-gradient-x {
+  background-size: 200% 200%;
+  animation: gradient-x 3s ease infinite;
 }

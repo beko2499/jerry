@@ -66,8 +66,8 @@ export default function LandingPage({ onEnter }: LandingPageProps) {
       <main className="relative z-10 flex flex-col items-center justify-center min-h-[calc(100vh-120px)] px-4">
         {/* Hero Title */}
         <div className={`text-center transition-all duration-1000 delay-300 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-          <h1 className="font-space text-7xl md:text-9xl lg:text-[10rem] font-black tracking-wider mb-8">
-            <span className="bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 bg-clip-text text-transparent drop-shadow-[0_0_40px_rgba(123,44,191,0.6)] animate-pulse">
+          <h1 className={`${isRTL ? 'font-arabic tracking-normal pb-4' : 'font-space tracking-wider'} text-7xl md:text-9xl lg:text-[10rem] font-black mb-8`}>
+            <span className="bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 bg-clip-text text-transparent drop-shadow-[0_0_40px_rgba(123,44,191,0.6)] animate-gradient-x py-2">
               {t.hero}
             </span>
           </h1>

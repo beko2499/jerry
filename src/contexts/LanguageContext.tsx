@@ -271,7 +271,6 @@ export const translations = {
         noActiveCoupons: 'No active coupons',
         usedCoupons: 'Used Coupons',
         used: 'Used',
-        invalidCode: 'Invalid coupon code',
         couponAlreadyUsed: 'This coupon has already been used',
         couponRedeemed: 'Coupon redeemed successfully!',
         redeeming: 'Redeeming...',
@@ -533,6 +532,20 @@ export const translations = {
         gatewayType: 'نوع البوابة',
         automatic: 'تلقائي',
         manual: 'يدوي',
+        // Coupons
+        coupons: 'كوبونات',
+        generateCoupon: 'توليد كوبون',
+        couponNote: 'ملاحظة',
+        couponNotePlaceholder: 'مثلاً: تحويل زين كاش',
+        generate: 'توليد',
+        activeCoupons: 'كوبونات نشطة',
+        noActiveCoupons: 'لا توجد كوبونات',
+        usedCoupons: 'كوبونات مستخدمة',
+        used: 'مستخدم',
+        couponAlreadyUsed: 'هذا الكوبون مستخدم مسبقاً',
+        couponRedeemed: 'تم استخدام الكوبون بنجاح!',
+        redeeming: 'جاري الاستخدام...',
+        balanceAdded: 'تمت إضافته إلى رصيدك',
     },
 };
 

@@ -37,14 +37,17 @@ router.get('/estimate', async (req, res) => {
 router.post('/create-payment', async (req, res) => {
     try {
         const { amount, currency, userId, orderId } = req.body;
-        if (!amount || !currency || !userId) {
+        if (!amount || !userId) {
             return res.status(400).json({ error: 'Missing required fields' });
         }
+
+        // Sanitize currency: only alphanumeric, default to usdtarb
+        const cleanCurrency = (currency || '').replace(/[^a-zA-Z0-9]/g, '').toLowerCase() || 'usdtarb';
 
         const payload = {
             price_amount: parseFloat(amount),
             price_currency: 'usd',
-            pay_currency: currency.toLowerCase(),
+            pay_currency: cleanCurrency,
             order_id: orderId || `jerry_${userId}_${Date.now()}`,
             order_description: `Add $${amount} to Jerry Store balance`,
             ipn_callback_url: `${process.env.APP_URL || 'https://jerrystore.online'}/api/nowpayments/ipn`,

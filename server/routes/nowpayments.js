@@ -41,8 +41,21 @@ router.post('/create-payment', async (req, res) => {
             return res.status(400).json({ error: 'Missing required fields' });
         }
 
-        // Sanitize currency: only alphanumeric, default to usdtarb
-        const cleanCurrency = (currency || '').replace(/[^a-zA-Z0-9]/g, '').toLowerCase() || 'usdtarb';
+        // Common currency aliases → NOWPayments codes
+        const currencyMap = {
+            'usdtarbitrum': 'usdtarb', 'usdtarb': 'usdtarb',
+            'usdttrc20': 'usdttrc20', 'usdttron': 'usdttrc20', 'usdttrc': 'usdttrc20',
+            'usdterc20': 'usdterc20', 'usdteth': 'usdterc20', 'usdterc': 'usdterc20',
+            'usdtbsc': 'usdtbsc', 'usdtbnb': 'usdtbsc',
+            'usdtsol': 'usdtsol', 'usdtsolana': 'usdtsol',
+            'usdtton': 'usdtton',
+            'btc': 'btc', 'bitcoin': 'btc',
+            'eth': 'eth', 'ethereum': 'eth',
+            'ltc': 'ltc', 'litecoin': 'ltc',
+            'trx': 'trx', 'tron': 'trx',
+        };
+        const rawCurrency = (currency || '').replace(/[^a-zA-Z0-9]/g, '').toLowerCase() || 'usdtarb';
+        const cleanCurrency = currencyMap[rawCurrency] || rawCurrency;
 
         const payload = {
             price_amount: parseFloat(amount),

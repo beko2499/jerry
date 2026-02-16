@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import Sidebar from '@/components/custom/Sidebar';
 import Header from '@/components/custom/Header';
 import ServicesList from '@/components/custom/ServicesList';
+import CategoryBrowser from '@/components/custom/CategoryBrowser';
 import Starfield from '@/components/Starfield';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -35,12 +36,36 @@ function OrdersView() {
     { id: 'cancelled', label: t.cancelled, icon: XCircle, color: 'text-red-400', activeBg: 'bg-red-500/20 border-red-500/50 text-red-400' },
   ];
 
-  const allOrders = [
-    { id: '#12345', service: 'متابعين انستقرام', quantity: '1000', price: '$5.00', status: 'مكتمل', date: '2025-02-14', statusColor: 'text-green-400 bg-green-500/20 border-green-500/30' },
-    { id: '#12344', service: 'لايكات فيسبوك', quantity: '500', price: '$2.50', status: 'قيد الانتظار', date: '2025-02-14', statusColor: 'text-yellow-400 bg-yellow-500/20 border-yellow-500/30' },
-    { id: '#12343', service: 'مشاهدات يوتيوب', quantity: '5000', price: '$10.00', status: 'مكتمل', date: '2025-02-13', statusColor: 'text-green-400 bg-green-500/20 border-green-500/30' },
-    { id: '#12342', service: 'متابعين تيك توك', quantity: '2000', price: '$8.00', status: 'ملغي', date: '2025-02-13', statusColor: 'text-red-400 bg-red-500/20 border-red-500/30' },
-  ];
+  const statusColorMap: Record<string, string> = {
+    completed: 'text-green-400 bg-green-500/20 border-green-500/30',
+    pending: 'text-yellow-400 bg-yellow-500/20 border-yellow-500/30',
+    processing: 'text-blue-400 bg-blue-500/20 border-blue-500/30',
+    cancelled: 'text-red-400 bg-red-500/20 border-red-500/30',
+  };
+
+  const statusLabelMap: Record<string, string> = {
+    completed: t.completed, pending: t.pending, processing: t.processing || 'Processing', cancelled: t.cancelled,
+  };
+
+  const [allOrders, setAllOrders] = useState<any[]>([]);
+
+  useEffect(() => {
+    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+    fetch(`${API_URL}/orders`)
+      .then(r => r.json())
+      .then(orders => {
+        setAllOrders(orders.map((o: any) => ({
+          id: o.orderId,
+          service: o.serviceName,
+          quantity: String(o.quantity),
+          price: `$${o.price.toFixed(2)}`,
+          status: statusLabelMap[o.status] || o.status,
+          date: new Date(o.createdAt).toISOString().split('T')[0],
+          statusColor: statusColorMap[o.status] || statusColorMap.pending,
+        })));
+      })
+      .catch(console.error);
+  }, []);
 
   const filteredOrders = allOrders.filter(order => {
     if (searchQuery) {
@@ -231,7 +256,7 @@ function SearchView({ onNavigate }: SearchViewProps) {
 
 // New Order View Component
 interface NewOrderViewProps {
-  onServiceClick: (id: string) => void;
+  onServiceClick: (id: string, name?: string) => void;
 }
 
 function NewOrderView({ onServiceClick }: NewOrderViewProps) {
@@ -347,17 +372,24 @@ const allTelegramServices = [
 // Service Details View Component
 interface ServiceDetailsViewProps {
   serviceId: string;
+  serviceData?: { name: string; price: number; min: number; max: number; description?: string; speed?: string; dropRate?: string; guarantee?: string; startTime?: string };
   onBack: () => void;
 }
 
-function ServiceDetailsView({ serviceId, onBack }: ServiceDetailsViewProps) {
-  const [quantity, setQuantity] = useState<number>(1000);
+function ServiceDetailsView({ serviceId, serviceData, onBack }: ServiceDetailsViewProps) {
+  const [quantity, setQuantity] = useState<number>(serviceData?.min || 1000);
   const [hasCoupon, setHasCoupon] = useState(false);
   const [couponCode, setCouponCode] = useState('');
-  const { t } = useLanguage();
+  const { t, isRTL } = useLanguage();
 
-  const service = allTelegramServices.find(s => s.id === serviceId) || allTelegramServices[0];
-  const totalPrice = (quantity / 1000) * service.pricePer1000;
+  // Use dynamic service data from API if available, fallback to hardcoded
+  const hardcodedService = allTelegramServices.find(s => s.id === serviceId);
+  const serviceName = serviceData?.name || hardcodedService?.name || '';
+  const servicePrice = serviceData?.price ?? hardcodedService?.pricePer1000 ?? 0;
+  const serviceMin = serviceData?.min ?? hardcodedService?.min ?? 100;
+  const serviceMax = serviceData?.max ?? hardcodedService?.max ?? 10000;
+  const serviceDesc = serviceData?.description || hardcodedService?.description || '';
+  const totalPrice = (quantity / 1000) * servicePrice;
 
   return (
     <div className="p-8 max-w-4xl mx-auto">
@@ -370,21 +402,44 @@ function ServiceDetailsView({ serviceId, onBack }: ServiceDetailsViewProps) {
         <div className="space-y-6">
           <Card className="p-6 bg-white/5 border-white/10 backdrop-blur-sm">
             <div className="flex justify-between items-start mb-4">
-              <h2 className="text-xl font-bold text-white font-body leading-relaxed flex-1 ml-3">{service.name}</h2>
-              <span className="px-3 py-1 bg-cyan-500/20 text-cyan-400 rounded-lg text-sm font-mono border border-cyan-500/30 shrink-0">ID: {service.id}</span>
+              <h2 className="text-xl font-bold text-white font-body leading-relaxed flex-1">{serviceName}</h2>
+              <span className="px-3 py-1 bg-cyan-500/20 text-cyan-400 rounded-lg text-sm font-mono border border-cyan-500/30 shrink-0">#{serviceData?.autoId || serviceId.slice(-4)}</span>
             </div>
 
             {/* Price Badge */}
             <div className="flex items-center gap-3 mb-6 p-3 bg-gradient-to-r from-cyan-500/10 to-purple-500/10 rounded-xl border border-cyan-500/20">
               <div className="flex items-baseline gap-1">
-                <span className="text-3xl font-bold text-cyan-400 font-space">${service.pricePer1000}</span>
+                <span className="text-3xl font-bold text-cyan-400 font-space">${servicePrice}</span>
                 <span className="text-white/40 text-sm">/ 1000</span>
               </div>
-              <span className="px-2 py-0.5 bg-red-500/20 text-red-400 text-xs font-bold rounded-full border border-red-500/30">{service.discount}</span>
             </div>
 
             <div className="grid grid-cols-2 gap-3 mb-6">
-              {service.details.map((detail, index) => (
+              {serviceData?.speed && (
+                <div className="p-3 bg-white/5 rounded-xl border border-white/5">
+                  <div className="text-xs text-white/40 mb-1">⚡ {t.speed || 'Speed'}</div>
+                  <div className="text-sm text-white font-medium">{serviceData.speed}</div>
+                </div>
+              )}
+              {serviceData?.guarantee && (
+                <div className="p-3 bg-white/5 rounded-xl border border-white/5">
+                  <div className="text-xs text-white/40 mb-1">🛡️ {t.guarantee || 'Guarantee'}</div>
+                  <div className="text-sm text-white font-medium">{serviceData.guarantee}</div>
+                </div>
+              )}
+              {serviceData?.dropRate && (
+                <div className="p-3 bg-white/5 rounded-xl border border-white/5">
+                  <div className="text-xs text-white/40 mb-1">📉 {t.dropRate || 'Drop Rate'}</div>
+                  <div className="text-sm text-white font-medium">{serviceData.dropRate}</div>
+                </div>
+              )}
+              {serviceData?.startTime && (
+                <div className="p-3 bg-white/5 rounded-xl border border-white/5">
+                  <div className="text-xs text-white/40 mb-1">🕐 {t.startTime}</div>
+                  <div className="text-sm text-white font-medium">{serviceData.startTime}</div>
+                </div>
+              )}
+              {!serviceData && hardcodedService?.details?.map((detail: any, index: number) => (
                 <div key={index} className="p-3 bg-white/5 rounded-xl border border-white/5">
                   <div className="text-xs text-white/40 mb-1">{detail.label}</div>
                   <div className="text-sm text-white font-medium">{detail.value}</div>
@@ -395,7 +450,7 @@ function ServiceDetailsView({ serviceId, onBack }: ServiceDetailsViewProps) {
             <div className="bg-black/20 p-4 rounded-xl border border-white/5">
               <h3 className="text-white/80 font-bold mb-3 text-sm">{t.serviceDesc}</h3>
               <div className="text-white/60 text-sm whitespace-pre-line leading-relaxed font-body">
-                {service.description}
+                {serviceDesc}
               </div>
             </div>
           </Card>
@@ -414,7 +469,7 @@ function ServiceDetailsView({ serviceId, onBack }: ServiceDetailsViewProps) {
               <div>
                 <label className="flex justify-between text-sm text-white/80 mb-2">
                   <span>{t.quantity}</span>
-                  <span className="text-xs text-white/40 font-mono">Min: {service.min} - Max: {service.max.toLocaleString()}</span>
+                  <span className="text-xs text-white/40 font-mono">Min: {serviceMin} - Max: {serviceMax.toLocaleString()}</span>
                 </label>
                 <Input
                   type="number"
@@ -424,7 +479,7 @@ function ServiceDetailsView({ serviceId, onBack }: ServiceDetailsViewProps) {
                 />
                 {/* Quick Quantity Buttons */}
                 <div className="grid grid-cols-4 gap-2 mt-2">
-                  {[service.min, 1000, 5000, 10000].map(q => (
+                  {[serviceMin, 1000, 5000, 10000].map(q => (
                     <button
                       key={q}
                       onClick={() => setQuantity(q)}
@@ -475,7 +530,7 @@ function ServiceDetailsView({ serviceId, onBack }: ServiceDetailsViewProps) {
                 </div>
                 <div className="flex justify-between items-center text-sm">
                   <span className="text-white/60">{t.pricePer1000}</span>
-                  <span className="text-white font-mono">${service.pricePer1000}</span>
+                  <span className="text-white font-mono">${servicePrice}</span>
                 </div>
                 <div className="border-t border-cyan-500/20 pt-2 flex justify-between items-center">
                   <span className="text-cyan-200 font-bold">{t.totalCost}</span>
@@ -891,33 +946,40 @@ function UpdatesView() {
 export default function Dashboard() {
   const [activeItem, setActiveItem] = useState('new-order');
   const [selectedService, setSelectedService] = useState<string | null>(null);
+  const [selectedServiceData, setSelectedServiceData] = useState<any>(null);
+  const [browseCategoryId, setBrowseCategoryId] = useState<string | null>(null);
+  const [browseCategoryName, setBrowseCategoryName] = useState('');
   const [showMobileMenu, setShowMobileMenu] = useState(false);
 
   const renderContent = () => {
     switch (activeItem) {
       case 'new-order':
-        return <NewOrderView onServiceClick={(id) => {
-          if (id === '1') setActiveItem('jerry-services');
+        return <NewOrderView onServiceClick={(id, name) => {
+          setBrowseCategoryId(id);
+          setBrowseCategoryName(name || '');
+          setActiveItem('browse-category');
         }} />;
-      case 'jerry-services':
-        return <JerryServicesView
-          onBack={() => setActiveItem('new-order')}
-          onServiceClick={(id) => {
-            if (id === 'telegram') setActiveItem('telegram-services');
-          }}
-        />;
-      case 'telegram-services':
-        return <TelegramServicesView
-          onBack={() => setActiveItem('jerry-services')}
-          onServiceClick={(id) => {
-            setSelectedService(id);
-            setActiveItem('service-details');
-          }}
-        />;
+      case 'browse-category':
+        return browseCategoryId ? (
+          <CategoryBrowser
+            initialCategoryId={browseCategoryId}
+            initialCategoryName={browseCategoryName}
+            onBack={() => setActiveItem('new-order')}
+            onServiceSelect={(service) => {
+              setSelectedService(service._id);
+              setSelectedServiceData(service);
+              setActiveItem('service-details');
+            }}
+          />
+        ) : <NewOrderView onServiceClick={() => { }} />;
       case 'service-details':
         return <ServiceDetailsView
           serviceId={selectedService || ''}
-          onBack={() => setActiveItem('telegram-services')}
+          serviceData={selectedServiceData}
+          onBack={() => {
+            if (browseCategoryId) setActiveItem('browse-category');
+            else setActiveItem('new-order');
+          }}
         />;
       case 'search':
         return <SearchView onNavigate={setActiveItem} />;

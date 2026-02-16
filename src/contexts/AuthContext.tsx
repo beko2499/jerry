@@ -1,19 +1,40 @@
 import { createContext, useContext, useState } from 'react';
 import type { ReactNode } from 'react';
 
-interface User {
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+
+export interface User {
+    _id: string;
     username: string;
     firstName: string;
     lastName: string;
     phone: string;
     email: string;
+    balance: number;
+    role: string;
+}
+
+interface RegisterResult {
+    success: boolean;
+    error?: string;
+    userId?: string;
+    email?: string;
+}
+
+interface LoginResult {
+    success: boolean;
+    error?: string;
+    userId?: string;
+    email?: string;
 }
 
 interface AuthContextType {
     user: User | null;
     isAuthenticated: boolean;
-    login: (username: string, password: string) => boolean;
-    register: (data: RegisterData) => boolean;
+    login: (username: string, password: string) => Promise<LoginResult>;
+    register: (data: RegisterData) => Promise<RegisterResult>;
+    verifyEmail: (userId: string, code: string) => Promise<{ success: boolean; error?: string }>;
+    resendCode: (userId: string) => Promise<boolean>;
     logout: () => void;
 }
 
@@ -26,20 +47,6 @@ interface RegisterData {
     password: string;
 }
 
-// Hardcoded test accounts (frontend only)
-const TEST_ACCOUNTS: { user: User; password: string }[] = [
-    {
-        user: {
-            username: 'jerry',
-            firstName: 'جيري',
-            lastName: 'ادمن',
-            phone: '07801234567',
-            email: 'jerry@jerry.com',
-        },
-        password: '1234',
-    },
-];
-
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -48,61 +55,67 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return stored ? JSON.parse(stored) : null;
     });
 
-    const login = (username: string, password: string): boolean => {
-        const u = username.trim().toLowerCase();
-        const p = password.trim();
-        // Check hardcoded accounts
-        const account = TEST_ACCOUNTS.find(
-            (a) => a.user.username.toLowerCase() === u && a.password === p
-        );
-        if (account) {
-            setUser(account.user);
-            localStorage.setItem('jerry_user', JSON.stringify(account.user));
-            return true;
+    const login = async (username: string, password: string): Promise<LoginResult> => {
+        try {
+            const res = await fetch(`${API_URL}/auth/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password }),
+            });
+            const data = await res.json();
+            if (res.status === 403 && data.error === 'not_verified') {
+                return { success: false, error: 'not_verified', userId: data.userId, email: data.email };
+            }
+            if (!res.ok) return { success: false, error: 'invalid_credentials' };
+            setUser(data.user);
+            localStorage.setItem('jerry_user', JSON.stringify(data.user));
+            return { success: true };
+        } catch {
+            return { success: false, error: 'connection_error' };
         }
-
-        // Check registered accounts in localStorage
-        const registeredAccounts: { user: User; password: string }[] = JSON.parse(
-            localStorage.getItem('jerry_registered') || '[]'
-        );
-        const registered = registeredAccounts.find(
-            (a) => a.user.username.toLowerCase() === u && a.password === p
-        );
-        if (registered) {
-            setUser(registered.user);
-            localStorage.setItem('jerry_user', JSON.stringify(registered.user));
-            return true;
-        }
-
-        return false;
     };
 
-    const register = (data: RegisterData): boolean => {
-        const registeredAccounts: { user: User; password: string }[] = JSON.parse(
-            localStorage.getItem('jerry_registered') || '[]'
-        );
+    const register = async (data: RegisterData): Promise<RegisterResult> => {
+        try {
+            const res = await fetch(`${API_URL}/auth/register`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data),
+            });
+            const result = await res.json();
+            if (!res.ok) return { success: false, error: result.error };
+            return { success: true, userId: result.userId, email: result.email };
+        } catch {
+            return { success: false, error: 'connection_error' };
+        }
+    };
 
-        // Check if username already exists
-        const exists =
-            TEST_ACCOUNTS.some((a) => a.user.username.toLowerCase() === data.username.trim().toLowerCase()) ||
-            registeredAccounts.some((a) => a.user.username.toLowerCase() === data.username.trim().toLowerCase());
+    const verifyEmail = async (userId: string, code: string) => {
+        try {
+            const res = await fetch(`${API_URL}/auth/verify-email`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId, code }),
+            });
+            const data = await res.json();
+            if (!res.ok) return { success: false, error: data.error };
+            return { success: true };
+        } catch {
+            return { success: false, error: 'connection_error' };
+        }
+    };
 
-        if (exists) return false;
-
-        const newUser: User = {
-            username: data.username,
-            firstName: data.firstName,
-            lastName: data.lastName,
-            phone: data.phone,
-            email: data.email,
-        };
-
-        registeredAccounts.push({ user: newUser, password: data.password });
-        localStorage.setItem('jerry_registered', JSON.stringify(registeredAccounts));
-
-        setUser(newUser);
-        localStorage.setItem('jerry_user', JSON.stringify(newUser));
-        return true;
+    const resendCode = async (userId: string) => {
+        try {
+            const res = await fetch(`${API_URL}/auth/resend-code`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId }),
+            });
+            return res.ok;
+        } catch {
+            return false;
+        }
     };
 
     const logout = () => {
@@ -111,7 +124,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     return (
-        <AuthContext.Provider value={{ user, isAuthenticated: !!user, login, register, logout }}>
+        <AuthContext.Provider value={{ user, isAuthenticated: !!user, login, register, verifyEmail, resendCode, logout }}>
             {children}
         </AuthContext.Provider>
     );

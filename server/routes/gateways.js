@@ -1,0 +1,46 @@
+const express = require('express');
+const router = express.Router();
+const Gateway = require('../models/Gateway');
+
+// Get all gateways
+router.get('/', async (req, res) => {
+    try {
+        const gateways = await Gateway.find().sort({ createdAt: 1 });
+        res.json(gateways);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Create gateway
+router.post('/', async (req, res) => {
+    try {
+        const gateway = new Gateway(req.body);
+        await gateway.save();
+        res.json(gateway);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Update gateway
+router.patch('/:id', async (req, res) => {
+    try {
+        const gateway = await Gateway.findByIdAndUpdate(req.params.id, req.body, { new: true });
+        res.json(gateway);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Delete gateway
+router.delete('/:id', async (req, res) => {
+    try {
+        await Gateway.findByIdAndDelete(req.params.id);
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+module.exports = router;

@@ -1,93 +1,69 @@
-import { Smartphone, Sparkles } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Folder } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { useLanguage } from '@/contexts/LanguageContext';
 
-interface Service {
-  id: string;
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const BACKEND_URL = API_URL.replace('/api', '');
+
+const getImageFullUrl = (img: string) => {
+  if (!img) return '';
+  if (img.startsWith('http')) return img;
+  return `${BACKEND_URL}${img}`;
+};
+
+interface CategoryData {
+  _id: string;
   nameKey: string;
-  icon?: React.ElementType;
+  name: string;
   image?: string;
-  iconBg: string;
-  iconColor: string;
+  parentId: string | null;
+  order: number;
 }
 
-const serviceKeys: Service[] = [
-  {
-    id: '1',
-    nameKey: 'jerryServicesCard',
-    image: '/jerry-services.png',
-    iconBg: 'from-purple-500/20 to-pink-500/20',
-    iconColor: 'text-purple-400'
-  },
-  {
-    id: '2',
-    nameKey: 'cardsSection',
-    image: '/cards.png',
-    iconBg: 'from-cyan-500/20 to-blue-500/20',
-    iconColor: 'text-cyan-400'
-  },
-  {
-    id: '3',
-    nameKey: 'gamingSection',
-    image: '/games.png',
-    iconBg: 'from-green-500/20 to-emerald-500/20',
-    iconColor: 'text-green-400'
-  },
-  {
-    id: '4',
-    nameKey: 'subscriptionsSection',
-    image: '/subscriptions.png',
-    iconBg: 'from-orange-500/20 to-red-500/20',
-    iconColor: 'text-orange-400'
-  },
-  {
-    id: '5',
-    nameKey: 'phoneTopUp',
-    icon: Smartphone,
-    iconBg: 'from-yellow-500/20 to-amber-500/20',
-    iconColor: 'text-yellow-400'
-  },
-  {
-    id: '6',
-    nameKey: 'miscServices',
-    icon: Sparkles,
-    iconBg: 'from-pink-500/20 to-rose-500/20',
-    iconColor: 'text-pink-400'
-  },
-];
-
 interface ServicesListProps {
-  onServiceClick?: (serviceId: string) => void;
+  onServiceClick?: (categoryId: string, categoryName?: string) => void;
 }
 
 export default function ServicesList({ onServiceClick }: ServicesListProps) {
   const { t } = useLanguage();
+  const [categories, setCategories] = useState<CategoryData[]>([]);
+
+  useEffect(() => {
+    fetch(`${API_URL}/categories?root=true`)
+      .then(r => r.json())
+      .then(setCategories)
+      .catch(console.error);
+  }, []);
+
+  const getCategoryName = (cat: CategoryData) => {
+    return (t as any)[cat.nameKey] || cat.name || cat.nameKey;
+  };
 
   return (
     <>
       <h2 className="font-space text-2xl text-white mb-6 tracking-wide drop-shadow-md">{t.categories}</h2>
 
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-6">
-        {serviceKeys.map((service) => {
-          const Icon = service.icon;
-          const name = (t as any)[service.nameKey] || service.nameKey;
+        {categories.map((cat) => {
+          const name = getCategoryName(cat);
           return (
             <div
-              key={service.id}
-              onClick={() => onServiceClick?.(service.id)}
+              key={cat._id}
+              onClick={() => onServiceClick?.(cat._id, getCategoryName(cat))}
               className="flex flex-col gap-3 group cursor-pointer"
             >
               {/* Card Container */}
               <Card className="relative w-full aspect-square md:aspect-[4/3] rounded-3xl border-0 bg-transparent overflow-hidden shadow-lg transition-all duration-300 group-hover:-translate-y-2 group-hover:shadow-cyan-500/20">
-                {service.image ? (
+                {cat.image ? (
                   <img
-                    src={service.image}
+                    src={getImageFullUrl(cat.image)}
                     alt={name}
                     className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                   />
                 ) : (
-                  <div className={`absolute inset-0 w-full h-full flex items-center justify-center bg-white/5 border border-white/10 ${service.iconBg ? `bg-gradient-to-br ${service.iconBg}` : ''}`}>
-                    {Icon && <Icon className={`w-20 h-20 md:w-24 md:h-24 ${service.iconColor} drop-shadow-xl transition-transform duration-300 group-hover:scale-110`} />}
+                  <div className="absolute inset-0 w-full h-full flex items-center justify-center bg-white/5 border border-white/10 bg-gradient-to-br from-purple-500/20 to-pink-500/20">
+                    <Folder className="w-20 h-20 md:w-24 md:h-24 text-purple-400 drop-shadow-xl transition-transform duration-300 group-hover:scale-110" />
                   </div>
                 )}
 

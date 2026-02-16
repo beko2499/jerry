@@ -17,13 +17,21 @@ export default function AdminLogin({ onLogin }: AdminLoginProps) {
     const [error, setError] = useState('');
     const { isRTL, lang, toggleLanguage, t } = useLanguage();
 
-    const handleLogin = (e: React.FormEvent) => {
+    const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
-        // Simple hardcoded check for now as per plan
-        if (username === 'admin' && password === 'admin123') {
-            onLogin();
-        } else {
-            setError(t.invalidCredentials);
+        try {
+            const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/auth/admin-login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password }),
+            });
+            if (res.ok) {
+                onLogin();
+            } else {
+                setError(t.invalidCredentials);
+            }
+        } catch {
+            setError('Connection error');
         }
     };
 

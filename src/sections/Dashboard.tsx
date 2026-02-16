@@ -13,14 +13,7 @@ import {
   Clock,
   CheckCircle,
   XCircle,
-  Search,
-  Instagram,
-  Facebook,
-  Send,
-  Briefcase,
-  Star,
-  Gift,
-  Music2
+  Search
 } from 'lucide-react';
 
 // Orders View Component
@@ -372,7 +365,7 @@ const allTelegramServices = [
 // Service Details View Component
 interface ServiceDetailsViewProps {
   serviceId: string;
-  serviceData?: { name: string; price: number; min: number; max: number; description?: string; speed?: string; dropRate?: string; guarantee?: string; startTime?: string };
+  serviceData?: { name: string; price: number; min: number; max: number; description?: string; speed?: string; dropRate?: string; guarantee?: string; startTime?: string; autoId?: string };
   onBack: () => void;
 }
 
@@ -380,7 +373,7 @@ function ServiceDetailsView({ serviceId, serviceData, onBack }: ServiceDetailsVi
   const [quantity, setQuantity] = useState<number>(serviceData?.min || 1000);
   const [hasCoupon, setHasCoupon] = useState(false);
   const [couponCode, setCouponCode] = useState('');
-  const { t, isRTL } = useLanguage();
+  const { t } = useLanguage();
 
   // Use dynamic service data from API if available, fallback to hardcoded
   const hardcodedService = allTelegramServices.find(s => s.id === serviceId);
@@ -552,138 +545,7 @@ function ServiceDetailsView({ serviceId, serviceData, onBack }: ServiceDetailsVi
   );
 }
 
-// Telegram Services View Component
-interface TelegramServicesViewProps {
-  onBack: () => void;
-  onServiceClick: (id: string) => void;
-}
-
-function TelegramServicesView({ onBack, onServiceClick }: TelegramServicesViewProps) {
-  const { t } = useLanguage();
-  return (
-    <div className="p-8">
-      <Button
-        variant="ghost"
-        onClick={onBack}
-        className="mb-6 text-white/60 hover:text-white"
-      >
-        {t.backToJerry}
-      </Button>
-      <h2 className="font-space text-2xl text-white mb-6 tracking-wide drop-shadow-md">{t.telegramServices}</h2>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {allTelegramServices.map((service) => (
-          <Card
-            key={service.id}
-            onClick={() => onServiceClick(service.id)}
-            className="group relative overflow-hidden bg-white/5 border-white/10 p-6 hover:bg-white/10 transition-all duration-300 backdrop-blur-sm hover:-translate-y-1 hover:shadow-lg hover:shadow-cyan-500/10 cursor-pointer"
-          >
-            {/* Discount Badge */}
-            <div className="absolute top-4 left-4 bg-red-500/20 text-red-400 text-xs font-bold px-2 py-1 rounded-full border border-red-500/30">
-              {service.discount}
-            </div>
-
-            <div className="mb-4">
-              <h3 className="font-body text-lg text-white font-bold mb-2 leading-relaxed h-14 line-clamp-2">
-                {service.name}
-              </h3>
-              <p className="text-white/50 text-sm h-10 line-clamp-2">
-                {service.shortDesc}
-              </p>
-            </div>
-
-            <div className="flex items-end justify-between mb-6">
-              <div className="flex flex-col">
-                <span className="text-gray-400 text-xs line-through">{service.pricePer1000 > 0.1 ? `$${service.oldPrice}` : ''}</span>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-2xl font-space font-bold text-cyan-400">${service.pricePer1000}</span>
-                  <span className="text-white/60 text-xs">/ 1000</span>
-                </div>
-              </div>
-              <div className="text-right">
-                <div className="text-xs text-white/40 mb-1">{t.quantity}</div>
-                <div className="text-xs text-white/80 font-mono bg-white/5 px-2 py-1 rounded border border-white/5">
-                  {service.min.toLocaleString()} - {service.max.toLocaleString()}
-                </div>
-              </div>
-            </div>
-
-            <Button className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-bold shadow-lg shadow-cyan-500/20 group-hover:shadow-cyan-500/40 transition-all">
-              {t.buyService}
-            </Button>
-          </Card>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-// Jerry Services View Component
-interface JerryServicesViewProps {
-  onBack: () => void;
-  onServiceClick: (id: string) => void;
-}
-
-function JerryServicesView({ onBack, onServiceClick }: JerryServicesViewProps) {
-  const { t } = useLanguage();
-  const services = [
-    { id: 'insta', name: t.instaServices, icon: Instagram, color: 'text-pink-500', bg: 'bg-pink-500/10 border-pink-500/20' },
-    { id: 'tiktok', name: t.tiktokServices, icon: Music2, color: 'text-cyan-400', bg: 'bg-cyan-500/10 border-cyan-500/20' },
-    { id: 'facebook', name: t.facebookServices, icon: Facebook, color: 'text-blue-600', bg: 'bg-blue-600/10 border-blue-600/20' },
-    { id: 'telegram', name: t.telegramServicesName, icon: Send, image: '/telegram-services.png', color: 'text-blue-400', bg: 'bg-blue-400/10 border-blue-400/20' },
-    { id: 'merchant', name: t.merchantServices, icon: Briefcase, color: 'text-purple-400', bg: 'bg-purple-400/10 border-purple-400/20' },
-    { id: 'telegram-premium', name: t.premiumTelegram, icon: Star, color: 'text-yellow-400', bg: 'bg-yellow-400/10 border-yellow-400/20' },
-    { id: 'telegram-stars', name: t.telegramStars, icon: Gift, color: 'text-orange-400', bg: 'bg-orange-400/10 border-orange-400/20' },
-  ];
-
-  return (
-    <div className="p-8">
-      <Button
-        variant="ghost"
-        onClick={onBack}
-        className="mb-6 text-white/60 hover:text-white"
-      >
-        {t.backToCategories}
-      </Button>
-      <h2 className="font-space text-2xl text-white mb-6 tracking-wide drop-shadow-md">{t.jerryServices}</h2>
-
-      <div className="grid grid-cols-2 lg:grid-cols-3 gap-6">
-        {services.map((service) => {
-          const Icon = service.icon;
-          return (
-            <div
-              key={service.id}
-              onClick={() => onServiceClick && onServiceClick(service.id)}
-              className="flex flex-col gap-3 group cursor-pointer"
-            >
-              <Card className="relative w-full aspect-square md:aspect-[4/3] rounded-3xl border-0 bg-transparent overflow-hidden shadow-lg transition-all duration-300 group-hover:-translate-y-2 group-hover:shadow-cyan-500/20">
-                {service.image ? (
-                  <img
-                    src={service.image}
-                    alt={service.name}
-                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                  />
-                ) : (
-                  <div className={`absolute inset-0 w-full h-full flex items-center justify-center ${service.bg} transition-colors`}>
-                    <Icon className={`w-16 h-16 md:w-20 md:h-20 ${service.color} transition-transform duration-300 group-hover:scale-110`} />
-                  </div>
-                )}
-                {/* Shine Effect */}
-                <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/10 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
-              </Card>
-
-              <div className="text-center">
-                <h3 className="font-body text-base md:text-lg text-white font-bold group-hover:text-cyan-400 transition-colors">
-                  {service.name}
-                </h3>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
+// Settings View Component
 
 // Settings View Component
 function SettingsView() {

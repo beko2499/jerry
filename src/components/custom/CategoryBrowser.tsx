@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Folder, ArrowRight, ArrowLeft, DollarSign, Zap, TrendingDown, ShieldCheck, Clock } from 'lucide-react';
+import { Folder, ArrowRight, ArrowLeft, Zap, TrendingDown, ShieldCheck, Clock } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';

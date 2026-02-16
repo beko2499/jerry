@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { CheckCircle, XCircle, Settings, Save, Plus, Trash2, Upload, ArrowUpDown } from 'lucide-react';
+import { CheckCircle, XCircle, Settings, Save, Plus, Trash2, ArrowUpDown } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';

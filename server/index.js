@@ -24,6 +24,7 @@ app.use('/api/settings', require('./routes/settings'));
 app.use('/api/stats', require('./routes/stats'));
 app.use('/api/upload', require('./routes/upload'));
 app.use('/api/coupons', require('./routes/coupons'));
+app.use('/api/nowpayments', require('./routes/nowpayments'));
 
 // Health check
 app.get('/api/health', (req, res) => res.json({ status: 'ok', time: new Date() }));

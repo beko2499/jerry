@@ -592,6 +592,15 @@ function AddFundsView() {
     contactType: string; contactValue: string;
     instructionText: string; instructionTextAr: string; destination: string;
   }>>([]);
+  const [autoAmount, setAutoAmount] = useState('');
+  const [cryptoPayment, setCryptoPayment] = useState<{
+    paymentId: string; payAddress: string; payAmount: number;
+    payCurrency: string; priceAmount: number; status: string;
+    expirationDate?: string;
+  } | null>(null);
+  const [paymentLoading, setPaymentLoading] = useState(false);
+  const [paymentStatus, setPaymentStatus] = useState('');
+  const [paymentError, setPaymentError] = useState('');
   const [copied, setCopied] = useState(false);
   const [couponCode, setCouponCode] = useState('');
   const [couponMsg, setCouponMsg] = useState<{ type: 'success' | 'error', text: string } | null>(null);
@@ -602,6 +611,23 @@ function AddFundsView() {
   useEffect(() => {
     fetch(`${API_URL}/gateways/public`).then(r => r.json()).then(setGateways).catch(console.error);
   }, []);
+
+  // Poll payment status
+  useEffect(() => {
+    if (!cryptoPayment?.paymentId) return;
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch(`${API_URL}/nowpayments/status/${cryptoPayment.paymentId}`);
+        const data = await res.json();
+        setPaymentStatus(data.status);
+        if (data.status === 'finished' || data.status === 'confirmed') {
+          clearInterval(interval);
+          await refreshUser();
+        }
+      } catch { /* ignore */ }
+    }, 10000); // Check every 10 seconds
+    return () => clearInterval(interval);
+  }, [cryptoPayment?.paymentId]);
 
   // Build payment methods from API + built-in coupon option
   const paymentMethods = [
@@ -626,6 +652,33 @@ function AddFundsView() {
     navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const createCryptoPayment = async () => {
+    if (!autoAmount || parseFloat(autoAmount) < 1 || !user?._id) return;
+    setPaymentLoading(true);
+    setPaymentError('');
+    try {
+      const res = await fetch(`${API_URL}/nowpayments/create-payment`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          amount: autoAmount,
+          currency: selectedMethodData?.destination || 'usdtarb',
+          userId: user._id,
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setCryptoPayment(data);
+        setPaymentStatus(data.status);
+      } else {
+        setPaymentError(data.error || 'Payment creation failed');
+      }
+    } catch {
+      setPaymentError('Connection error');
+    }
+    setPaymentLoading(false);
   };
 
   return (
@@ -777,21 +830,140 @@ function AddFundsView() {
 
               {/* Auto Payment */}
               {selectedMethodData?.type === 'auto' && (
-                <div>
-                  <label className="block font-body text-white/80 mb-2">{t.amount}</label>
-                  <Input type="number" className="bg-white/5 border-white/10 text-white focus:border-cyan-500/50" placeholder="10.00" />
+                <div className="space-y-4">
+                  {!cryptoPayment ? (
+                    <>
+                      <div>
+                        <label className="block font-body text-white/80 mb-2">{t.amount} (USD)</label>
+                        <Input
+                          type="number"
+                          value={autoAmount}
+                          onChange={e => setAutoAmount(e.target.value)}
+                          className="bg-white/5 border-white/10 text-white focus:border-cyan-500/50"
+                          placeholder="10.00"
+                          min="1"
+                        />
+                      </div>
 
-                  <div className="grid grid-cols-4 gap-2 mt-2 mb-6">
-                    {[5, 10, 25, 50, 100].map(amount => (
-                      <button key={amount} className="px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-white/50 hover:text-white transition-colors text-sm">
-                        ${amount}
-                      </button>
-                    ))}
-                  </div>
+                      <div className="grid grid-cols-5 gap-2">
+                        {[5, 10, 25, 50, 100].map(amount => (
+                          <button
+                            key={amount}
+                            onClick={() => setAutoAmount(String(amount))}
+                            className={`px-3 py-2 rounded-lg border transition-colors text-sm ${autoAmount === String(amount)
+                                ? 'bg-cyan-500/20 border-cyan-500/50 text-cyan-300'
+                                : 'bg-white/5 hover:bg-white/10 border-white/10 text-white/50 hover:text-white'
+                              }`}
+                          >
+                            ${amount}
+                          </button>
+                        ))}
+                      </div>
 
-                  <Button className="w-full h-12 bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700 text-white font-bold shadow-lg shadow-cyan-500/20">
-                    {t.continuePayment}
-                  </Button>
+                      {paymentError && (
+                        <div className="p-3 rounded-lg bg-red-500/20 border border-red-500/30 text-red-300 text-sm">
+                          {paymentError}
+                        </div>
+                      )}
+
+                      <Button
+                        onClick={createCryptoPayment}
+                        disabled={paymentLoading || !autoAmount || parseFloat(autoAmount) < 1}
+                        className="w-full h-12 bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700 text-white font-bold shadow-lg shadow-cyan-500/20 disabled:opacity-50"
+                      >
+                        {paymentLoading ? (
+                          <span className="flex items-center gap-2">
+                            <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                            {lang === 'ar' ? 'جاري إنشاء عنوان الدفع...' : 'Creating payment...'}
+                          </span>
+                        ) : (
+                          t.continuePayment
+                        )}
+                      </Button>
+                    </>
+                  ) : (
+                    /* Payment Created - Show Address */
+                    <div className="space-y-4">
+                      {/* Status Badge */}
+                      <div className={`p-3 rounded-xl text-center font-bold text-sm ${paymentStatus === 'finished' || paymentStatus === 'confirmed'
+                          ? 'bg-green-500/20 border border-green-500/30 text-green-300'
+                          : paymentStatus === 'sending' || paymentStatus === 'confirming'
+                            ? 'bg-yellow-500/20 border border-yellow-500/30 text-yellow-300'
+                            : 'bg-cyan-500/20 border border-cyan-500/30 text-cyan-300'
+                        }`}>
+                        {paymentStatus === 'finished' || paymentStatus === 'confirmed'
+                          ? (lang === 'ar' ? '✅ تم استلام الدفعة! تم إضافة الرصيد' : '✅ Payment received! Balance added')
+                          : paymentStatus === 'sending' || paymentStatus === 'confirming'
+                            ? (lang === 'ar' ? '⏳ جاري تأكيد المعاملة...' : '⏳ Confirming transaction...')
+                            : (lang === 'ar' ? '⏳ في انتظار الدفع...' : '⏳ Waiting for payment...')}
+                      </div>
+
+                      {/* Payment Details */}
+                      {paymentStatus !== 'finished' && paymentStatus !== 'confirmed' && (
+                        <>
+                          <div className="p-4 rounded-xl bg-yellow-500/10 border border-yellow-500/30">
+                            <p className="text-yellow-200 font-body mb-1 text-sm">
+                              {lang === 'ar' ? 'أرسل بالضبط:' : 'Send exactly:'}
+                            </p>
+                            <div className="flex items-center justify-center gap-2" dir="ltr">
+                              <code className="text-2xl font-mono bg-black/30 px-4 py-2 rounded text-white font-bold">
+                                {cryptoPayment.payAmount} {cryptoPayment.payCurrency.toUpperCase()}
+                              </code>
+                            </div>
+                            <p className="text-center text-white/40 text-xs mt-1">≈ ${cryptoPayment.priceAmount}</p>
+                          </div>
+
+                          <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+                            <p className="text-white/60 font-body mb-2 text-sm">
+                              {lang === 'ar' ? '📋 عنوان الاستلام:' : '📋 Payment address:'}
+                            </p>
+                            <div className="flex items-center gap-2" dir="ltr">
+                              <code className="flex-1 text-xs font-mono bg-black/30 px-3 py-2 rounded text-cyan-300 break-all select-all">
+                                {cryptoPayment.payAddress}
+                              </code>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => copyText(cryptoPayment.payAddress)}
+                                className="h-9 px-3 text-xs text-white/60 hover:text-white shrink-0"
+                              >
+                                {copied ? '✅' : (lang === 'ar' ? 'نسخ' : 'Copy')}
+                              </Button>
+                            </div>
+                          </div>
+
+                          <div className="p-3 rounded-lg bg-orange-500/10 border border-orange-500/20">
+                            <p className="text-orange-200 text-xs text-center">
+                              ⚠️ {lang === 'ar'
+                                ? `أرسل فقط ${cryptoPayment.payCurrency.toUpperCase()} إلى هذا العنوان. سيتم تحديث الرصيد تلقائياً بعد التأكيد.`
+                                : `Only send ${cryptoPayment.payCurrency.toUpperCase()} to this address. Balance will update automatically after confirmation.`}
+                            </p>
+                          </div>
+
+                          {/* Animated waiting indicator */}
+                          <div className="flex items-center justify-center gap-2 text-white/40 text-sm py-2">
+                            <span className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse" />
+                            {lang === 'ar' ? 'يتم التحقق كل 10 ثوانٍ تلقائياً...' : 'Auto-checking every 10 seconds...'}
+                          </div>
+                        </>
+                      )}
+
+                      {/* Success State */}
+                      {(paymentStatus === 'finished' || paymentStatus === 'confirmed') && (
+                        <div className="text-center py-4">
+                          <p className="text-green-300 text-lg font-bold mb-2">
+                            🎉 {lang === 'ar' ? `تم إضافة $${cryptoPayment.priceAmount} لرصيدك!` : `$${cryptoPayment.priceAmount} added to your balance!`}
+                          </p>
+                          <Button
+                            onClick={() => { setCryptoPayment(null); setAutoAmount(''); setPaymentStatus(''); }}
+                            className="mt-2 bg-white/10 hover:bg-white/20 text-white"
+                          >
+                            {lang === 'ar' ? 'دفعة جديدة' : 'New Payment'}
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
             </div>

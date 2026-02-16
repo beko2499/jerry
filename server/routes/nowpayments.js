@@ -94,14 +94,42 @@ router.post('/create-payment', async (req, res) => {
     }
 });
 
-// Check payment status
+// Track credited payments to prevent double-crediting
+const creditedPayments = new Set();
+
+// Check payment status + auto-credit balance
 router.get('/status/:paymentId', async (req, res) => {
     try {
         const r = await fetch(`${NP_API}/payment/${req.params.paymentId}`, { headers });
         const data = await r.json();
+        const status = data.payment_status;
+
+        // Auto-credit balance if payment is confirmed and not yet credited
+        if (['finished', 'confirmed', 'partially_paid'].includes(status) && !creditedPayments.has(data.payment_id)) {
+            creditedPayments.add(data.payment_id);
+
+            // Extract userId from order_id (format: jerry_USERID_TIMESTAMP)
+            const parts = (data.order_id || '').split('_');
+            const userId = parts.length >= 2 ? parts[1] : null;
+
+            if (userId) {
+                const user = await User.findById(userId);
+                if (user) {
+                    let creditAmount = parseFloat(data.price_amount);
+                    if (status === 'partially_paid' && data.actually_paid && data.pay_amount) {
+                        const ratio = parseFloat(data.actually_paid) / parseFloat(data.pay_amount);
+                        creditAmount = Math.floor(creditAmount * ratio * 100) / 100;
+                    }
+                    user.balance = (user.balance || 0) + creditAmount;
+                    await user.save();
+                    console.log(`[NOWPayments Status] Credited $${creditAmount} to ${user.username} (payment ${data.payment_id})`);
+                }
+            }
+        }
+
         res.json({
             paymentId: data.payment_id,
-            status: data.payment_status,
+            status,
             payAmount: data.pay_amount,
             actuallyPaid: data.actually_paid,
             priceAmount: data.price_amount,

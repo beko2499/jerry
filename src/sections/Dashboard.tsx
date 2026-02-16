@@ -649,7 +649,7 @@ function AddFundsView() {
                 <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/10 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
                 {/* Type Badge */}
                 <div className={`absolute top-3 ${lang === 'ar' ? 'right-3' : 'left-3'} px-2 py-0.5 rounded-full text-[10px] font-bold ${method.type === 'auto' ? 'bg-cyan-500/30 text-cyan-200 border border-cyan-400/40' : method.type === 'code' ? 'bg-purple-500/30 text-purple-200 border border-purple-400/40' : 'bg-yellow-500/30 text-yellow-200 border border-yellow-400/40'}`}>
-                  {method.type === 'auto' ? 'âڑ،' : method.type === 'code' ? 'ًںژںï¸ڈ' : 'âœ‹'} {method.description}
+                  {method.type === 'auto' ? '⚡' : method.type === 'code' ? '🎟️' : '✋'} {method.description}
                 </div>
               </Card>
               <div className="text-center">
@@ -688,7 +688,7 @@ function AddFundsView() {
                       <div className="flex items-center justify-center gap-2" dir="ltr">
                         <code className="text-xl font-mono bg-black/30 px-3 py-1 rounded text-white">{selectedMethodData.accountNumber}</code>
                         <Button size="sm" variant="ghost" onClick={() => copyText(selectedMethodData.accountNumber)} className="h-8 px-2 text-xs text-white/60 hover:text-white">
-                          {copied ? 'âœ…' : t.copy}
+                          {copied ? '✅' : t.copy}
                         </Button>
                       </div>
                     </div>
@@ -696,7 +696,7 @@ function AddFundsView() {
 
                   {selectedMethodData.instructionText && (
                     <div className="p-3 rounded-lg bg-white/5 border border-white/10">
-                      <p className="text-white/60 text-sm">ًں“‹ {selectedMethodData.instructionText}</p>
+                      <p className="text-white/60 text-sm">📋 {selectedMethodData.instructionText}</p>
                     </div>
                   )}
 

@@ -284,6 +284,10 @@ export default function GatewaysView() {
                                                 <label className="block text-white/60 text-xs mb-1">{t.paymentInstructions}</label>
                                                 <Input value={editForm.instructionText || ''} onChange={e => setEditForm(p => ({ ...p, instructionText: e.target.value }))} className="bg-black/30 border-white/10 text-white" />
                                             </div>
+                                            <div className="md:col-span-2">
+                                                <label className="block text-white/60 text-xs mb-1">{t.paymentInstructions} ({t.gatewayNameAr})</label>
+                                                <Input dir="rtl" value={editForm.instructionTextAr || ''} onChange={e => setEditForm(p => ({ ...p, instructionTextAr: e.target.value }))} className="bg-black/30 border-white/10 text-white" />
+                                            </div>
                                         </>
                                     )}
 

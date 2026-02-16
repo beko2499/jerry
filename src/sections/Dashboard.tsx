@@ -597,7 +597,7 @@ function AddFundsView() {
   const [couponMsg, setCouponMsg] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   const [isRedeeming, setIsRedeeming] = useState(false);
   const { t, lang } = useLanguage();
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
 
   useEffect(() => {
     fetch(`${API_URL}/gateways/public`).then(r => r.json()).then(setGateways).catch(console.error);
@@ -758,6 +758,7 @@ function AddFundsView() {
                         if (res.ok && data.success) {
                           setCouponMsg({ type: 'success', text: `${t.couponRedeemed} $${data.amount} ${t.balanceAdded}` });
                           setCouponCode('');
+                          await refreshUser();
                         } else {
                           setCouponMsg({ type: 'error', text: data.error === 'already_used' ? t.couponAlreadyUsed : t.invalidCode });
                         }

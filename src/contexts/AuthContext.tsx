@@ -36,6 +36,7 @@ interface AuthContextType {
     verifyEmail: (userId: string, code: string) => Promise<{ success: boolean; error?: string }>;
     resendCode: (userId: string) => Promise<boolean>;
     logout: () => void;
+    refreshUser: () => Promise<void>;
 }
 
 interface RegisterData {
@@ -123,8 +124,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         localStorage.removeItem('jerry_user');
     };
 
+    const refreshUser = async () => {
+        if (!user?._id) return;
+        try {
+            const res = await fetch(`${API_URL}/auth/me/${user._id}`);
+            if (res.ok) {
+                const data = await res.json();
+                setUser(data);
+                localStorage.setItem('jerry_user', JSON.stringify(data));
+            }
+        } catch { /* ignore */ }
+    };
+
     return (
-        <AuthContext.Provider value={{ user, isAuthenticated: !!user, login, register, verifyEmail, resendCode, logout }}>
+        <AuthContext.Provider value={{ user, isAuthenticated: !!user, login, register, verifyEmail, resendCode, logout, refreshUser }}>
             {children}
         </AuthContext.Provider>
     );

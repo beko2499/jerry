@@ -114,22 +114,27 @@ router.get('/status/:paymentId', async (req, res) => {
 // IPN Callback — NOWPayments notifies us when payment status changes
 router.post('/ipn', async (req, res) => {
     try {
-        const { payment_id, payment_status, order_id, price_amount, actually_paid } = req.body;
+        const { payment_id, payment_status, order_id, price_amount, actually_paid, pay_amount, outcome_amount } = req.body;
 
-        console.log(`[NOWPayments IPN] Payment ${payment_id}: ${payment_status}, order: ${order_id}`);
+        console.log(`[NOWPayments IPN] Payment ${payment_id}: ${payment_status}, order: ${order_id}, paid: ${actually_paid}/${pay_amount}`);
 
-        // Only process confirmed/finished payments
-        if (payment_status === 'finished' || payment_status === 'confirmed') {
-            // Extract userId from order_id (format: jerry_USERID_TIMESTAMP)
+        // Process finished, confirmed, OR partially_paid payments
+        if (['finished', 'confirmed', 'partially_paid'].includes(payment_status)) {
             const parts = (order_id || '').split('_');
             const userId = parts.length >= 2 ? parts[1] : null;
 
             if (userId) {
                 const user = await User.findById(userId);
                 if (user) {
-                    user.balance = (user.balance || 0) + parseFloat(price_amount);
+                    // For partial payments, calculate proportional USD amount
+                    let creditAmount = parseFloat(price_amount);
+                    if (payment_status === 'partially_paid' && actually_paid && pay_amount) {
+                        const ratio = parseFloat(actually_paid) / parseFloat(pay_amount);
+                        creditAmount = Math.floor(parseFloat(price_amount) * ratio * 100) / 100; // Round down to 2 decimals
+                    }
+                    user.balance = (user.balance || 0) + creditAmount;
                     await user.save();
-                    console.log(`[NOWPayments] Added $${price_amount} to user ${user.username} (${userId})`);
+                    console.log(`[NOWPayments] Added $${creditAmount} to user ${user.username} (${userId}) [${payment_status}]`);
                 }
             }
         }

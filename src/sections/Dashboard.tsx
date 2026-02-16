@@ -620,7 +620,7 @@ function AddFundsView() {
         const res = await fetch(`${API_URL}/nowpayments/status/${cryptoPayment.paymentId}`);
         const data = await res.json();
         setPaymentStatus(data.status);
-        if (data.status === 'finished' || data.status === 'confirmed') {
+        if (data.status === 'finished' || data.status === 'confirmed' || data.status === 'partially_paid') {
           clearInterval(interval);
           await refreshUser();
         }
@@ -851,8 +851,8 @@ function AddFundsView() {
                             key={amount}
                             onClick={() => setAutoAmount(String(amount))}
                             className={`px-3 py-2 rounded-lg border transition-colors text-sm ${autoAmount === String(amount)
-                                ? 'bg-cyan-500/20 border-cyan-500/50 text-cyan-300'
-                                : 'bg-white/5 hover:bg-white/10 border-white/10 text-white/50 hover:text-white'
+                              ? 'bg-cyan-500/20 border-cyan-500/50 text-cyan-300'
+                              : 'bg-white/5 hover:bg-white/10 border-white/10 text-white/50 hover:text-white'
                               }`}
                           >
                             ${amount}
@@ -885,13 +885,13 @@ function AddFundsView() {
                     /* Payment Created - Show Address */
                     <div className="space-y-4">
                       {/* Status Badge */}
-                      <div className={`p-3 rounded-xl text-center font-bold text-sm ${paymentStatus === 'finished' || paymentStatus === 'confirmed'
-                          ? 'bg-green-500/20 border border-green-500/30 text-green-300'
-                          : paymentStatus === 'sending' || paymentStatus === 'confirming'
-                            ? 'bg-yellow-500/20 border border-yellow-500/30 text-yellow-300'
-                            : 'bg-cyan-500/20 border border-cyan-500/30 text-cyan-300'
+                      <div className={`p-3 rounded-xl text-center font-bold text-sm ${paymentStatus === 'finished' || paymentStatus === 'confirmed' || paymentStatus === 'partially_paid'
+                        ? 'bg-green-500/20 border border-green-500/30 text-green-300'
+                        : paymentStatus === 'sending' || paymentStatus === 'confirming'
+                          ? 'bg-yellow-500/20 border border-yellow-500/30 text-yellow-300'
+                          : 'bg-cyan-500/20 border border-cyan-500/30 text-cyan-300'
                         }`}>
-                        {paymentStatus === 'finished' || paymentStatus === 'confirmed'
+                        {paymentStatus === 'finished' || paymentStatus === 'confirmed' || paymentStatus === 'partially_paid'
                           ? (lang === 'ar' ? '✅ تم استلام الدفعة! تم إضافة الرصيد' : '✅ Payment received! Balance added')
                           : paymentStatus === 'sending' || paymentStatus === 'confirming'
                             ? (lang === 'ar' ? '⏳ جاري تأكيد المعاملة...' : '⏳ Confirming transaction...')
@@ -899,7 +899,7 @@ function AddFundsView() {
                       </div>
 
                       {/* Payment Details */}
-                      {paymentStatus !== 'finished' && paymentStatus !== 'confirmed' && (
+                      {paymentStatus !== 'finished' && paymentStatus !== 'confirmed' && paymentStatus !== 'partially_paid' && (
                         <>
                           <div className="p-4 rounded-xl bg-yellow-500/10 border border-yellow-500/30">
                             <p className="text-yellow-200 font-body mb-1 text-sm">
@@ -945,11 +945,20 @@ function AddFundsView() {
                             <span className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse" />
                             {lang === 'ar' ? 'يتم التحقق كل 10 ثوانٍ تلقائياً...' : 'Auto-checking every 10 seconds...'}
                           </div>
+
+                          {/* Cancel Button */}
+                          <Button
+                            onClick={() => { setCryptoPayment(null); setAutoAmount(''); setPaymentStatus(''); setPaymentError(''); }}
+                            variant="ghost"
+                            className="w-full mt-2 text-white/40 hover:text-white/70 hover:bg-white/5 border border-white/10"
+                          >
+                            {lang === 'ar' ? '✕ إلغاء' : '✕ Cancel'}
+                          </Button>
                         </>
                       )}
 
                       {/* Success State */}
-                      {(paymentStatus === 'finished' || paymentStatus === 'confirmed') && (
+                      {(paymentStatus === 'finished' || paymentStatus === 'confirmed' || paymentStatus === 'partially_paid') && (
                         <div className="text-center py-4">
                           <p className="text-green-300 text-lg font-bold mb-2">
                             🎉 {lang === 'ar' ? `تم إضافة $${cryptoPayment.priceAmount} لرصيدك!` : `$${cryptoPayment.priceAmount} added to your balance!`}

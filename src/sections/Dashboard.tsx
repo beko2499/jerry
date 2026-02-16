@@ -1,5 +1,6 @@
 ﻿import { useState, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useAuth } from '@/contexts/AuthContext';
 import Sidebar from '@/components/custom/Sidebar';
 import Header from '@/components/custom/Header';
 import ServicesList from '@/components/custom/ServicesList';
@@ -592,7 +593,11 @@ function AddFundsView() {
     instructionText: string; instructionTextAr: string; destination: string;
   }>>([]);
   const [copied, setCopied] = useState(false);
+  const [couponCode, setCouponCode] = useState('');
+  const [couponMsg, setCouponMsg] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+  const [isRedeeming, setIsRedeeming] = useState(false);
   const { t, lang } = useLanguage();
+  const { user } = useAuth();
 
   useEffect(() => {
     fetch(`${API_URL}/gateways/public`).then(r => r.json()).then(setGateways).catch(console.error);
@@ -612,7 +617,7 @@ function AddFundsView() {
       destination: gw.destination,
       description: gw.type === 'auto' && gw.mode === 'auto' ? t.autoPayment : t.manualPayment,
     })),
-    { id: 'coupon', name: lang === 'ar' ? 'ظƒظˆط¨ظˆظ†' : 'Coupon Code', type: 'code', image: '/code.png', description: t.discountCode, accountNumber: '', contactType: '', contactValue: '', instructionText: '', destination: '' },
+    { id: 'coupon', name: lang === 'ar' ? '\u0643\u0648\u0628\u0648\u0646' : 'Coupon Code', type: 'code', image: '/code.png', description: t.discountCode, accountNumber: '', contactType: '', contactValue: '', instructionText: '', destination: '' },
   ];
 
   const selectedMethodData = paymentMethods.find(m => m.id === selectedMethod);
@@ -726,9 +731,45 @@ function AddFundsView() {
               {selectedMethodData?.type === 'code' && (
                 <div>
                   <label className="block font-body text-white/80 mb-2">{t.code}</label>
-                  <Input className="bg-white/5 border-white/10 text-white focus:border-cyan-500/50" placeholder="XXXX-XXXX-XXXX" />
-                  <Button className="w-full mt-4 h-12 bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700 text-white font-bold shadow-lg shadow-cyan-500/20">
-                    {t.redeemCode}
+                  <Input
+                    value={couponCode}
+                    onChange={e => setCouponCode(e.target.value.toUpperCase())}
+                    className="bg-white/5 border-white/10 text-white focus:border-cyan-500/50 font-mono tracking-widest text-center text-lg"
+                    placeholder="XXXX-XXXX-XXXX"
+                    dir="ltr"
+                  />
+                  {couponMsg && (
+                    <div className={`mt-3 p-3 rounded-lg text-sm font-body ${couponMsg.type === 'success' ? 'bg-green-500/20 border border-green-500/30 text-green-300' : 'bg-red-500/20 border border-red-500/30 text-red-300'}`}>
+                      {couponMsg.text}
+                    </div>
+                  )}
+                  <Button
+                    onClick={async () => {
+                      if (!couponCode.trim() || !user?._id) return;
+                      setIsRedeeming(true);
+                      setCouponMsg(null);
+                      try {
+                        const res = await fetch(`${API_URL}/coupons/redeem`, {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ code: couponCode.trim(), userId: user._id }),
+                        });
+                        const data = await res.json();
+                        if (res.ok && data.success) {
+                          setCouponMsg({ type: 'success', text: `${t.couponRedeemed} $${data.amount} ${t.balanceAdded}` });
+                          setCouponCode('');
+                        } else {
+                          setCouponMsg({ type: 'error', text: data.error === 'already_used' ? t.couponAlreadyUsed : t.invalidCode });
+                        }
+                      } catch {
+                        setCouponMsg({ type: 'error', text: 'Connection error' });
+                      }
+                      setIsRedeeming(false);
+                    }}
+                    disabled={isRedeeming || !couponCode.trim()}
+                    className="w-full mt-4 h-12 bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700 text-white font-bold shadow-lg shadow-cyan-500/20 disabled:opacity-50"
+                  >
+                    {isRedeeming ? t.redeeming : t.redeemCode}
                   </Button>
                 </div>
               )}

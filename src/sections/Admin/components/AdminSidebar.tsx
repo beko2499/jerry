@@ -8,7 +8,8 @@ import {
     LogOut,
     ChevronLeft,
     ChevronRight,
-    ShieldAlert
+    ShieldAlert,
+    Ticket
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -29,6 +30,7 @@ export default function AdminSidebar({ activeItem, onItemClick, onLogout }: Admi
         { id: 'gateways', label: t.gateways, icon: CreditCard, color: 'text-purple-400' },
         { id: 'providers', label: t.providers, icon: Users, color: 'text-pink-400' },
         { id: 'services', label: t.adminServices, icon: Layers, color: 'text-yellow-400' },
+        { id: 'coupons', label: t.coupons || 'Coupons', icon: Ticket, color: 'text-amber-400' },
         { id: 'support', label: t.adminSupport, icon: MessageCircle, color: 'text-green-400' },
     ];
 

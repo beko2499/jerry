@@ -41,7 +41,7 @@ async function sendVerificationEmail(to, code) {
   `;
 
   await transporter.sendMail({
-    from: process.env.EMAIL_FROM || process.env.EMAIL_USER,
+    from: `"JerryFollow" <${process.env.EMAIL_FROM || process.env.EMAIL_USER}>`,
     to,
     subject: '🔐 كود التأكيد — متجر جيري',
     html,

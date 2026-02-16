@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import Sidebar from '@/components/custom/Sidebar';
 import Header from '@/components/custom/Header';
@@ -15,6 +15,8 @@ import {
   XCircle,
   Search
 } from 'lucide-react';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 // Orders View Component
 function OrdersView() {
@@ -161,20 +163,20 @@ function SearchView({ onNavigate }: SearchViewProps) {
     { id: '5', name: (t as any).phoneTopUp || 'Phone Top-Up', category: (t as any).categories || 'Categories', target: 'new-order' },
     { id: '6', name: (t as any).miscServices || 'Misc Services', category: (t as any).categories || 'Categories', target: 'new-order' },
     // Telegram services
-    { id: '1823', name: 'اعضاء تليجرام حسابات محذوفه', category: (t as any).telegramServicesName || 'Telegram', target: 'telegram-services' },
-    { id: '1824', name: 'اعضاء تليجرام بدون نزول للابد (مملوكه)', category: (t as any).telegramServicesName || 'Telegram', target: 'telegram-services' },
-    { id: '1825', name: 'اعضاء تليجرام بدون نزول للابد للكروبات (مملوكه)', category: (t as any).telegramServicesName || 'Telegram', target: 'telegram-services' },
-    { id: '1826', name: 'اعضاء تليجرام رخيص (مملوكه)', category: (t as any).telegramServicesName || 'Telegram', target: 'telegram-services' },
-    { id: '1827', name: 'مشاهدات تليجرام', category: (t as any).telegramServicesName || 'Telegram', target: 'telegram-services' },
+    { id: '1823', name: 'ط§ط¹ط¶ط§ط، طھظ„ظٹط¬ط±ط§ظ… ط­ط³ط§ط¨ط§طھ ظ…ط­ط°ظˆظپظ‡', category: (t as any).telegramServicesName || 'Telegram', target: 'telegram-services' },
+    { id: '1824', name: 'ط§ط¹ط¶ط§ط، طھظ„ظٹط¬ط±ط§ظ… ط¨ط¯ظˆظ† ظ†ط²ظˆظ„ ظ„ظ„ط§ط¨ط¯ (ظ…ظ…ظ„ظˆظƒظ‡)', category: (t as any).telegramServicesName || 'Telegram', target: 'telegram-services' },
+    { id: '1825', name: 'ط§ط¹ط¶ط§ط، طھظ„ظٹط¬ط±ط§ظ… ط¨ط¯ظˆظ† ظ†ط²ظˆظ„ ظ„ظ„ط§ط¨ط¯ ظ„ظ„ظƒط±ظˆط¨ط§طھ (ظ…ظ…ظ„ظˆظƒظ‡)', category: (t as any).telegramServicesName || 'Telegram', target: 'telegram-services' },
+    { id: '1826', name: 'ط§ط¹ط¶ط§ط، طھظ„ظٹط¬ط±ط§ظ… ط±ط®ظٹطµ (ظ…ظ…ظ„ظˆظƒظ‡)', category: (t as any).telegramServicesName || 'Telegram', target: 'telegram-services' },
+    { id: '1827', name: 'ظ…ط´ط§ظ‡ط¯ط§طھ طھظ„ظٹط¬ط±ط§ظ…', category: (t as any).telegramServicesName || 'Telegram', target: 'telegram-services' },
     // Instagram
-    { id: 'insta-1', name: 'متابعين انستقرام', category: (t as any).instaServices || 'Instagram', target: 'jerry-services' },
-    { id: 'insta-2', name: 'لايكات انستقرام', category: (t as any).instaServices || 'Instagram', target: 'jerry-services' },
+    { id: 'insta-1', name: 'ظ…طھط§ط¨ط¹ظٹظ† ط§ظ†ط³طھظ‚ط±ط§ظ…', category: (t as any).instaServices || 'Instagram', target: 'jerry-services' },
+    { id: 'insta-2', name: 'ظ„ط§ظٹظƒط§طھ ط§ظ†ط³طھظ‚ط±ط§ظ…', category: (t as any).instaServices || 'Instagram', target: 'jerry-services' },
     // TikTok
-    { id: 'tiktok-1', name: 'متابعين تيك توك', category: (t as any).tiktokServices || 'TikTok', target: 'jerry-services' },
-    { id: 'tiktok-2', name: 'مشاهدات تيك توك', category: (t as any).tiktokServices || 'TikTok', target: 'jerry-services' },
+    { id: 'tiktok-1', name: 'ظ…طھط§ط¨ط¹ظٹظ† طھظٹظƒ طھظˆظƒ', category: (t as any).tiktokServices || 'TikTok', target: 'jerry-services' },
+    { id: 'tiktok-2', name: 'ظ…ط´ط§ظ‡ط¯ط§طھ طھظٹظƒ طھظˆظƒ', category: (t as any).tiktokServices || 'TikTok', target: 'jerry-services' },
     // Facebook
-    { id: 'fb-1', name: 'لايكات فيسبوك', category: (t as any).facebookServices || 'Facebook', target: 'jerry-services' },
-    { id: 'fb-2', name: 'متابعين فيسبوك', category: (t as any).facebookServices || 'Facebook', target: 'jerry-services' },
+    { id: 'fb-1', name: 'ظ„ط§ظٹظƒط§طھ ظپظٹط³ط¨ظˆظƒ', category: (t as any).facebookServices || 'Facebook', target: 'jerry-services' },
+    { id: 'fb-2', name: 'ظ…طھط§ط¨ط¹ظٹظ† ظپظٹط³ط¨ظˆظƒ', category: (t as any).facebookServices || 'Facebook', target: 'jerry-services' },
   ];
 
   const results = query.length > 0
@@ -230,7 +232,7 @@ function SearchView({ onNavigate }: SearchViewProps) {
           ) : (
             <div className="text-center py-12">
               <Search className="w-12 h-12 text-white/10 mx-auto mb-4" />
-              <p className="text-white/40 text-sm">لا توجد نتائج</p>
+              <p className="text-white/40 text-sm">ظ„ط§ طھظˆط¬ط¯ ظ†طھط§ط¦ط¬</p>
             </div>
           )}
         </div>
@@ -266,98 +268,98 @@ function NewOrderView({ onServiceClick }: NewOrderViewProps) {
 const allTelegramServices = [
   {
     id: '1823',
-    name: 'اعضاء تليجرام حسابات محذوفه',
+    name: 'ط§ط¹ط¶ط§ط، طھظ„ظٹط¬ط±ط§ظ… ط­ط³ط§ط¨ط§طھ ظ…ط­ط°ظˆظپظ‡',
     pricePer1000: 2.00,
     oldPrice: 2.02,
     discount: '-1%',
     min: 500,
     max: 60000,
-    category: 'خدمات تليجرام | جيري',
-    shortDesc: 'حسابات محذوفة، جودة منخفضة، بدء فوري',
-    description: `- البداء : 0 -4 ساعات 🚩
-- الضمان : حسابات محذوفه ٪0 نزوا 🏮
-- الرابط : رابط دعوة 🏮
-- الجوده : HQ 🏮
-- تقبل كروبات / قنوات 🎉
+    category: 'ط®ط¯ظ…ط§طھ طھظ„ظٹط¬ط±ط§ظ… | ط¬ظٹط±ظٹ',
+    shortDesc: 'ط­ط³ط§ط¨ط§طھ ظ…ط­ط°ظˆظپط©طŒ ط¬ظˆط¯ط© ظ…ظ†ط®ظپط¶ط©طŒ ط¨ط¯ط، ظپظˆط±ظٹ',
+    description: `- ط§ظ„ط¨ط¯ط§ط، : 0 -4 ط³ط§ط¹ط§طھ ًںڑ©
+- ط§ظ„ط¶ظ…ط§ظ† : ط­ط³ط§ط¨ط§طھ ظ…ط­ط°ظˆظپظ‡ ظھ0 ظ†ط²ظˆط§ ًںڈ®
+- ط§ظ„ط±ط§ط¨ط· : ط±ط§ط¨ط· ط¯ط¹ظˆط© ًںڈ®
+- ط§ظ„ط¬ظˆط¯ظ‡ : HQ ًںڈ®
+- طھظ‚ط¨ظ„ ظƒط±ظˆط¨ط§طھ / ظ‚ظ†ظˆط§طھ ًںژ‰
 
-- توضيح مهم : الحسابات بتدريج راح تنحذف معى مرور الايام . تم التحقق من الخدمه والخدمه 100/100حسابات محذوفه`,
+- طھظˆط¶ظٹط­ ظ…ظ‡ظ… : ط§ظ„ط­ط³ط§ط¨ط§طھ ط¨طھط¯ط±ظٹط¬ ط±ط§ط­ طھظ†ط­ط°ظپ ظ…ط¹ظ‰ ظ…ط±ظˆط± ط§ظ„ط§ظٹط§ظ… . طھظ… ط§ظ„طھط­ظ‚ظ‚ ظ…ظ† ط§ظ„ط®ط¯ظ…ظ‡ ظˆط§ظ„ط®ط¯ظ…ظ‡ 100/100ط­ط³ط§ط¨ط§طھ ظ…ط­ط°ظˆظپظ‡`,
     details: [
-      { label: 'سرعة الخدمه', value: 'الخدمة طبيعيه' },
-      { label: 'نسبه النزول', value: 'مزيج بين الوهمي والحقيقي' },
-      { label: 'ضمان', value: '0 يوم' },
-      { label: 'السرعة', value: '50K في اليوم' },
+      { label: 'ط³ط±ط¹ط© ط§ظ„ط®ط¯ظ…ظ‡', value: 'ط§ظ„ط®ط¯ظ…ط© ط·ط¨ظٹط¹ظٹظ‡' },
+      { label: 'ظ†ط³ط¨ظ‡ ط§ظ„ظ†ط²ظˆظ„', value: 'ظ…ط²ظٹط¬ ط¨ظٹظ† ط§ظ„ظˆظ‡ظ…ظٹ ظˆط§ظ„ط­ظ‚ظٹظ‚ظٹ' },
+      { label: 'ط¶ظ…ط§ظ†', value: '0 ظٹظˆظ…' },
+      { label: 'ط§ظ„ط³ط±ط¹ط©', value: '50K ظپظٹ ط§ظ„ظٹظˆظ…' },
     ]
   },
   {
     id: '1824',
-    name: 'اعضاء تليجرام بدون نزول للابد (مملوكه)',
+    name: 'ط§ط¹ط¶ط§ط، طھظ„ظٹط¬ط±ط§ظ… ط¨ط¯ظˆظ† ظ†ط²ظˆظ„ ظ„ظ„ط§ط¨ط¯ (ظ…ظ…ظ„ظˆظƒظ‡)',
     pricePer1000: 1.20,
     oldPrice: 1.21,
     discount: '-1%',
     min: 50,
     max: 50000,
-    category: 'خدمات تليجرام | جيري',
-    shortDesc: 'ضمان عدم النزول مدى الحياة، حسابات عالية الجودة',
-    description: `- البداء : 0 -2 ساعات 🚩
-- الضمان : بدون نزول للابد ♾️ 🏮
-- الرابط : رابط دعوة / يوزر 🏮
-- الجوده : HQ - حسابات مملوكه 🏮
-- تقبل قنوات فقط 🎉
+    category: 'ط®ط¯ظ…ط§طھ طھظ„ظٹط¬ط±ط§ظ… | ط¬ظٹط±ظٹ',
+    shortDesc: 'ط¶ظ…ط§ظ† ط¹ط¯ظ… ط§ظ„ظ†ط²ظˆظ„ ظ…ط¯ظ‰ ط§ظ„ط­ظٹط§ط©طŒ ط­ط³ط§ط¨ط§طھ ط¹ط§ظ„ظٹط© ط§ظ„ط¬ظˆط¯ط©',
+    description: `- ط§ظ„ط¨ط¯ط§ط، : 0 -2 ط³ط§ط¹ط§طھ ًںڑ©
+- ط§ظ„ط¶ظ…ط§ظ† : ط¨ط¯ظˆظ† ظ†ط²ظˆظ„ ظ„ظ„ط§ط¨ط¯ â™¾ï¸ڈ ًںڈ®
+- ط§ظ„ط±ط§ط¨ط· : ط±ط§ط¨ط· ط¯ط¹ظˆط© / ظٹظˆط²ط± ًںڈ®
+- ط§ظ„ط¬ظˆط¯ظ‡ : HQ - ط­ط³ط§ط¨ط§طھ ظ…ظ…ظ„ظˆظƒظ‡ ًںڈ®
+- طھظ‚ط¨ظ„ ظ‚ظ†ظˆط§طھ ظپظ‚ط· ًںژ‰
 
-- توضيح مهم : اعضاء حقيقيين بدون نزول نهائياً، خدمة مملوكة بضمان مدى الحياة`,
+- طھظˆط¶ظٹط­ ظ…ظ‡ظ… : ط§ط¹ط¶ط§ط، ط­ظ‚ظٹظ‚ظٹظٹظ† ط¨ط¯ظˆظ† ظ†ط²ظˆظ„ ظ†ظ‡ط§ط¦ظٹط§ظ‹طŒ ط®ط¯ظ…ط© ظ…ظ…ظ„ظˆظƒط© ط¨ط¶ظ…ط§ظ† ظ…ط¯ظ‰ ط§ظ„ط­ظٹط§ط©`,
     details: [
-      { label: 'سرعة الخدمه', value: 'سريعة' },
-      { label: 'نسبه النزول', value: '0% - بدون نزول' },
-      { label: 'ضمان', value: 'مدى الحياة ♾️' },
-      { label: 'السرعة', value: '30K في اليوم' },
+      { label: 'ط³ط±ط¹ط© ط§ظ„ط®ط¯ظ…ظ‡', value: 'ط³ط±ظٹط¹ط©' },
+      { label: 'ظ†ط³ط¨ظ‡ ط§ظ„ظ†ط²ظˆظ„', value: '0% - ط¨ط¯ظˆظ† ظ†ط²ظˆظ„' },
+      { label: 'ط¶ظ…ط§ظ†', value: 'ظ…ط¯ظ‰ ط§ظ„ط­ظٹط§ط© â™¾ï¸ڈ' },
+      { label: 'ط§ظ„ط³ط±ط¹ط©', value: '30K ظپظٹ ط§ظ„ظٹظˆظ…' },
     ]
   },
   {
     id: '1825',
-    name: 'اعضاء تليجرام بدون نزول للابد للكروبات (مملوكه)',
+    name: 'ط§ط¹ط¶ط§ط، طھظ„ظٹط¬ط±ط§ظ… ط¨ط¯ظˆظ† ظ†ط²ظˆظ„ ظ„ظ„ط§ط¨ط¯ ظ„ظ„ظƒط±ظˆط¨ط§طھ (ظ…ظ…ظ„ظˆظƒظ‡)',
     pricePer1000: 1.20,
     oldPrice: 1.21,
     discount: '-1%',
     min: 50,
     max: 20000,
-    category: 'خدمات تليجرام | جيري',
-    shortDesc: 'مخصص للمجموعات، ضمان مدى الحياة',
-    description: `- البداء : 0 -2 ساعات 🚩
-- الضمان : بدون نزول للابد ♾️ 🏮
-- الرابط : رابط دعوة كروب 🏮
-- الجوده : HQ - حسابات مملوكه 🏮
-- تقبل كروبات فقط 🎉
+    category: 'ط®ط¯ظ…ط§طھ طھظ„ظٹط¬ط±ط§ظ… | ط¬ظٹط±ظٹ',
+    shortDesc: 'ظ…ط®طµطµ ظ„ظ„ظ…ط¬ظ…ظˆط¹ط§طھطŒ ط¶ظ…ط§ظ† ظ…ط¯ظ‰ ط§ظ„ط­ظٹط§ط©',
+    description: `- ط§ظ„ط¨ط¯ط§ط، : 0 -2 ط³ط§ط¹ط§طھ ًںڑ©
+- ط§ظ„ط¶ظ…ط§ظ† : ط¨ط¯ظˆظ† ظ†ط²ظˆظ„ ظ„ظ„ط§ط¨ط¯ â™¾ï¸ڈ ًںڈ®
+- ط§ظ„ط±ط§ط¨ط· : ط±ط§ط¨ط· ط¯ط¹ظˆط© ظƒط±ظˆط¨ ًںڈ®
+- ط§ظ„ط¬ظˆط¯ظ‡ : HQ - ط­ط³ط§ط¨ط§طھ ظ…ظ…ظ„ظˆظƒظ‡ ًںڈ®
+- طھظ‚ط¨ظ„ ظƒط±ظˆط¨ط§طھ ظپظ‚ط· ًںژ‰
 
-- توضيح مهم : اعضاء حقيقيين مخصصين للكروبات بضمان مدى الحياة بدون نزول`,
+- طھظˆط¶ظٹط­ ظ…ظ‡ظ… : ط§ط¹ط¶ط§ط، ط­ظ‚ظٹظ‚ظٹظٹظ† ظ…ط®طµطµظٹظ† ظ„ظ„ظƒط±ظˆط¨ط§طھ ط¨ط¶ظ…ط§ظ† ظ…ط¯ظ‰ ط§ظ„ط­ظٹط§ط© ط¨ط¯ظˆظ† ظ†ط²ظˆظ„`,
     details: [
-      { label: 'سرعة الخدمه', value: 'سريعة' },
-      { label: 'نسبه النزول', value: '0% - بدون نزول' },
-      { label: 'ضمان', value: 'مدى الحياة ♾️' },
-      { label: 'السرعة', value: '20K في اليوم' },
+      { label: 'ط³ط±ط¹ط© ط§ظ„ط®ط¯ظ…ظ‡', value: 'ط³ط±ظٹط¹ط©' },
+      { label: 'ظ†ط³ط¨ظ‡ ط§ظ„ظ†ط²ظˆظ„', value: '0% - ط¨ط¯ظˆظ† ظ†ط²ظˆظ„' },
+      { label: 'ط¶ظ…ط§ظ†', value: 'ظ…ط¯ظ‰ ط§ظ„ط­ظٹط§ط© â™¾ï¸ڈ' },
+      { label: 'ط§ظ„ط³ط±ط¹ط©', value: '20K ظپظٹ ط§ظ„ظٹظˆظ…' },
     ]
   },
   {
     id: '1826',
-    name: 'اعضاء تليجرام رخيص (مملوكه) 〽️',
+    name: 'ط§ط¹ط¶ط§ط، طھظ„ظٹط¬ط±ط§ظ… ط±ط®ظٹطµ (ظ…ظ…ظ„ظˆظƒظ‡) م€½ï¸ڈ',
     pricePer1000: 0.07,
     oldPrice: 0.07,
     discount: '-1%',
     min: 100,
     max: 100000,
-    category: 'خدمات تليجرام | جيري',
-    shortDesc: 'ارخص خدمة في السوق، سرعة متوسطة',
-    description: `- البداء : 0 -6 ساعات 🚩
-- الضمان : لا يوجد ضمان 🏮
-- الرابط : رابط دعوة / يوزر 🏮
-- الجوده : Low - حسابات مملوكه 🏮
-- تقبل كروبات / قنوات 🎉
+    category: 'ط®ط¯ظ…ط§طھ طھظ„ظٹط¬ط±ط§ظ… | ط¬ظٹط±ظٹ',
+    shortDesc: 'ط§ط±ط®طµ ط®ط¯ظ…ط© ظپظٹ ط§ظ„ط³ظˆظ‚طŒ ط³ط±ط¹ط© ظ…طھظˆط³ط·ط©',
+    description: `- ط§ظ„ط¨ط¯ط§ط، : 0 -6 ط³ط§ط¹ط§طھ ًںڑ©
+- ط§ظ„ط¶ظ…ط§ظ† : ظ„ط§ ظٹظˆط¬ط¯ ط¶ظ…ط§ظ† ًںڈ®
+- ط§ظ„ط±ط§ط¨ط· : ط±ط§ط¨ط· ط¯ط¹ظˆط© / ظٹظˆط²ط± ًںڈ®
+- ط§ظ„ط¬ظˆط¯ظ‡ : Low - ط­ط³ط§ط¨ط§طھ ظ…ظ…ظ„ظˆظƒظ‡ ًںڈ®
+- طھظ‚ط¨ظ„ ظƒط±ظˆط¨ط§طھ / ظ‚ظ†ظˆط§طھ ًںژ‰
 
-- توضيح مهم : ارخص خدمة اعضاء في السوق، مناسبة لمن يريد ارقام كبيرة بأقل سعر`,
+- طھظˆط¶ظٹط­ ظ…ظ‡ظ… : ط§ط±ط®طµ ط®ط¯ظ…ط© ط§ط¹ط¶ط§ط، ظپظٹ ط§ظ„ط³ظˆظ‚طŒ ظ…ظ†ط§ط³ط¨ط© ظ„ظ…ظ† ظٹط±ظٹط¯ ط§ط±ظ‚ط§ظ… ظƒط¨ظٹط±ط© ط¨ط£ظ‚ظ„ ط³ط¹ط±`,
     details: [
-      { label: 'سرعة الخدمه', value: 'متوسطة' },
-      { label: 'نسبه النزول', value: 'ممكن نزول بسيط' },
-      { label: 'ضمان', value: 'لا يوجد' },
-      { label: 'السرعة', value: '100K في اليوم' },
+      { label: 'ط³ط±ط¹ط© ط§ظ„ط®ط¯ظ…ظ‡', value: 'ظ…طھظˆط³ط·ط©' },
+      { label: 'ظ†ط³ط¨ظ‡ ط§ظ„ظ†ط²ظˆظ„', value: 'ظ…ظ…ظƒظ† ظ†ط²ظˆظ„ ط¨ط³ظٹط·' },
+      { label: 'ط¶ظ…ط§ظ†', value: 'ظ„ط§ ظٹظˆط¬ط¯' },
+      { label: 'ط§ظ„ط³ط±ط¹ط©', value: '100K ظپظٹ ط§ظ„ظٹظˆظ…' },
     ]
   },
 ];
@@ -410,25 +412,25 @@ function ServiceDetailsView({ serviceId, serviceData, onBack }: ServiceDetailsVi
             <div className="grid grid-cols-2 gap-3 mb-6">
               {serviceData?.speed && (
                 <div className="p-3 bg-white/5 rounded-xl border border-white/5">
-                  <div className="text-xs text-white/40 mb-1">⚡ {t.speed || 'Speed'}</div>
+                  <div className="text-xs text-white/40 mb-1">âڑ، {t.speed || 'Speed'}</div>
                   <div className="text-sm text-white font-medium">{serviceData.speed}</div>
                 </div>
               )}
               {serviceData?.guarantee && (
                 <div className="p-3 bg-white/5 rounded-xl border border-white/5">
-                  <div className="text-xs text-white/40 mb-1">🛡️ {t.guarantee || 'Guarantee'}</div>
+                  <div className="text-xs text-white/40 mb-1">ًں›،ï¸ڈ {t.guarantee || 'Guarantee'}</div>
                   <div className="text-sm text-white font-medium">{serviceData.guarantee}</div>
                 </div>
               )}
               {serviceData?.dropRate && (
                 <div className="p-3 bg-white/5 rounded-xl border border-white/5">
-                  <div className="text-xs text-white/40 mb-1">📉 {t.dropRate || 'Drop Rate'}</div>
+                  <div className="text-xs text-white/40 mb-1">ًں“‰ {t.dropRate || 'Drop Rate'}</div>
                   <div className="text-sm text-white font-medium">{serviceData.dropRate}</div>
                 </div>
               )}
               {serviceData?.startTime && (
                 <div className="p-3 bg-white/5 rounded-xl border border-white/5">
-                  <div className="text-xs text-white/40 mb-1">🕐 {t.startTime}</div>
+                  <div className="text-xs text-white/40 mb-1">ًں•گ {t.startTime}</div>
                   <div className="text-sm text-white font-medium">{serviceData.startTime}</div>
                 </div>
               )}
@@ -583,18 +585,43 @@ function SettingsView() {
 // Add Funds View Component
 function AddFundsView() {
   const [selectedMethod, setSelectedMethod] = useState<string | null>(null);
-  const { t } = useLanguage();
+  const [gateways, setGateways] = useState<Array<{
+    _id: string; type: string; name: string; nameAr: string; image: string;
+    isEnabled: boolean; mode: string; accountNumber: string;
+    contactType: string; contactValue: string;
+    instructionText: string; instructionTextAr: string; destination: string;
+  }>>([]);
+  const [copied, setCopied] = useState(false);
+  const { t, lang } = useLanguage();
 
+  useEffect(() => {
+    fetch(`${API_URL}/gateways/public`).then(r => r.json()).then(setGateways).catch(console.error);
+  }, []);
+
+  // Build payment methods from API + built-in coupon option
   const paymentMethods = [
-    { id: 'asiacell', name: 'Asiacell', type: 'auto', image: '/asiacell.webp', color: 'bg-purple-600/10 border-purple-500/30', description: t.autoPayment },
-    { id: 'zain-cash', name: 'Zain Cash', type: 'manual', image: '/zaincash.jpg', color: 'bg-pink-600/10 border-pink-500/30', description: t.manualPayment },
-    { id: 'mastercard', name: 'MasterCard', type: 'auto', image: '/mastercard.png', color: 'bg-orange-500/10 border-orange-500/30', description: t.autoPayment },
-    { id: 'usdt', name: 'USDT', type: 'auto', image: '/usdt.png', color: 'bg-green-500/10 border-green-500/30', description: t.autoPayment },
-    { id: 'atheer', name: 'Atheer', type: 'auto', image: '/atheer.png', color: 'bg-blue-500/10 border-blue-500/30', description: t.autoPayment },
-    { id: 'code', name: 'Coupon Code', type: 'code', image: '/code.png', color: 'bg-cyan-500/10 border-cyan-500/30', description: t.discountCode },
+    ...gateways.map(gw => ({
+      id: gw._id,
+      name: lang === 'ar' && gw.nameAr ? gw.nameAr : gw.name,
+      type: gw.type === 'auto' && gw.mode === 'manual' ? 'manual' : gw.type,
+      image: gw.image || '/placeholder.png',
+      accountNumber: gw.accountNumber,
+      contactType: gw.contactType,
+      contactValue: gw.contactValue,
+      instructionText: lang === 'ar' && gw.instructionTextAr ? gw.instructionTextAr : gw.instructionText,
+      destination: gw.destination,
+      description: gw.type === 'auto' && gw.mode === 'auto' ? t.autoPayment : t.manualPayment,
+    })),
+    { id: 'coupon', name: lang === 'ar' ? 'ظƒظˆط¨ظˆظ†' : 'Coupon Code', type: 'code', image: '/code.png', description: t.discountCode, accountNumber: '', contactType: '', contactValue: '', instructionText: '', destination: '' },
   ];
 
   const selectedMethodData = paymentMethods.find(m => m.id === selectedMethod);
+
+  const copyText = (text: string) => {
+    navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   return (
     <div className="p-8">
@@ -608,23 +635,22 @@ function AddFundsView() {
               onClick={() => setSelectedMethod(method.id)}
               className="flex flex-col gap-3 group cursor-pointer"
             >
-              {/* Card Container */}
               <Card className="relative w-full aspect-[4/3] rounded-3xl border-0 bg-transparent overflow-hidden shadow-lg transition-all duration-300 group-hover:-translate-y-2 group-hover:shadow-cyan-500/20">
                 <img
                   src={method.image}
                   alt={method.name}
                   className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                 />
-                {/* Shine Effect */}
                 <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/10 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+                {/* Type Badge */}
+                <div className={`absolute top-3 ${lang === 'ar' ? 'right-3' : 'left-3'} px-2 py-0.5 rounded-full text-[10px] font-bold ${method.type === 'auto' ? 'bg-cyan-500/30 text-cyan-200 border border-cyan-400/40' : method.type === 'code' ? 'bg-purple-500/30 text-purple-200 border border-purple-400/40' : 'bg-yellow-500/30 text-yellow-200 border border-yellow-400/40'}`}>
+                  {method.type === 'auto' ? 'âڑ،' : method.type === 'code' ? 'ًںژںï¸ڈ' : 'âœ‹'} {method.description}
+                </div>
               </Card>
-
-              {/* Text Below */}
               <div className="text-center">
                 <h3 className="font-body text-base md:text-lg text-white font-bold group-hover:text-cyan-400 transition-colors">
-                  {method.name.split('|')[0]}
+                  {method.name}
                 </h3>
-                <span className="text-xs text-white/50">{method.description}</span>
               </div>
             </div>
           ))}
@@ -648,29 +674,51 @@ function AddFundsView() {
             </h3>
 
             <div className="space-y-6">
-              {/* Manual Payment (Zain Cash) */}
+              {/* Manual Payment */}
               {selectedMethodData?.type === 'manual' && (
-                <div className="text-center space-y-4">
-                  <div className="p-4 rounded-xl bg-yellow-500/10 border border-yellow-500/30 text-yellow-200">
-                    <p className="font-body mb-2">{t.transferTo}</p>
-                    <div className="flex items-center justify-center gap-2" dir="ltr">
-                      <code className="text-xl font-mono bg-black/30 px-3 py-1 rounded">07800000000</code>
-                      <Button size="sm" variant="ghost" className="h-8 w-8 p-0"><span className="text-xs">{t.copy}</span></Button>
+                <div className="space-y-4">
+                  {selectedMethodData.accountNumber && (
+                    <div className="p-4 rounded-xl bg-yellow-500/10 border border-yellow-500/30">
+                      <p className="text-yellow-200 font-body mb-2 text-sm">{t.transferTo}</p>
+                      <div className="flex items-center justify-center gap-2" dir="ltr">
+                        <code className="text-xl font-mono bg-black/30 px-3 py-1 rounded text-white">{selectedMethodData.accountNumber}</code>
+                        <Button size="sm" variant="ghost" onClick={() => copyText(selectedMethodData.accountNumber)} className="h-8 px-2 text-xs text-white/60 hover:text-white">
+                          {copied ? 'âœ…' : t.copy}
+                        </Button>
+                      </div>
                     </div>
-                  </div>
+                  )}
+
+                  {selectedMethodData.instructionText && (
+                    <div className="p-3 rounded-lg bg-white/5 border border-white/10">
+                      <p className="text-white/60 text-sm">ًں“‹ {selectedMethodData.instructionText}</p>
+                    </div>
+                  )}
 
                   <div>
                     <label className="block font-body text-white/80 mb-2">{t.amountTransferred}</label>
                     <Input type="number" className="bg-white/5 border-white/10 text-white focus:border-cyan-500/50" placeholder="0.00" />
                   </div>
 
-                  <Button
-                    className="w-full h-12 bg-blue-500 hover:bg-blue-600 text-white font-bold gap-2"
-                    onClick={() => window.open('https://t.me/your_admin_username', '_blank')}
-                  >
-                    <span>{t.sendProof}</span>
-                    <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .24z" /></svg>
-                  </Button>
+                  {selectedMethodData.contactType && selectedMethodData.contactValue && (
+                    <Button
+                      className={`w-full h-12 font-bold gap-2 ${selectedMethodData.contactType === 'whatsapp' ? 'bg-green-600 hover:bg-green-700' : 'bg-blue-500 hover:bg-blue-600'} text-white`}
+                      onClick={() => {
+                        if (selectedMethodData.contactType === 'whatsapp') {
+                          window.open(`https://wa.me/${selectedMethodData.contactValue.replace(/[^0-9]/g, '')}`, '_blank');
+                        } else {
+                          window.open(`https://t.me/${selectedMethodData.contactValue.replace('@', '')}`, '_blank');
+                        }
+                      }}
+                    >
+                      {t.sendProofVia} {selectedMethodData.contactType === 'whatsapp' ? t.whatsapp : t.telegram}
+                      {selectedMethodData.contactType === 'whatsapp' ? (
+                        <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" /><path d="M12 2C6.477 2 2 6.477 2 12c0 1.89.525 3.66 1.438 5.168L2 22l4.832-1.438A9.955 9.955 0 0012 22c5.523 0 10-4.477 10-10S17.523 2 12 2zm0 18c-1.66 0-3.203-.51-4.484-1.375l-.32-.191-2.872.855.855-2.872-.191-.32A7.963 7.963 0 014 12c0-4.411 3.589-8 8-8s8 3.589 8 8-3.589 8-8 8z" /></svg>
+                      ) : (
+                        <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .24z" /></svg>
+                      )}
+                    </Button>
+                  )}
                 </div>
               )}
 
@@ -685,7 +733,7 @@ function AddFundsView() {
                 </div>
               )}
 
-              {/* Auto Payment (Others) */}
+              {/* Auto Payment */}
               {selectedMethodData?.type === 'auto' && (
                 <div>
                   <label className="block font-body text-white/80 mb-2">{t.amount}</label>
@@ -711,6 +759,9 @@ function AddFundsView() {
     </div>
   );
 }
+
+
+
 
 // Support View Component
 function SupportView() {
@@ -748,20 +799,20 @@ function TermsView() {
       <h2 className="font-space text-2xl md:text-3xl text-white tracking-wide">{t.termsOfService}</h2>
       <Card className="p-5 md:p-8 bg-white/5 border-white/10 backdrop-blur-sm space-y-4">
         <div className="space-y-3 text-white/70 text-sm leading-relaxed font-body">
-          <h3 className="text-white font-bold text-base">1. القبول بالشروط</h3>
-          <p>باستخدامك لمنصة Jerry، فإنك توافق على جميع الشروط والأحكام المذكورة أدناه. يرجى قراءتها بعناية قبل استخدام أي خدمة.</p>
+          <h3 className="text-white font-bold text-base">1. ط§ظ„ظ‚ط¨ظˆظ„ ط¨ط§ظ„ط´ط±ظˆط·</h3>
+          <p>ط¨ط§ط³طھط®ط¯ط§ظ…ظƒ ظ„ظ…ظ†طµط© JerryطŒ ظپط¥ظ†ظƒ طھظˆط§ظپظ‚ ط¹ظ„ظ‰ ط¬ظ…ظٹط¹ ط§ظ„ط´ط±ظˆط· ظˆط§ظ„ط£ط­ظƒط§ظ… ط§ظ„ظ…ط°ظƒظˆط±ط© ط£ط¯ظ†ط§ظ‡. ظٹط±ط¬ظ‰ ظ‚ط±ط§ط،طھظ‡ط§ ط¨ط¹ظ†ط§ظٹط© ظ‚ط¨ظ„ ط§ط³طھط®ط¯ط§ظ… ط£ظٹ ط®ط¯ظ…ط©.</p>
 
-          <h3 className="text-white font-bold text-base">2. الخدمات المقدمة</h3>
-          <p>نقدم خدمات التسويق الرقمي بما في ذلك زيادة المتابعين والمشاهدات واللايكات عبر منصات التواصل الاجتماعي المختلفة.</p>
+          <h3 className="text-white font-bold text-base">2. ط§ظ„ط®ط¯ظ…ط§طھ ط§ظ„ظ…ظ‚ط¯ظ…ط©</h3>
+          <p>ظ†ظ‚ط¯ظ… ط®ط¯ظ…ط§طھ ط§ظ„طھط³ظˆظٹظ‚ ط§ظ„ط±ظ‚ظ…ظٹ ط¨ظ…ط§ ظپظٹ ط°ظ„ظƒ ط²ظٹط§ط¯ط© ط§ظ„ظ…طھط§ط¨ط¹ظٹظ† ظˆط§ظ„ظ…ط´ط§ظ‡ط¯ط§طھ ظˆط§ظ„ظ„ط§ظٹظƒط§طھ ط¹ط¨ط± ظ…ظ†طµط§طھ ط§ظ„طھظˆط§طµظ„ ط§ظ„ط§ط¬طھظ…ط§ط¹ظٹ ط§ظ„ظ…ط®طھظ„ظپط©.</p>
 
-          <h3 className="text-white font-bold text-base">3. سياسة الاسترداد</h3>
-          <p>لا يمكن استرداد المبالغ بعد بدء تنفيذ الطلب. في حالة عدم اكتمال الطلب، سيتم إرجاع الرصيد المتبقي إلى حسابك.</p>
+          <h3 className="text-white font-bold text-base">3. ط³ظٹط§ط³ط© ط§ظ„ط§ط³طھط±ط¯ط§ط¯</h3>
+          <p>ظ„ط§ ظٹظ…ظƒظ† ط§ط³طھط±ط¯ط§ط¯ ط§ظ„ظ…ط¨ط§ظ„ط؛ ط¨ط¹ط¯ ط¨ط¯ط، طھظ†ظپظٹط° ط§ظ„ط·ظ„ط¨. ظپظٹ ط­ط§ظ„ط© ط¹ط¯ظ… ط§ظƒطھظ…ط§ظ„ ط§ظ„ط·ظ„ط¨طŒ ط³ظٹطھظ… ط¥ط±ط¬ط§ط¹ ط§ظ„ط±طµظٹط¯ ط§ظ„ظ…طھط¨ظ‚ظٹ ط¥ظ„ظ‰ ط­ط³ط§ط¨ظƒ.</p>
 
-          <h3 className="text-white font-bold text-base">4. المسؤولية</h3>
-          <p>لا تتحمل المنصة أي مسؤولية عن أي إجراءات تتخذها منصات التواصل الاجتماعي تجاه حساباتك نتيجة استخدام خدماتنا.</p>
+          <h3 className="text-white font-bold text-base">4. ط§ظ„ظ…ط³ط¤ظˆظ„ظٹط©</h3>
+          <p>ظ„ط§ طھطھط­ظ…ظ„ ط§ظ„ظ…ظ†طµط© ط£ظٹ ظ…ط³ط¤ظˆظ„ظٹط© ط¹ظ† ط£ظٹ ط¥ط¬ط±ط§ط،ط§طھ طھطھط®ط°ظ‡ط§ ظ…ظ†طµط§طھ ط§ظ„طھظˆط§طµظ„ ط§ظ„ط§ط¬طھظ…ط§ط¹ظٹ طھط¬ط§ظ‡ ط­ط³ط§ط¨ط§طھظƒ ظ†طھظٹط¬ط© ط§ط³طھط®ط¯ط§ظ… ط®ط¯ظ…ط§طھظ†ط§.</p>
 
-          <h3 className="text-white font-bold text-base">5. الخصوصية</h3>
-          <p>نحترم خصوصيتك ولا نشارك بياناتك الشخصية مع أي طرف ثالث. يتم استخدام بياناتك فقط لتقديم الخدمات المطلوبة.</p>
+          <h3 className="text-white font-bold text-base">5. ط§ظ„ط®طµظˆطµظٹط©</h3>
+          <p>ظ†ط­طھط±ظ… ط®طµظˆطµظٹطھظƒ ظˆظ„ط§ ظ†ط´ط§ط±ظƒ ط¨ظٹط§ظ†ط§طھظƒ ط§ظ„ط´ط®طµظٹط© ظ…ط¹ ط£ظٹ ط·ط±ظپ ط«ط§ظ„ط«. ظٹطھظ… ط§ط³طھط®ط¯ط§ظ… ط¨ظٹط§ظ†ط§طھظƒ ظپظ‚ط· ظ„طھظ‚ط¯ظٹظ… ط§ظ„ط®ط¯ظ…ط§طھ ط§ظ„ظ…ط·ظ„ظˆط¨ط©.</p>
         </div>
       </Card>
     </div>
@@ -772,10 +823,10 @@ function TermsView() {
 function UpdatesView() {
   const { t } = useLanguage();
   const updates = [
-    { version: 'v2.5', date: '2025-02-15', title: 'تحسينات واجهة المستخدم', description: 'تحسين التصميم العام وإضافة قائمة جانبية جديدة للموبايل مع تحسين سرعة التطبيق.', type: 'تحسين' },
-    { version: 'v2.4', date: '2025-02-10', title: 'إضافة خدمات تليجرام', description: 'تمت إضافة خدمات جديدة لتليجرام تشمل الأعضاء والمشاهدات بضمانات متعددة.', type: 'جديد' },
-    { version: 'v2.3', date: '2025-02-01', title: 'نظام البحث الذكي', description: 'إضافة خاصية البحث عن الخدمات والأقسام بالاسم من الشريط السفلي.', type: 'جديد' },
-    { version: 'v2.2', date: '2025-01-25', title: 'دعم اللغة الكردية', description: 'إضافة دعم كامل للغة الكردية مع تحسينات على اللغة العربية والإنجليزية.', type: 'جديد' },
+    { version: 'v2.5', date: '2025-02-15', title: 'طھط­ط³ظٹظ†ط§طھ ظˆط§ط¬ظ‡ط© ط§ظ„ظ…ط³طھط®ط¯ظ…', description: 'طھط­ط³ظٹظ† ط§ظ„طھطµظ…ظٹظ… ط§ظ„ط¹ط§ظ… ظˆط¥ط¶ط§ظپط© ظ‚ط§ط¦ظ…ط© ط¬ط§ظ†ط¨ظٹط© ط¬ط¯ظٹط¯ط© ظ„ظ„ظ…ظˆط¨ط§ظٹظ„ ظ…ط¹ طھط­ط³ظٹظ† ط³ط±ط¹ط© ط§ظ„طھط·ط¨ظٹظ‚.', type: 'طھط­ط³ظٹظ†' },
+    { version: 'v2.4', date: '2025-02-10', title: 'ط¥ط¶ط§ظپط© ط®ط¯ظ…ط§طھ طھظ„ظٹط¬ط±ط§ظ…', description: 'طھظ…طھ ط¥ط¶ط§ظپط© ط®ط¯ظ…ط§طھ ط¬ط¯ظٹط¯ط© ظ„طھظ„ظٹط¬ط±ط§ظ… طھط´ظ…ظ„ ط§ظ„ط£ط¹ط¶ط§ط، ظˆط§ظ„ظ…ط´ط§ظ‡ط¯ط§طھ ط¨ط¶ظ…ط§ظ†ط§طھ ظ…طھط¹ط¯ط¯ط©.', type: 'ط¬ط¯ظٹط¯' },
+    { version: 'v2.3', date: '2025-02-01', title: 'ظ†ط¸ط§ظ… ط§ظ„ط¨ط­ط« ط§ظ„ط°ظƒظٹ', description: 'ط¥ط¶ط§ظپط© ط®ط§طµظٹط© ط§ظ„ط¨ط­ط« ط¹ظ† ط§ظ„ط®ط¯ظ…ط§طھ ظˆط§ظ„ط£ظ‚ط³ط§ظ… ط¨ط§ظ„ط§ط³ظ… ظ…ظ† ط§ظ„ط´ط±ظٹط· ط§ظ„ط³ظپظ„ظٹ.', type: 'ط¬ط¯ظٹط¯' },
+    { version: 'v2.2', date: '2025-01-25', title: 'ط¯ط¹ظ… ط§ظ„ظ„ط؛ط© ط§ظ„ظƒط±ط¯ظٹط©', description: 'ط¥ط¶ط§ظپط© ط¯ط¹ظ… ظƒط§ظ…ظ„ ظ„ظ„ط؛ط© ط§ظ„ظƒط±ط¯ظٹط© ظ…ط¹ طھط­ط³ظٹظ†ط§طھ ط¹ظ„ظ‰ ط§ظ„ظ„ط؛ط© ط§ظ„ط¹ط±ط¨ظٹط© ظˆط§ظ„ط¥ظ†ط¬ظ„ظٹط²ظٹط©.', type: 'ط¬ط¯ظٹط¯' },
   ];
 
   return (
@@ -790,7 +841,7 @@ function UpdatesView() {
                 <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">
                   {update.version}
                 </span>
-                <span className={`px-2 py-0.5 rounded-full text-xs font-medium border ${update.type === 'جديد' ? 'bg-green-500/20 text-green-400 border-green-500/30' : 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30'}`}>
+                <span className={`px-2 py-0.5 rounded-full text-xs font-medium border ${update.type === 'ط¬ط¯ظٹط¯' ? 'bg-green-500/20 text-green-400 border-green-500/30' : 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30'}`}>
                   {update.type}
                 </span>
               </div>

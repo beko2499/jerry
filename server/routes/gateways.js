@@ -2,10 +2,21 @@ const express = require('express');
 const router = express.Router();
 const Gateway = require('../models/Gateway');
 
-// Get all gateways
+// Public: Get enabled gateways (no sensitive fields)
+router.get('/public', async (req, res) => {
+    try {
+        const gateways = await Gateway.find({ isEnabled: true }, '-apiKey -apiSecret')
+            .sort({ sortOrder: 1, createdAt: 1 });
+        res.json(gateways);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Admin: Get all gateways
 router.get('/', async (req, res) => {
     try {
-        const gateways = await Gateway.find().sort({ createdAt: 1 });
+        const gateways = await Gateway.find().sort({ sortOrder: 1, createdAt: 1 });
         res.json(gateways);
     } catch (err) {
         res.status(500).json({ error: err.message });

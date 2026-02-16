@@ -1,15 +1,20 @@
 const nodemailer = require('nodemailer');
 
 const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-    },
+  host: 'smtp.gmail.com',
+  port: 587,
+  secure: false,
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
+  tls: {
+    rejectUnauthorized: false
+  }
 });
 
 async function sendVerificationEmail(to, code) {
-    const html = `
+  const html = `
     <div dir="rtl" style="font-family: 'Segoe UI', Tahoma, sans-serif; max-width: 480px; margin: 0 auto; background: linear-gradient(135deg, #0a0a1a 0%, #1a1a3e 100%); border-radius: 16px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1);">
       <div style="padding: 40px 30px; text-align: center;">
         <div style="font-size: 48px; margin-bottom: 16px;">👽</div>
@@ -35,12 +40,12 @@ async function sendVerificationEmail(to, code) {
     </div>
   `;
 
-    await transporter.sendMail({
-        from: process.env.EMAIL_FROM || process.env.EMAIL_USER,
-        to,
-        subject: '🔐 كود التأكيد — متجر جيري',
-        html,
-    });
+  await transporter.sendMail({
+    from: process.env.EMAIL_FROM || process.env.EMAIL_USER,
+    to,
+    subject: '🔐 كود التأكيد — متجر جيري',
+    html,
+  });
 }
 
 module.exports = { sendVerificationEmail };

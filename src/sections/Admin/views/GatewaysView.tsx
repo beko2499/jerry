@@ -248,14 +248,7 @@ export default function GatewaysView() {
                                             ? <><b>Settings → محافظ الدفع</b>: أضف عنوان محفظتك (USDT Arbitrum)</>
                                             : <><b>Settings → Wallets</b>: Add your wallet address (USDT Arbitrum)</>
                                         }</li>
-                                        <li>{lang === 'ar'
-                                            ? <><b>IPN</b>: ضع الرابط</>
-                                            : <><b>IPN</b>: Set callback URL</>
-                                        }
-                                            <code className="block mt-1 bg-black/40 px-2 py-1 rounded text-cyan-300 text-[10px] select-all" dir="ltr">
-                                                {`${window.location.origin}/api/nowpayments/ipn`}
-                                            </code>
-                                        </li>
+
                                         <li>{lang === 'ar'
                                             ? <>فعّل السحب التلقائي في <b>Custody</b></>
                                             : <>Enable auto-withdrawal in <b>Custody</b></>
@@ -349,14 +342,7 @@ export default function GatewaysView() {
                                                         ? <>اذهب لـ <b>Settings → Payment Settings → محافظ الدفع</b> وأضف عنوان محفظتك (USDT Arbitrum)</>
                                                         : <>Go to <b>Settings → Payment Settings → Wallets</b> and add your wallet address (USDT Arbitrum)</>
                                                     }</li>
-                                                    <li>{lang === 'ar'
-                                                        ? <>في <b>إشعارات الدفع الفورية (IPN)</b> ضع الرابط:</>
-                                                        : <>In <b>IPN Notifications</b>, set the callback URL:</>
-                                                    }
-                                                        <code className="block mt-1 bg-black/40 px-2 py-1 rounded text-cyan-300 text-[10px] select-all" dir="ltr">
-                                                            {`${window.location.origin}/api/nowpayments/ipn`}
-                                                        </code>
-                                                    </li>
+
                                                     <li>{lang === 'ar'
                                                         ? <>في <b>Custody</b> فعّل السحب التلقائي لمحفظتك</>
                                                         : <>In <b>Custody</b>, enable auto-withdrawal to your wallet</>

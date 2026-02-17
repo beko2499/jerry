@@ -1262,7 +1262,7 @@ function AddFundsView() {
                       <Button
                         onClick={() => {
                           setAcStep('phone'); setAcPhone(''); setAcOtp(''); setAcAmount(''); setAcUsername('');
-                          setAcConfirmOtp(''); setAcSessionId(''); setAcError(''); setAcCredited(0);
+                          setAcConfirmOtp(''); setAcError(''); setAcCredited(0);
                         }}
                         variant="ghost"
                         className="w-full text-white/40 hover:text-white/60"
@@ -1287,7 +1287,7 @@ function AddFundsView() {
                       <Button
                         onClick={() => {
                           setAcStep('phone'); setAcPhone(''); setAcOtp(''); setAcAmount(''); setAcUsername('');
-                          setAcConfirmOtp(''); setAcSessionId(''); setAcError(''); setAcCredited(0);
+                          setAcConfirmOtp(''); setAcError(''); setAcCredited(0);
                         }}
                         className="mt-2 bg-white/10 hover:bg-white/20 text-white"
                       >
@@ -1301,7 +1301,7 @@ function AddFundsView() {
                     <Button
                       onClick={() => {
                         setAcStep('phone'); setAcOtp(''); setAcAmount('');
-                        setAcConfirmOtp(''); setAcSessionId(''); setAcError('');
+                        setAcConfirmOtp(''); setAcError('');
                       }}
                       variant="ghost"
                       className="w-full text-white/40 hover:text-white/70 hover:bg-white/5 border border-white/10"

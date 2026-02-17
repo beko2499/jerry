@@ -381,7 +381,7 @@ function ServiceDetailsView({ serviceId, serviceData, onBack }: ServiceDetailsVi
   // Use dynamic service data from API if available, fallback to hardcoded
   const hardcodedService = allTelegramServices.find(s => s.id === serviceId);
   const serviceName = serviceData?.name || hardcodedService?.name || '';
-  const servicePrice = serviceData?.price ?? hardcodedService?.pricePer1000 ?? 0;
+  const servicePrice = Math.round(((serviceData?.price ?? hardcodedService?.pricePer1000 ?? 0)) * 100) / 100;
   const serviceMin = serviceData?.min ?? hardcodedService?.min ?? 100;
   const serviceMax = serviceData?.max ?? hardcodedService?.max ?? 10000;
   const serviceDesc = serviceData?.description || hardcodedService?.description || '';
@@ -406,7 +406,7 @@ function ServiceDetailsView({ serviceId, serviceData, onBack }: ServiceDetailsVi
             <div className="flex items-center gap-3 mb-6 p-3 bg-gradient-to-r from-cyan-500/10 to-purple-500/10 rounded-xl border border-cyan-500/20">
               <div className="flex items-baseline gap-1">
                 <span className="text-3xl font-bold text-cyan-400 font-space">${servicePrice}</span>
-                <span className="text-white/40 text-sm">/ 1000</span>
+                <span className="text-white/40 text-sm">/ {t.perUnit || 'لكل وحدة'}</span>
               </div>
             </div>
 
@@ -995,8 +995,8 @@ function AddFundsView() {
                     {['phone', 'otp', 'amount', 'confirm'].map((s, i) => (
                       <div key={s} className="flex items-center gap-1">
                         <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all ${acStep === s ? 'bg-cyan-500 text-white scale-110' :
-                            ['phone', 'otp', 'amount', 'confirm'].indexOf(acStep) > i || acStep === 'success' ? 'bg-green-500 text-white' :
-                              'bg-white/10 text-white/30'
+                          ['phone', 'otp', 'amount', 'confirm'].indexOf(acStep) > i || acStep === 'success' ? 'bg-green-500 text-white' :
+                            'bg-white/10 text-white/30'
                           }`}>{i + 1}</div>
                         {i < 3 && <div className={`w-6 h-0.5 ${['phone', 'otp', 'amount', 'confirm'].indexOf(acStep) > i || acStep === 'success' ? 'bg-green-500' : 'bg-white/10'}`} />}
                       </div>

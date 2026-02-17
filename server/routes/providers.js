@@ -106,7 +106,7 @@ router.post('/:id/import-services', async (req, res) => {
             const newService = new Service({
                 categoryId,
                 name: svc.name,
-                price: parseFloat(svc.rate) * priceMultiplier,
+                price: Math.round(parseFloat(svc.rate) * priceMultiplier * 100) / 100,
                 min: parseInt(svc.min) || 100,
                 max: parseInt(svc.max) || 10000,
                 description: svc.category || '',

@@ -62,8 +62,13 @@ router.post('/', async (req, res) => {
                     order.providerStatus = 'Processing';
                 } catch (apiErr) {
                     console.error('Provider API error:', apiErr.message);
+                    // Refund customer and cancel order immediately
+                    order.status = 'cancelled';
                     order.providerStatus = `Error: ${apiErr.message}`;
-                    // Order stays pending — admin can retry manually
+                    user.balance = (user.balance || 0) + price;
+                    await user.save();
+                    await order.save();
+                    return res.status(400).json({ error: apiErr.message, refunded: true });
                 }
             }
         }

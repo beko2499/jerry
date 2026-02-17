@@ -1,17 +1,22 @@
 import { useState, useEffect } from 'react';
-import { Users, ShoppingCart, DollarSign, Activity, ArrowLeft, Search, Mail, Phone, Calendar, Hash, CheckCircle, Clock, XCircle, CreditCard } from 'lucide-react';
+import { Users, ShoppingCart, DollarSign, Activity, ArrowLeft, Search, Mail, Phone, Calendar, Hash, CheckCircle, Clock, XCircle, CreditCard, Wallet } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
-type DetailView = null | 'users' | 'orders' | 'revenue' | 'active';
+type DetailView = null | 'users' | 'orders' | 'revenue' | 'rechargeRevenue' | 'active';
 
 export default function StatsView() {
     const { t, isRTL } = useLanguage();
     const [detailView, setDetailView] = useState<DetailView>(null);
-    const [data, setData] = useState({ totalUsers: 0, totalOrders: 0, totalRevenue: '$0.00', activeNow: 0, recentActivity: [] as { user: string; action: string; time: string }[] });
+    const [data, setData] = useState({
+        totalUsers: 0, totalOrders: 0, totalRevenue: '$0.00', activeNow: 0,
+        completedRevenue: '0.00', pendingRevenue: '0.00', cancelledRevenue: '0.00', profits: '0.00',
+        rechargeRevenue: '0.00', rechargeCount: 0,
+        recentActivity: [] as { user: string; action: string; time: string }[]
+    });
 
     // Detail data
     const [users, setUsers] = useState<any[]>([]);
@@ -44,7 +49,8 @@ export default function StatsView() {
     const stats = [
         { key: 'users' as DetailView, label: t.totalUsers, value: data.totalUsers.toLocaleString(), icon: Users, color: 'text-cyan-400', bg: 'bg-cyan-500/10 border-cyan-500/20', hoverBorder: 'hover:border-cyan-500/50' },
         { key: 'orders' as DetailView, label: t.totalOrders, value: data.totalOrders.toLocaleString(), icon: ShoppingCart, color: 'text-purple-400', bg: 'bg-purple-500/10 border-purple-500/20', hoverBorder: 'hover:border-purple-500/50' },
-        { key: 'revenue' as DetailView, label: t.totalRevenue, value: data.totalRevenue, icon: DollarSign, color: 'text-green-400', bg: 'bg-green-500/10 border-green-500/20', hoverBorder: 'hover:border-green-500/50' },
+        { key: 'revenue' as DetailView, label: t.orderRevenue || 'إيرادات الطلبات', value: data.totalRevenue, icon: DollarSign, color: 'text-green-400', bg: 'bg-green-500/10 border-green-500/20', hoverBorder: 'hover:border-green-500/50' },
+        { key: 'rechargeRevenue' as DetailView, label: t.rechargeRevenue || 'إيرادات الشحن', value: `$${data.rechargeRevenue}`, icon: Wallet, color: 'text-amber-400', bg: 'bg-amber-500/10 border-amber-500/20', hoverBorder: 'hover:border-amber-500/50' },
         { key: 'active' as DetailView, label: t.activeNow, value: data.activeNow.toLocaleString(), icon: Activity, color: 'text-red-400', bg: 'bg-red-500/10 border-red-500/20', hoverBorder: 'hover:border-red-500/50' },
     ];
 
@@ -225,24 +231,22 @@ export default function StatsView() {
                 {detailView === 'revenue' && (
                     <div className="space-y-4">
                         {/* Revenue Summary Cards */}
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                             <Card className="p-4 bg-green-500/5 border-green-500/20">
                                 <p className="text-white/50 text-xs mb-1">{t.completedRevenue || 'إيرادات مكتملة'}</p>
-                                <p className="text-green-400 font-bold font-mono text-lg">
-                                    ${filteredOrders.filter(o => o.status === 'completed').reduce((s: number, o: any) => s + (o.price || 0), 0).toFixed(2)}
-                                </p>
+                                <p className="text-green-400 font-bold font-mono text-lg">${data.completedRevenue}</p>
                             </Card>
                             <Card className="p-4 bg-yellow-500/5 border-yellow-500/20">
                                 <p className="text-white/50 text-xs mb-1">{t.pendingRevenue || 'إيرادات معلقة'}</p>
-                                <p className="text-yellow-400 font-bold font-mono text-lg">
-                                    ${filteredOrders.filter(o => o.status === 'pending').reduce((s: number, o: any) => s + (o.price || 0), 0).toFixed(2)}
-                                </p>
+                                <p className="text-yellow-400 font-bold font-mono text-lg">${data.pendingRevenue}</p>
                             </Card>
                             <Card className="p-4 bg-red-500/5 border-red-500/20">
                                 <p className="text-white/50 text-xs mb-1">{t.cancelledRevenue || 'إيرادات ملغاة'}</p>
-                                <p className="text-red-400 font-bold font-mono text-lg">
-                                    ${filteredOrders.filter(o => o.status === 'cancelled').reduce((s: number, o: any) => s + (o.price || 0), 0).toFixed(2)}
-                                </p>
+                                <p className="text-red-400 font-bold font-mono text-lg">${data.cancelledRevenue}</p>
+                            </Card>
+                            <Card className="p-4 bg-cyan-500/5 border-cyan-500/20">
+                                <p className="text-white/50 text-xs mb-1">{t.profits || 'الأرباح'}</p>
+                                <p className="text-cyan-400 font-bold font-mono text-lg">${data.profits}</p>
                             </Card>
                         </div>
 
@@ -274,6 +278,23 @@ export default function StatsView() {
                         ))}
                     </div>
                 )}
+
+                {/* ===== Recharge Revenue Detail ===== */}
+                {detailView === 'rechargeRevenue' && (
+                    <div className="space-y-4">
+                        <div className="grid grid-cols-2 gap-3">
+                            <Card className="p-4 bg-amber-500/5 border-amber-500/20">
+                                <p className="text-white/50 text-xs mb-1">{t.totalRecharges || 'إجمالي الشحن'}</p>
+                                <p className="text-amber-400 font-bold font-mono text-lg">${data.rechargeRevenue}</p>
+                            </Card>
+                            <Card className="p-4 bg-amber-500/5 border-amber-500/20">
+                                <p className="text-white/50 text-xs mb-1">{t.rechargeCount || 'عدد العمليات'}</p>
+                                <p className="text-amber-400 font-bold font-mono text-lg">{data.rechargeCount}</p>
+                            </Card>
+                        </div>
+                        <p className="text-white/40 text-sm text-center">{t.rechargeNote || 'يتم تسجيل عمليات الشحن الجديدة تلقائياً'}</p>
+                    </div>
+                )}
             </div>
         );
     }
@@ -283,7 +304,7 @@ export default function StatsView() {
         <div className="p-4 md:p-8 space-y-6 md:space-y-8" dir={isRTL ? 'rtl' : 'ltr'}>
             <h2 className="font-space text-2xl md:text-3xl text-white tracking-wide">{t.dashboardOverview}</h2>
 
-            <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-6">
                 {stats.map((stat, index) => {
                     const Icon = stat.icon;
                     return (

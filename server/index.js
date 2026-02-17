@@ -37,6 +37,62 @@ mongoose.connect(MONGO_URI)
         app.listen(PORT, () => {
             console.log(`🚀 Server running on http://localhost:${PORT}`);
         });
+
+        // Auto-sync order statuses every 2 minutes
+        const Order = require('./models/Order');
+        const Provider = require('./models/Provider');
+        const SmmApi = require('./utils/smmApi');
+
+        const statusMap = {
+            'Completed': 'completed',
+            'In progress': 'processing',
+            'Processing': 'processing',
+            'Pending': 'pending',
+            'Partial': 'partial',
+            'Canceled': 'cancelled',
+            'Cancelled': 'cancelled',
+        };
+
+        setInterval(async () => {
+            try {
+                const orders = await Order.find({
+                    status: { $in: ['pending', 'processing'] },
+                    externalOrderId: { $ne: '' },
+                    providerId: { $ne: '' },
+                });
+                if (!orders.length) return;
+
+                // Group by provider
+                const grouped = {};
+                for (const o of orders) {
+                    if (!grouped[o.providerId]) grouped[o.providerId] = [];
+                    grouped[o.providerId].push(o);
+                }
+
+                let updated = 0;
+                for (const [providerId, provOrders] of Object.entries(grouped)) {
+                    const provider = await Provider.findById(providerId);
+                    if (!provider) continue;
+                    const api = new SmmApi(provider.url, provider.apiKey);
+
+                    for (const o of provOrders) {
+                        try {
+                            const r = await api.getOrderStatus(o.externalOrderId);
+                            if (r && r.status) {
+                                o.providerStatus = r.status;
+                                o.providerCharge = parseFloat(r.charge) || 0;
+                                if (statusMap[r.status]) o.status = statusMap[r.status];
+                                await o.save();
+                                updated++;
+                            }
+                        } catch (e) { /* skip failed checks */ }
+                    }
+                }
+                if (updated > 0) console.log(`[Auto-Sync] Updated ${updated} order(s)`);
+            } catch (err) {
+                console.error('[Auto-Sync] Error:', err.message);
+            }
+        }, 2 * 60 * 1000); // Every 2 minutes
     })
     .catch(err => {
         console.error('❌ MongoDB connection error:', err.message);

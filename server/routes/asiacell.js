@@ -132,6 +132,31 @@ router.post('/admin/verify', async (req, res) => {
             adminSession.accessToken = data.access_token;
             adminSession.authenticated = true;
             console.log(`[Asiacell Admin] Authenticated successfully for ${adminSession.phone}`);
+
+            // Auto-create or enable Asiacell gateway
+            try {
+                let gw = await Gateway.findOne({ destination: adminSession.phone, type: 'auto' });
+                if (!gw) {
+                    gw = await Gateway.create({
+                        type: 'auto',
+                        name: 'Asiacell',
+                        nameAr: 'آسياسيل',
+                        isEnabled: true,
+                        isConnected: true,
+                        destination: adminSession.phone,
+                        mode: 'auto',
+                    });
+                    console.log(`[Asiacell Admin] Created gateway for ${adminSession.phone}`);
+                } else if (!gw.isEnabled) {
+                    gw.isEnabled = true;
+                    gw.isConnected = true;
+                    await gw.save();
+                    console.log(`[Asiacell Admin] Enabled existing gateway for ${adminSession.phone}`);
+                }
+            } catch (gwErr) {
+                console.error('[Asiacell Admin] Gateway auto-create error:', gwErr);
+            }
+
             res.json({ success: true, message: 'Admin authenticated' });
         } else {
             res.json({ success: false, message: data.message || 'Invalid OTP' });

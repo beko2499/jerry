@@ -1,18 +1,36 @@
 const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
+const Gateway = require('../models/Gateway');
 
 const NP_API = 'https://api.nowpayments.io/v1';
-const NP_KEY = process.env.NOWPAYMENTS_API_KEY || '';
 
-const headers = {
-    'x-api-key': NP_KEY,
-    'Content-Type': 'application/json',
-};
+// Dynamic API key: check DB first (admin-editable), fallback to .env
+async function getNPKey() {
+    try {
+        const gw = await Gateway.findOne({
+            type: 'auto',
+            $or: [
+                { name: { $regex: /nowpayments|tether|usdt|تيثر/i } },
+                { destination: { $regex: /usdt/i } }
+            ]
+        });
+        if (gw?.apiKey) return gw.apiKey;
+    } catch (e) { /* fallback */ }
+    return process.env.NOWPAYMENTS_API_KEY || '';
+}
+
+function makeHeaders(apiKey) {
+    return {
+        'x-api-key': apiKey,
+        'Content-Type': 'application/json',
+    };
+}
 
 // Get minimum payment amount for a currency pair
 router.get('/min-amount/:currency', async (req, res) => {
     try {
+        const headers = makeHeaders(await getNPKey());
         const r = await fetch(`${NP_API}/min-amount?currency_from=${req.params.currency}&currency_to=usd`, { headers });
         const data = await r.json();
         res.json(data);
@@ -24,6 +42,7 @@ router.get('/min-amount/:currency', async (req, res) => {
 // Get estimated price (how much crypto for X USD)
 router.get('/estimate', async (req, res) => {
     try {
+        const headers = makeHeaders(await getNPKey());
         const { amount, currency } = req.query;
         const r = await fetch(`${NP_API}/estimate?amount=${amount}&currency_from=usd&currency_to=${currency}`, { headers });
         const data = await r.json();
@@ -66,6 +85,7 @@ router.post('/create-payment', async (req, res) => {
             ipn_callback_url: `${process.env.APP_URL || 'https://jerrystore.online'}/api/nowpayments/ipn`,
         };
 
+        const headers = makeHeaders(await getNPKey());
         const r = await fetch(`${NP_API}/payment`, {
             method: 'POST',
             headers,
@@ -100,6 +120,7 @@ const creditedPayments = new Set();
 // Check payment status + auto-credit balance
 router.get('/status/:paymentId', async (req, res) => {
     try {
+        const headers = makeHeaders(await getNPKey());
         const r = await fetch(`${NP_API}/payment/${req.params.paymentId}`, { headers });
         const data = await r.json();
         const status = data.payment_status;
@@ -177,6 +198,7 @@ router.post('/ipn', async (req, res) => {
 // Get available currencies
 router.get('/currencies', async (req, res) => {
     try {
+        const headers = makeHeaders(await getNPKey());
         const r = await fetch(`${NP_API}/currencies?fixed_rate=true`, { headers });
         const data = await r.json();
         // Filter to popular ones

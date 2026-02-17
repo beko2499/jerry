@@ -231,6 +231,37 @@ export default function GatewaysView() {
                                     <label className="block text-white/60 text-xs mb-1">API Secret</label>
                                     <Input type="password" value={newGateway.apiSecret || ''} onChange={e => setNewGateway(p => ({ ...p, apiSecret: e.target.value }))} className="bg-black/30 border-white/10 text-white font-mono text-xs" />
                                 </div>
+                                <div>
+                                    <label className="block text-white/60 text-xs mb-1">{t.destination}</label>
+                                    <Input value={newGateway.destination || ''} onChange={e => setNewGateway(p => ({ ...p, destination: e.target.value }))} placeholder="usdtarb" className="bg-black/30 border-white/10 text-white" />
+                                </div>
+
+                                {/* NOWPayments Setup Guide */}
+                                <div className="md:col-span-2 p-4 rounded-xl bg-cyan-500/5 border border-cyan-500/20 space-y-3">
+                                    <h4 className="text-cyan-300 font-bold text-sm flex items-center gap-2">📋 {lang === 'ar' ? 'دليل إعداد NOWPayments' : 'NOWPayments Setup Guide'}</h4>
+                                    <ol className={`text-white/70 text-xs space-y-2 ${lang === 'ar' ? 'pr-4' : 'pl-4'} list-decimal`}>
+                                        <li>{lang === 'ar'
+                                            ? <>سجّل في <a href="https://account.nowpayments.io" target="_blank" rel="noreferrer" className="text-cyan-400 underline">account.nowpayments.io</a> واحصل على API Key</>
+                                            : <>Sign up at <a href="https://account.nowpayments.io" target="_blank" rel="noreferrer" className="text-cyan-400 underline">account.nowpayments.io</a> and get your API Key</>
+                                        }</li>
+                                        <li>{lang === 'ar'
+                                            ? <><b>Settings → محافظ الدفع</b>: أضف عنوان محفظتك (USDT Arbitrum)</>
+                                            : <><b>Settings → Wallets</b>: Add your wallet address (USDT Arbitrum)</>
+                                        }</li>
+                                        <li>{lang === 'ar'
+                                            ? <><b>IPN</b>: ضع الرابط</>
+                                            : <><b>IPN</b>: Set callback URL</>
+                                        }
+                                            <code className="block mt-1 bg-black/40 px-2 py-1 rounded text-cyan-300 text-[10px] select-all" dir="ltr">
+                                                {`${window.location.origin}/api/nowpayments/ipn`}
+                                            </code>
+                                        </li>
+                                        <li>{lang === 'ar'
+                                            ? <>فعّل السحب التلقائي في <b>Custody</b></>
+                                            : <>Enable auto-withdrawal in <b>Custody</b></>
+                                        }</li>
+                                    </ol>
+                                </div>
                             </>
                         )}
                     </div>
@@ -303,7 +334,43 @@ export default function GatewaysView() {
                                             </div>
                                             <div>
                                                 <label className="block text-white/60 text-xs mb-1">{t.destination}</label>
-                                                <Input value={editForm.destination || ''} onChange={e => setEditForm(p => ({ ...p, destination: e.target.value }))} className="bg-black/30 border-white/10 text-white" />
+                                                <Input value={editForm.destination || ''} onChange={e => setEditForm(p => ({ ...p, destination: e.target.value }))} placeholder="usdtarb" className="bg-black/30 border-white/10 text-white" />
+                                            </div>
+
+                                            {/* NOWPayments Setup Guide */}
+                                            <div className="md:col-span-2 p-4 rounded-xl bg-cyan-500/5 border border-cyan-500/20 space-y-3">
+                                                <h4 className="text-cyan-300 font-bold text-sm flex items-center gap-2">📋 {lang === 'ar' ? 'دليل إعداد NOWPayments' : 'NOWPayments Setup Guide'}</h4>
+                                                <ol className={`text-white/70 text-xs space-y-2 ${lang === 'ar' ? 'pr-4' : 'pl-4'} list-decimal`}>
+                                                    <li>{lang === 'ar'
+                                                        ? <>سجّل في <a href="https://account.nowpayments.io" target="_blank" rel="noreferrer" className="text-cyan-400 underline">account.nowpayments.io</a> واحصل على API Key من <b>API Keys</b></>
+                                                        : <>Sign up at <a href="https://account.nowpayments.io" target="_blank" rel="noreferrer" className="text-cyan-400 underline">account.nowpayments.io</a> and get your API Key from <b>API Keys</b></>
+                                                    }</li>
+                                                    <li>{lang === 'ar'
+                                                        ? <>اذهب لـ <b>Settings → Payment Settings → محافظ الدفع</b> وأضف عنوان محفظتك (USDT Arbitrum)</>
+                                                        : <>Go to <b>Settings → Payment Settings → Wallets</b> and add your wallet address (USDT Arbitrum)</>
+                                                    }</li>
+                                                    <li>{lang === 'ar'
+                                                        ? <>في <b>إشعارات الدفع الفورية (IPN)</b> ضع الرابط:</>
+                                                        : <>In <b>IPN Notifications</b>, set the callback URL:</>
+                                                    }
+                                                        <code className="block mt-1 bg-black/40 px-2 py-1 rounded text-cyan-300 text-[10px] select-all" dir="ltr">
+                                                            {`${window.location.origin}/api/nowpayments/ipn`}
+                                                        </code>
+                                                    </li>
+                                                    <li>{lang === 'ar'
+                                                        ? <>في <b>Custody</b> فعّل السحب التلقائي لمحفظتك</>
+                                                        : <>In <b>Custody</b>, enable auto-withdrawal to your wallet</>
+                                                    }</li>
+                                                    <li>{lang === 'ar'
+                                                        ? <>الصق API Key أعلاه واحفظ. الدفعات ستعمل تلقائياً</>
+                                                        : <>Paste your API Key above and save. Payments will work automatically</>
+                                                    }</li>
+                                                </ol>
+                                                <p className="text-yellow-300/70 text-[10px] mt-1">
+                                                    ⚠️ {lang === 'ar'
+                                                        ? 'عند تغيير API Key، سيتم استخدام المفتاح الجديد فوراً لجميع الدفعات القادمة'
+                                                        : 'When you change the API Key, the new key will be used immediately for all future payments'}
+                                                </p>
                                             </div>
                                         </>
                                     )}

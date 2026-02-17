@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Coupon = require('../models/Coupon');
 const User = require('../models/User');
+const Transaction = require('../models/Transaction');
 
 // Admin: Generate a new coupon
 router.post('/generate', async (req, res) => {
@@ -69,6 +70,8 @@ router.post('/redeem', async (req, res) => {
             { $inc: { balance: coupon.amount } },
             { new: true }
         );
+
+        await Transaction.create({ userId, type: 'recharge', amount: coupon.amount, method: 'coupon', paymentId: coupon.code, status: 'completed' });
 
         res.json({
             success: true,

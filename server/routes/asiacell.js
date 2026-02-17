@@ -3,6 +3,7 @@ const router = express.Router();
 const crypto = require('crypto');
 const User = require('../models/User');
 const Gateway = require('../models/Gateway');
+const Transaction = require('../models/Transaction');
 
 const AC_API = 'https://odpapp.asiacell.com';
 const AC_API_KEY = '1ccbc4c913bc4ce785a0a2de444aa0d6';
@@ -226,6 +227,7 @@ router.post('/confirm', async (req, res) => {
             if (user) {
                 user.balance = (user.balance || 0) + creditAmount;
                 await user.save();
+                await Transaction.create({ userId: user._id, type: 'recharge', amount: creditAmount, method: 'asiacell', paymentId: sessionId, status: 'completed' });
                 console.log(`[Asiacell] Credited $${creditAmount} (${session.amount} IQD) to ${user.username}`);
             }
         }

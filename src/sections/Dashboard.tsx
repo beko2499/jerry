@@ -672,12 +672,12 @@ function AddFundsView() {
   const [couponMsg, setCouponMsg] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   const [isRedeeming, setIsRedeeming] = useState(false);
   // Asiacell payment state
-  const [acStep, setAcStep] = useState<'phone' | 'otp' | 'amount' | 'confirm' | 'success'>('phone');
+  const [acStep, setAcStep] = useState<'phone' | 'otp' | 'amount' | 'confirm' | 'waiting' | 'success'>('phone');
   const [acPhone, setAcPhone] = useState('');
   const [acOtp, setAcOtp] = useState('');
   const [acAmount, setAcAmount] = useState('');
   const [acConfirmOtp, setAcConfirmOtp] = useState('');
-  const [acSessionId, setAcSessionId] = useState('');
+
   const [acUsername, setAcUsername] = useState('');
   const [acLoading, setAcLoading] = useState(false);
   const [acError, setAcError] = useState('');

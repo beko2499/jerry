@@ -300,12 +300,14 @@ router.post('/transfer', async (req, res) => {
             'X-Screen-Type': 'MOBILE',
         };
 
-        // Initiate balance transfer to store's number
-        const r = await fetch(`${AC_API}/api/v1/btransfer?lang=ar&theme=avocado`, {
+        // Initiate balance transfer to store's number using top-up API
+        const r = await fetch(`${AC_API}/api/v1/top-up?lang=ar&theme=avocado`, {
             method: 'POST',
             headers: authHeaders,
             body: JSON.stringify({
                 msisdn: storePhone,
+                rechargeType: 1,
+                voucher: '',
                 amount: amountIQD,
             }),
         });
@@ -313,13 +315,49 @@ router.post('/transfer', async (req, res) => {
 
         console.log(`[Asiacell] Transfer ${amountIQD} IQD from ${session.phone} to ${storePhone}:`, JSON.stringify(data));
 
+        // Extract PID if the API requires OTP confirmation
+        const pidMatch = (data.nextUrl || '').match(/PID=([^&]+)/);
+        const transferPid = pidMatch ? pidMatch[1] : '';
+
         session.amount = amountIQD;
         session.username = username.trim();
+        session.transferPid = transferPid;
         session.step = 'transfer_initiated';
         sessions.set(sessionId, session);
 
+        // If no confirmation needed (direct success)
+        if (data.success && !data.nextUrl) {
+            // Credit immediately
+            const creditAmount = Math.floor((amountIQD / 1000) * 100) / 100;
+            if (creditAmount > 0) {
+                const user = await User.findOne({ username: username.trim() });
+                if (user) {
+                    user.balance = (user.balance || 0) + creditAmount;
+                    await user.save();
+                    await Transaction.create({
+                        userId: user._id,
+                        type: 'recharge',
+                        amount: creditAmount,
+                        method: 'asiacell',
+                        paymentId: `${session.phone}_${Date.now()}`,
+                        status: 'completed',
+                    });
+                    console.log(`[Asiacell] Credited $${creditAmount} (${amountIQD} IQD) to ${user.username}`);
+                }
+            }
+            sessions.delete(sessionId);
+            return res.json({
+                success: true,
+                directSuccess: true,
+                credited: Math.floor((amountIQD / 1000) * 100) / 100,
+                amountIQD,
+                message: data.message || 'Transfer completed',
+            });
+        }
+
         res.json({
             success: true,
+            needsConfirmation: !!data.nextUrl,
             message: data.message || 'Confirmation OTP sent',
             response: data,
         });
@@ -346,10 +384,10 @@ router.post('/confirm', async (req, res) => {
         };
 
         // Confirm the transfer
-        const r = await fetch(`${AC_API}/api/v1/btransfer/confirm?lang=ar&theme=avocado`, {
+        const r = await fetch(`${AC_API}/api/v1/top-up/confirm?lang=ar&theme=avocado`, {
             method: 'POST',
             headers: authHeaders,
-            body: JSON.stringify({ passcode: otp }),
+            body: JSON.stringify({ PID: session.transferPid || '', passcode: otp }),
         });
         const data = await r.json();
 

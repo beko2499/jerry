@@ -374,9 +374,13 @@ interface ServiceDetailsViewProps {
 
 function ServiceDetailsView({ serviceId, serviceData, onBack }: ServiceDetailsViewProps) {
   const [quantity, setQuantity] = useState<number>(serviceData?.min || 1000);
+  const [link, setLink] = useState('');
   const [hasCoupon, setHasCoupon] = useState(false);
   const [couponCode, setCouponCode] = useState('');
+  const [orderLoading, setOrderLoading] = useState(false);
+  const [orderResult, setOrderResult] = useState<{ success: boolean; message: string; orderId?: string } | null>(null);
   const { t } = useLanguage();
+  const { user, refreshUser } = useAuth();
 
   // Use dynamic service data from API if available, fallback to hardcoded
   const hardcodedService = allTelegramServices.find(s => s.id === serviceId);
@@ -385,7 +389,46 @@ function ServiceDetailsView({ serviceId, serviceData, onBack }: ServiceDetailsVi
   const serviceMin = serviceData?.min ?? hardcodedService?.min ?? 100;
   const serviceMax = serviceData?.max ?? hardcodedService?.max ?? 10000;
   const serviceDesc = serviceData?.description || hardcodedService?.description || '';
-  const totalPrice = (quantity / 1000) * servicePrice;
+  const totalPrice = Math.round((quantity / 1000) * servicePrice * 100) / 100;
+
+  const handleSubmitOrder = async () => {
+    if (!user) return;
+    if (quantity < serviceMin || quantity > serviceMax) {
+      setOrderResult({ success: false, message: t.invalidQuantity || `الكمية يجب أن تكون بين ${serviceMin} و ${serviceMax}` });
+      return;
+    }
+    if ((user.balance || 0) < totalPrice) {
+      setOrderResult({ success: false, message: t.insufficientBalance || 'رصيدك غير كافي' });
+      return;
+    }
+
+    setOrderLoading(true);
+    setOrderResult(null);
+    try {
+      const res = await fetch(`${API_URL}/orders`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: user._id,
+          serviceId: serviceData ? serviceId : '',
+          serviceName,
+          quantity,
+          price: totalPrice,
+          link,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setOrderResult({ success: false, message: data.error || 'حدث خطأ' });
+      } else {
+        setOrderResult({ success: true, message: t.orderSuccess || 'تم الطلب بنجاح! ✅', orderId: data.orderId });
+        await refreshUser();
+      }
+    } catch {
+      setOrderResult({ success: false, message: t.connectionError || 'خطأ في الاتصال' });
+    }
+    setOrderLoading(false);
+  };
 
   return (
     <div className="p-8 max-w-4xl mx-auto">
@@ -491,8 +534,11 @@ function ServiceDetailsView({ serviceId, serviceData, onBack }: ServiceDetailsVi
               <div>
                 <label className="text-sm text-white/80 mb-2 block">{t.link}</label>
                 <Input
+                  value={link}
+                  onChange={(e) => setLink(e.target.value)}
                   placeholder="https://t.me/..."
                   className="bg-black/30 border-white/10 text-white focus:border-cyan-500/50 h-12 font-body placeholder:text-white/20"
+                  dir="ltr"
                 />
               </div>
 
@@ -537,8 +583,28 @@ function ServiceDetailsView({ serviceId, serviceData, onBack }: ServiceDetailsVi
                 </div>
               </div>
 
-              <Button className="w-full h-14 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white text-lg font-bold shadow-lg shadow-cyan-500/20 rounded-xl transition-all hover:scale-[1.02] active:scale-[0.98]">
-                {t.confirmOrder}
+              {orderResult && (
+                <div className={`p-3 rounded-xl text-sm font-bold text-center border ${orderResult.success
+                    ? 'bg-green-500/10 border-green-500/30 text-green-400'
+                    : 'bg-red-500/10 border-red-500/30 text-red-400'
+                  }`}>
+                  {orderResult.message}
+                  {orderResult.orderId && <span className="block text-xs mt-1 font-mono text-white/50">{orderResult.orderId}</span>}
+                </div>
+              )}
+
+              <Button
+                onClick={handleSubmitOrder}
+                disabled={orderLoading || orderResult?.success}
+                className="w-full h-14 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white text-lg font-bold shadow-lg shadow-cyan-500/20 rounded-xl transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {orderLoading ? (
+                  <span className="flex items-center gap-2"><span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> {t.processing || 'جاري المعالجة...'}</span>
+                ) : orderResult?.success ? (
+                  t.orderPlaced || '✅ تم الطلب'
+                ) : (
+                  t.confirmOrder
+                )}
               </Button>
             </div>
           </Card>

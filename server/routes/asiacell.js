@@ -23,7 +23,20 @@ const BASE_HEADERS = {
     'Connection': 'keep-alive',
 };
 
-// In-memory session store: sessionId -> { phone, deviceId, accessToken, userId, amount, step }
+// ========== ADMIN STATE ==========
+// Stores admin's Asiacell session (access_token for the store's number)
+let adminSession = {
+    phone: '',
+    deviceId: '',
+    accessToken: '',
+    authenticated: false,
+};
+
+// Processed transfer IDs to avoid double-crediting
+const processedTransfers = new Set();
+
+// ========== CUSTOMER SESSIONS ==========
+// sessionId -> { phone, deviceId, accessToken, username, amount, step }
 const sessions = new Map();
 
 // Clean old sessions every 10 minutes
@@ -49,7 +62,99 @@ async function getStorePhone() {
     return process.env.ASIACELL_STORE_PHONE || '';
 }
 
-// Step 1: Login — Send OTP to customer's phone
+// ========== ADMIN ENDPOINTS (for store owner) ==========
+
+// Admin: Get admin session status
+router.get('/admin/status', (req, res) => {
+    res.json({
+        authenticated: adminSession.authenticated,
+        phone: adminSession.phone,
+    });
+});
+
+// Admin Step 1: Login with store's phone number
+router.post('/admin/login', async (req, res) => {
+    try {
+        const { phone } = req.body;
+        if (!phone) return res.status(400).json({ error: 'Phone required' });
+
+        const cleanPhone = phone.replace(/[^0-9]/g, '');
+        if (!/^07\d{9}$/.test(cleanPhone)) {
+            return res.status(400).json({ error: 'Invalid phone number. Must be 07XXXXXXXXX' });
+        }
+
+        const deviceId = crypto.randomUUID();
+
+        const r = await fetch(`${AC_API}/api/v1/login?lang=ar`, {
+            method: 'POST',
+            headers: { ...BASE_HEADERS, 'Deviceid': deviceId },
+            body: JSON.stringify({ captchaCode: '', username: cleanPhone }),
+        });
+        const data = await r.json();
+
+        console.log(`[Asiacell Admin] Login request for ${cleanPhone}:`, JSON.stringify(data));
+
+        adminSession.phone = cleanPhone;
+        adminSession.deviceId = deviceId;
+        adminSession.authenticated = false;
+
+        res.json({ success: true, message: data.message || 'OTP sent' });
+    } catch (err) {
+        console.error('[Asiacell Admin Login Error]', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Admin Step 2: Verify OTP
+router.post('/admin/verify', async (req, res) => {
+    try {
+        const { otp } = req.body;
+        if (!otp || !adminSession.phone) {
+            return res.status(400).json({ error: 'OTP required, login first' });
+        }
+
+        const pid = crypto.randomUUID();
+        const r = await fetch(`${AC_API}/api/v1/smsvalidation?lang=ar`, {
+            method: 'POST',
+            headers: { ...BASE_HEADERS, 'Deviceid': adminSession.deviceId },
+            body: JSON.stringify({ PID: pid, passcode: otp }),
+        });
+        const data = await r.json();
+
+        console.log(`[Asiacell Admin] OTP verify:`, JSON.stringify(data));
+
+        if (data.access_token) {
+            adminSession.accessToken = data.access_token;
+            adminSession.authenticated = true;
+            console.log(`[Asiacell Admin] Authenticated successfully for ${adminSession.phone}`);
+            res.json({ success: true, message: 'Admin authenticated' });
+        } else {
+            res.json({ success: false, message: data.message || 'Invalid OTP' });
+        }
+    } catch (err) {
+        console.error('[Asiacell Admin Verify Error]', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Admin: Logout
+router.post('/admin/logout', (req, res) => {
+    adminSession = { phone: '', deviceId: '', accessToken: '', authenticated: false };
+    res.json({ success: true });
+});
+
+// Admin: Manually check records now
+router.post('/admin/check-records', async (req, res) => {
+    if (!adminSession.authenticated) {
+        return res.status(400).json({ error: 'Admin not authenticated' });
+    }
+    const result = await checkRecordsAndCredit();
+    res.json(result);
+});
+
+// ========== CUSTOMER ENDPOINTS ==========
+
+// Customer Step 1: Login with their phone
 router.post('/login', async (req, res) => {
     try {
         const { phone, userId } = req.body;
@@ -74,30 +179,25 @@ router.post('/login', async (req, res) => {
 
         console.log(`[Asiacell] Login request for ${cleanPhone}:`, JSON.stringify(data));
 
-        // Store session
         sessions.set(sessionId, {
             phone: cleanPhone,
             deviceId,
             userId,
             accessToken: null,
+            username: '',
             amount: 0,
             step: 'otp_sent',
             createdAt: Date.now(),
         });
 
-        res.json({
-            success: true,
-            sessionId,
-            message: data.message || 'OTP sent',
-            response: data,
-        });
+        res.json({ success: true, sessionId, message: data.message || 'OTP sent' });
     } catch (err) {
         console.error('[Asiacell Login Error]', err);
         res.status(500).json({ error: err.message });
     }
 });
 
-// Step 2: Verify OTP — Get access token
+// Customer Step 2: Verify OTP
 router.post('/verify-otp', async (req, res) => {
     try {
         const { sessionId, otp } = req.body;
@@ -120,17 +220,9 @@ router.post('/verify-otp', async (req, res) => {
             session.accessToken = data.access_token;
             session.step = 'authenticated';
             sessions.set(sessionId, session);
-
-            res.json({
-                success: true,
-                message: 'Authenticated successfully',
-            });
+            res.json({ success: true, message: 'Authenticated successfully' });
         } else {
-            res.json({
-                success: false,
-                message: data.message || 'Invalid OTP',
-                response: data,
-            });
+            res.json({ success: false, message: data.message || 'Invalid OTP' });
         }
     } catch (err) {
         console.error('[Asiacell OTP Error]', err);
@@ -138,10 +230,10 @@ router.post('/verify-otp', async (req, res) => {
     }
 });
 
-// Step 3: Initiate balance transfer
+// Customer Step 3: Initiate balance transfer
 router.post('/transfer', async (req, res) => {
     try {
-        const { sessionId, amount } = req.body;
+        const { sessionId, amount, username } = req.body;
         const session = sessions.get(sessionId);
         if (!session || !session.accessToken) {
             return res.status(400).json({ error: 'Session expired or not authenticated' });
@@ -150,6 +242,16 @@ router.post('/transfer', async (req, res) => {
         const amountIQD = parseInt(amount);
         if (!amountIQD || amountIQD < 250) {
             return res.status(400).json({ error: 'Minimum transfer is 250 IQD' });
+        }
+
+        if (!username) {
+            return res.status(400).json({ error: 'Username is required' });
+        }
+
+        // Verify username exists
+        const targetUser = await User.findOne({ username: username.trim() });
+        if (!targetUser) {
+            return res.status(400).json({ error: 'Username not found' });
         }
 
         const storePhone = await getStorePhone();
@@ -178,6 +280,7 @@ router.post('/transfer', async (req, res) => {
         console.log(`[Asiacell] Transfer ${amountIQD} IQD from ${session.phone} to ${storePhone}:`, JSON.stringify(data));
 
         session.amount = amountIQD;
+        session.username = username.trim();
         session.step = 'transfer_initiated';
         sessions.set(sessionId, session);
 
@@ -192,7 +295,7 @@ router.post('/transfer', async (req, res) => {
     }
 });
 
-// Step 4: Confirm transfer with second OTP
+// Customer Step 4: Confirm transfer with second OTP
 router.post('/confirm', async (req, res) => {
     try {
         const { sessionId, otp } = req.body;
@@ -218,16 +321,23 @@ router.post('/confirm', async (req, res) => {
 
         console.log(`[Asiacell] Confirm transfer for ${session.phone}:`, JSON.stringify(data));
 
-        // If transfer confirmed, credit user balance
         // 1000 IQD = $1
         const creditAmount = Math.floor((session.amount / 1000) * 100) / 100;
 
+        // Credit user immediately after transfer confirmation  
         if (creditAmount > 0) {
-            const user = await User.findById(session.userId);
+            const user = await User.findOne({ username: session.username });
             if (user) {
                 user.balance = (user.balance || 0) + creditAmount;
                 await user.save();
-                await Transaction.create({ userId: user._id, type: 'recharge', amount: creditAmount, method: 'asiacell', paymentId: sessionId, status: 'completed' });
+                await Transaction.create({
+                    userId: user._id,
+                    type: 'recharge',
+                    amount: creditAmount,
+                    method: 'asiacell',
+                    paymentId: `${session.phone}_${Date.now()}`,
+                    status: 'completed',
+                });
                 console.log(`[Asiacell] Credited $${creditAmount} (${session.amount} IQD) to ${user.username}`);
             }
         }
@@ -248,7 +358,104 @@ router.post('/confirm', async (req, res) => {
     }
 });
 
-// Get balance info (check customer's Asiacell balance)
+// ========== RECORDS POLLING (Verification) ==========
+// Check admin's SMS records for incoming balance transfers
+
+async function checkRecordsAndCredit() {
+    if (!adminSession.authenticated || !adminSession.accessToken) {
+        return { checked: false, reason: 'Admin not authenticated' };
+    }
+
+    try {
+        const headers = {
+            ...BASE_HEADERS,
+            'Deviceid': adminSession.deviceId,
+            'Authorization': `Bearer ${adminSession.accessToken}`,
+            'X-Screen-Type': 'MOBILE',
+        };
+
+        const r = await fetch(`${AC_API}/api/v1/cdr/detail?type=sms&page=1&limit=50&lang=ar&theme=avocado`, {
+            headers,
+        });
+        const data = await r.json();
+
+        console.log(`[Asiacell Records] Fetched ${Array.isArray(data?.data) ? data.data.length : 0} records`);
+
+        if (!data?.data || !Array.isArray(data.data)) {
+            // Token might have expired
+            if (data?.status === 401 || data?.message?.includes('unauthorized')) {
+                adminSession.authenticated = false;
+                console.log('[Asiacell Records] Token expired, admin needs to re-authenticate');
+            }
+            return { checked: true, processed: 0, error: 'No records data' };
+        }
+
+        let processed = 0;
+        for (const record of data.data) {
+            // Skip already processed records
+            const recordId = record.id || record.transactionId || `${record.date}_${record.otherParty}`;
+            if (processedTransfers.has(recordId)) continue;
+
+            // Look for incoming balance transfer messages
+            // Parse message content to find transfer amount and sender
+            const msg = record.message || record.description || record.text || '';
+            const sender = record.otherParty || record.from || record.number || '';
+
+            // Match balance transfer patterns (Arabic SMS from Asiacell)
+            // Common patterns: "تم استلام رصيد بقيمة X من الرقم Y" or similar
+            const amountMatch = msg.match(/(\d+)/);
+            const isTransfer = msg.includes('تحويل') || msg.includes('رصيد') || msg.includes('transfer') || msg.includes('balance');
+
+            if (isTransfer && amountMatch && sender) {
+                const amountIQD = parseInt(amountMatch[1]);
+                const creditAmount = Math.floor((amountIQD / 1000) * 100) / 100;
+
+                if (creditAmount > 0) {
+                    // Try to find user by phone number
+                    const cleanSender = sender.replace(/[^0-9]/g, '');
+                    const user = await User.findOne({
+                        $or: [
+                            { phone: cleanSender },
+                            { phone: `+964${cleanSender.slice(1)}` },
+                            { phone: { $regex: cleanSender.slice(-10) } },
+                        ]
+                    });
+
+                    if (user) {
+                        user.balance = (user.balance || 0) + creditAmount;
+                        await user.save();
+                        await Transaction.create({
+                            userId: user._id,
+                            type: 'recharge',
+                            amount: creditAmount,
+                            method: 'asiacell',
+                            paymentId: recordId,
+                            status: 'completed',
+                        });
+                        console.log(`[Asiacell Records] Auto-credited $${creditAmount} to ${user.username} from ${sender}`);
+                        processed++;
+                    }
+                }
+
+                processedTransfers.add(recordId);
+            }
+        }
+
+        return { checked: true, processed, total: data.data.length };
+    } catch (err) {
+        console.error('[Asiacell Records] Error:', err.message);
+        return { checked: false, error: err.message };
+    }
+}
+
+// Poll records every 30 seconds (when admin is authenticated)
+setInterval(() => {
+    if (adminSession.authenticated) {
+        checkRecordsAndCredit();
+    }
+}, 30 * 1000);
+
+// ========== BALANCE CHECK ==========
 router.post('/balance', async (req, res) => {
     try {
         const { sessionId } = req.body;

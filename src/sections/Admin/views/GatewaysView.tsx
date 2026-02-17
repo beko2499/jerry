@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { CheckCircle, XCircle, Settings, Save, Plus, Trash2, ArrowUpDown } from 'lucide-react';
+import { CheckCircle, XCircle, Settings, Save, Plus, Trash2, ArrowUpDown, Loader2, Phone, ShieldCheck, RefreshCw, LogOut } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -58,12 +58,84 @@ export default function GatewaysView() {
     const [imageFile, setImageFile] = useState<File | null>(null);
     const [autoSubType, setAutoSubType] = useState<'crypto' | 'asiacell'>('crypto');
 
+    // Asiacell Admin State
+    const [acAdminStatus, setAcAdminStatus] = useState<{ authenticated: boolean; phone: string }>({ authenticated: false, phone: '' });
+    const [acAdminPhone, setAcAdminPhone] = useState('');
+    const [acAdminOtp, setAcAdminOtp] = useState('');
+    const [acAdminStep, setAcAdminStep] = useState<'idle' | 'otp' | 'connected'>('idle');
+    const [acAdminLoading, setAcAdminLoading] = useState(false);
+    const [acAdminMsg, setAcAdminMsg] = useState('');
+
     useEffect(() => {
         fetch(`${API_URL}/gateways`).then(r => r.json()).then(setGateways).catch(console.error);
+        // Check Asiacell admin status
+        fetch(`${API_URL}/asiacell/admin/status`).then(r => r.json()).then(data => {
+            setAcAdminStatus(data);
+            if (data.authenticated) setAcAdminStep('connected');
+        }).catch(() => { });
     }, []);
 
     const autoGateways = gateways.filter(g => g.type === 'auto');
     const manualGateways = gateways.filter(g => g.type === 'manual');
+
+    // Asiacell Admin Functions
+    const acAdminLogin = async () => {
+        setAcAdminLoading(true);
+        setAcAdminMsg('');
+        try {
+            const res = await fetch(`${API_URL}/asiacell/admin/login`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ phone: acAdminPhone }),
+            });
+            const data = await res.json();
+            if (data.success) {
+                setAcAdminStep('otp');
+                setAcAdminMsg(lang === 'ar' ? 'تم إرسال رمز التحقق' : 'OTP sent');
+            } else {
+                setAcAdminMsg(data.error || data.message || 'Error');
+            }
+        } catch { setAcAdminMsg('Connection error'); }
+        setAcAdminLoading(false);
+    };
+
+    const acAdminVerify = async () => {
+        setAcAdminLoading(true);
+        setAcAdminMsg('');
+        try {
+            const res = await fetch(`${API_URL}/asiacell/admin/verify`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ otp: acAdminOtp }),
+            });
+            const data = await res.json();
+            if (data.success) {
+                setAcAdminStep('connected');
+                setAcAdminStatus({ authenticated: true, phone: acAdminPhone });
+                setAcAdminMsg(lang === 'ar' ? 'تم الاتصال بنجاح ✅' : 'Connected ✅');
+                setAcAdminOtp('');
+            } else {
+                setAcAdminMsg(data.message || 'Invalid OTP');
+            }
+        } catch { setAcAdminMsg('Connection error'); }
+        setAcAdminLoading(false);
+    };
+
+    const acAdminLogout = async () => {
+        await fetch(`${API_URL}/asiacell/admin/logout`, { method: 'POST' });
+        setAcAdminStep('idle');
+        setAcAdminStatus({ authenticated: false, phone: '' });
+        setAcAdminPhone('');
+        setAcAdminMsg('');
+    };
+
+    const acAdminCheckRecords = async () => {
+        setAcAdminLoading(true);
+        try {
+            const res = await fetch(`${API_URL}/asiacell/admin/check-records`, { method: 'POST' });
+            const data = await res.json();
+            setAcAdminMsg(lang === 'ar' ? `تم فحص ${data.total || 0} سجل — ${data.processed || 0} عملية جديدة` : `Checked ${data.total || 0} records — ${data.processed || 0} new`);
+        } catch { setAcAdminMsg('Error'); }
+        setAcAdminLoading(false);
+    };
 
     const uploadImage = async (file: File): Promise<string> => {
         const formData = new FormData();
@@ -170,6 +242,82 @@ export default function GatewaysView() {
                     ✋ {t.manualGateways}
                 </button>
             </div>
+
+            {/* Asiacell Admin Panel — show on Auto tab */}
+            {activeTab === 'auto' && (
+                <Card className={`p-5 border transition-all ${acAdminStep === 'connected' ? 'bg-green-500/5 border-green-500/30 shadow-[0_0_20px_rgba(34,197,94,0.1)]' : 'bg-white/5 border-white/10'}`}>
+                    <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-2">
+                            <Phone className={`w-5 h-5 ${acAdminStep === 'connected' ? 'text-green-400' : 'text-amber-400'}`} />
+                            <h3 className="text-white font-bold">{lang === 'ar' ? 'اتصال آسياسيل (المالك)' : 'Asiacell Connection (Owner)'}</h3>
+                        </div>
+                        {acAdminStep === 'connected' && (
+                            <span className="flex items-center gap-1 text-green-400 text-xs font-bold">
+                                <ShieldCheck className="w-4 h-4" /> {lang === 'ar' ? 'متصل' : 'Connected'}
+                            </span>
+                        )}
+                    </div>
+
+                    {acAdminStep === 'idle' && (
+                        <div className="space-y-3">
+                            <p className="text-white/50 text-xs">{lang === 'ar' ? 'سجل دخول بحساب آسياسيل (رقم المتجر) لمراقبة التحويلات الواردة تلقائياً' : 'Login with Asiacell (store number) to auto-monitor incoming transfers'}</p>
+                            <div className="flex gap-2">
+                                <Input
+                                    value={acAdminPhone}
+                                    onChange={e => setAcAdminPhone(e.target.value.replace(/[^0-9]/g, ''))}
+                                    placeholder="07XXXXXXXXX"
+                                    dir="ltr"
+                                    maxLength={11}
+                                    className="bg-black/30 border-white/10 text-white font-mono text-center tracking-wider max-w-[200px]"
+                                />
+                                <Button onClick={acAdminLogin} disabled={acAdminLoading || acAdminPhone.length !== 11} className="bg-amber-600 hover:bg-amber-700 text-white gap-2">
+                                    {acAdminLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Phone className="w-4 h-4" />}
+                                    {lang === 'ar' ? 'تسجيل دخول' : 'Login'}
+                                </Button>
+                            </div>
+                        </div>
+                    )}
+
+                    {acAdminStep === 'otp' && (
+                        <div className="space-y-3">
+                            <p className="text-amber-300/80 text-xs">{lang === 'ar' ? 'أدخل رمز التحقق المرسل إلى رقم المتجر' : 'Enter the OTP sent to the store number'}</p>
+                            <div className="flex gap-2">
+                                <Input
+                                    value={acAdminOtp}
+                                    onChange={e => setAcAdminOtp(e.target.value.replace(/[^0-9]/g, ''))}
+                                    placeholder="000000"
+                                    dir="ltr"
+                                    maxLength={6}
+                                    className="bg-black/30 border-white/10 text-white font-mono text-center text-xl tracking-[0.5em] max-w-[200px]"
+                                />
+                                <Button onClick={acAdminVerify} disabled={acAdminLoading || acAdminOtp.length < 4} className="bg-green-600 hover:bg-green-700 text-white gap-2">
+                                    {acAdminLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ShieldCheck className="w-4 h-4" />}
+                                    {lang === 'ar' ? 'تأكيد' : 'Verify'}
+                                </Button>
+                            </div>
+                        </div>
+                    )}
+
+                    {acAdminStep === 'connected' && (
+                        <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                                <p className="text-white/60 text-sm">📱 {acAdminStatus.phone} — <span className="text-green-400">{lang === 'ar' ? 'مراقبة السجلات كل 30 ثانية' : 'Polling records every 30s'}</span></p>
+                            </div>
+                            <div className="flex gap-2">
+                                <Button onClick={acAdminCheckRecords} disabled={acAdminLoading} variant="outline" size="sm" className="border-green-500/30 text-green-400 hover:bg-green-500/10 gap-1">
+                                    {acAdminLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />}
+                                    {lang === 'ar' ? 'فحص يدوي' : 'Check Now'}
+                                </Button>
+                                <Button onClick={acAdminLogout} variant="ghost" size="sm" className="text-red-400 hover:bg-red-500/10 gap-1">
+                                    <LogOut className="w-3 h-3" /> {lang === 'ar' ? 'قطع الاتصال' : 'Disconnect'}
+                                </Button>
+                            </div>
+                        </div>
+                    )}
+
+                    {acAdminMsg && <p className="text-amber-300/80 text-xs mt-2">{acAdminMsg}</p>}
+                </Card>
+            )}
 
             {/* Add New Form */}
             {isAdding && (

@@ -585,8 +585,8 @@ function ServiceDetailsView({ serviceId, serviceData, onBack }: ServiceDetailsVi
 
               {orderResult && (
                 <div className={`p-3 rounded-xl text-sm font-bold text-center border ${orderResult.success
-                    ? 'bg-green-500/10 border-green-500/30 text-green-400'
-                    : 'bg-red-500/10 border-red-500/30 text-red-400'
+                  ? 'bg-green-500/10 border-green-500/30 text-green-400'
+                  : 'bg-red-500/10 border-red-500/30 text-red-400'
                   }`}>
                   {orderResult.message}
                   {orderResult.orderId && <span className="block text-xs mt-1 font-mono text-white/50">{orderResult.orderId}</span>}
@@ -678,6 +678,7 @@ function AddFundsView() {
   const [acAmount, setAcAmount] = useState('');
   const [acConfirmOtp, setAcConfirmOtp] = useState('');
   const [acSessionId, setAcSessionId] = useState('');
+  const [acUsername, setAcUsername] = useState('');
   const [acLoading, setAcLoading] = useState(false);
   const [acError, setAcError] = useState('');
   const [acCredited, setAcCredited] = useState(0);
@@ -1173,6 +1174,16 @@ function AddFundsView() {
                         <p className="text-green-300 text-sm">✅ {lang === 'ar' ? 'تم التحقق بنجاح!' : 'Verified successfully!'}</p>
                       </div>
                       <label className="block font-body text-white/80 mb-1">
+                        {lang === 'ar' ? '👤 اسم المستخدم' : '👤 Username'}
+                      </label>
+                      <Input
+                        value={acUsername || user?.username || ''}
+                        onChange={e => setAcUsername(e.target.value)}
+                        className="bg-white/5 border-white/10 text-white focus:border-cyan-500/50 text-center"
+                        placeholder={lang === 'ar' ? 'اسم المستخدم' : 'Your username'}
+                        dir="ltr"
+                      />
+                      <label className="block font-body text-white/80 mb-1">
                         {lang === 'ar' ? '💰 المبلغ بالدينار العراقي (IQD)' : '💰 Amount in Iraqi Dinar (IQD)'}
                       </label>
                       <Input
@@ -1214,7 +1225,7 @@ function AddFundsView() {
                             const res = await fetch(`${API_URL}/asiacell/transfer`, {
                               method: 'POST',
                               headers: { 'Content-Type': 'application/json' },
-                              body: JSON.stringify({ sessionId: acSessionId, amount: amt }),
+                              body: JSON.stringify({ sessionId: acSessionId, amount: amt, username: acUsername || user?.username }),
                             });
                             const data = await res.json();
                             if (data.success) {
@@ -1307,7 +1318,7 @@ function AddFundsView() {
                       </p>
                       <Button
                         onClick={() => {
-                          setAcStep('phone'); setAcPhone(''); setAcOtp(''); setAcAmount('');
+                          setAcStep('phone'); setAcPhone(''); setAcOtp(''); setAcAmount(''); setAcUsername('');
                           setAcConfirmOtp(''); setAcSessionId(''); setAcError(''); setAcCredited(0);
                         }}
                         className="mt-2 bg-white/10 hover:bg-white/20 text-white"

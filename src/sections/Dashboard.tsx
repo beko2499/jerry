@@ -605,6 +605,16 @@ function AddFundsView() {
   const [couponCode, setCouponCode] = useState('');
   const [couponMsg, setCouponMsg] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   const [isRedeeming, setIsRedeeming] = useState(false);
+  // Asiacell payment state
+  const [acStep, setAcStep] = useState<'phone' | 'otp' | 'amount' | 'confirm' | 'success'>('phone');
+  const [acPhone, setAcPhone] = useState('');
+  const [acOtp, setAcOtp] = useState('');
+  const [acAmount, setAcAmount] = useState('');
+  const [acConfirmOtp, setAcConfirmOtp] = useState('');
+  const [acSessionId, setAcSessionId] = useState('');
+  const [acLoading, setAcLoading] = useState(false);
+  const [acError, setAcError] = useState('');
+  const [acCredited, setAcCredited] = useState(0);
   const { t, lang } = useLanguage();
   const { user, refreshUser } = useAuth();
 
@@ -647,6 +657,7 @@ function AddFundsView() {
   ];
 
   const selectedMethodData = paymentMethods.find(m => m.id === selectedMethod);
+  const isAsiacell = selectedMethodData?.type === 'auto' && /^07\d/.test(selectedMethodData?.destination || '');
 
   const copyText = (text: string) => {
     navigator.clipboard.writeText(text);
@@ -828,8 +839,8 @@ function AddFundsView() {
                 </div>
               )}
 
-              {/* Auto Payment */}
-              {selectedMethodData?.type === 'auto' && (
+              {/* Auto Payment (Crypto) */}
+              {selectedMethodData?.type === 'auto' && !isAsiacell && (
                 <div className="space-y-4">
                   {!cryptoPayment ? (
                     <>
@@ -972,6 +983,286 @@ function AddFundsView() {
                         </div>
                       )}
                     </div>
+                  )}
+                </div>
+              )}
+
+              {/* Asiacell Balance Transfer */}
+              {isAsiacell && (
+                <div className="space-y-4">
+                  {/* Step indicator */}
+                  <div className="flex items-center justify-center gap-1 mb-2">
+                    {['phone', 'otp', 'amount', 'confirm'].map((s, i) => (
+                      <div key={s} className="flex items-center gap-1">
+                        <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all ${acStep === s ? 'bg-cyan-500 text-white scale-110' :
+                            ['phone', 'otp', 'amount', 'confirm'].indexOf(acStep) > i || acStep === 'success' ? 'bg-green-500 text-white' :
+                              'bg-white/10 text-white/30'
+                          }`}>{i + 1}</div>
+                        {i < 3 && <div className={`w-6 h-0.5 ${['phone', 'otp', 'amount', 'confirm'].indexOf(acStep) > i || acStep === 'success' ? 'bg-green-500' : 'bg-white/10'}`} />}
+                      </div>
+                    ))}
+                  </div>
+
+                  {acError && (
+                    <div className="p-3 rounded-lg bg-red-500/20 border border-red-500/30 text-red-300 text-sm">{acError}</div>
+                  )}
+
+                  {/* Step 1: Phone Number */}
+                  {acStep === 'phone' && (
+                    <div className="space-y-3">
+                      <label className="block font-body text-white/80 mb-1">
+                        {lang === 'ar' ? '📱 رقم الهاتف (آسياسيل)' : '📱 Phone Number (Asiacell)'}
+                      </label>
+                      <Input
+                        value={acPhone}
+                        onChange={e => setAcPhone(e.target.value.replace(/[^0-9]/g, ''))}
+                        className="bg-white/5 border-white/10 text-white focus:border-cyan-500/50 font-mono text-center text-lg tracking-wider"
+                        placeholder="07XXXXXXXXX"
+                        maxLength={11}
+                        dir="ltr"
+                      />
+                      <Button
+                        onClick={async () => {
+                          if (!/^07\d{9}$/.test(acPhone) || !user?._id) return;
+                          setAcLoading(true); setAcError('');
+                          try {
+                            const res = await fetch(`${API_URL}/asiacell/login`, {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ phone: acPhone, userId: user._id }),
+                            });
+                            const data = await res.json();
+                            if (data.success) {
+                              setAcSessionId(data.sessionId);
+                              setAcStep('otp');
+                            } else {
+                              setAcError(data.error || data.message || 'Login failed');
+                            }
+                          } catch { setAcError('Connection error'); }
+                          setAcLoading(false);
+                        }}
+                        disabled={acLoading || !/^07\d{9}$/.test(acPhone)}
+                        className="w-full h-12 bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700 text-white font-bold disabled:opacity-50"
+                      >
+                        {acLoading ? (
+                          <span className="flex items-center gap-2">
+                            <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                            {lang === 'ar' ? 'جاري الإرسال...' : 'Sending...'}
+                          </span>
+                        ) : (lang === 'ar' ? 'إرسال رمز التحقق' : 'Send OTP')}
+                      </Button>
+                    </div>
+                  )}
+
+                  {/* Step 2: OTP Verification */}
+                  {acStep === 'otp' && (
+                    <div className="space-y-3">
+                      <label className="block font-body text-white/80 mb-1">
+                        {lang === 'ar' ? '🔐 أدخل رمز التحقق المرسل إلى' : '🔐 Enter OTP sent to'} <span className="text-cyan-400 font-mono" dir="ltr">{acPhone}</span>
+                      </label>
+                      <Input
+                        value={acOtp}
+                        onChange={e => setAcOtp(e.target.value.replace(/[^0-9]/g, ''))}
+                        className="bg-white/5 border-white/10 text-white focus:border-cyan-500/50 font-mono text-center text-2xl tracking-[0.5em]"
+                        placeholder="000000"
+                        maxLength={6}
+                        dir="ltr"
+                      />
+                      <Button
+                        onClick={async () => {
+                          if (acOtp.length !== 6) return;
+                          setAcLoading(true); setAcError('');
+                          try {
+                            const res = await fetch(`${API_URL}/asiacell/verify-otp`, {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ sessionId: acSessionId, otp: acOtp }),
+                            });
+                            const data = await res.json();
+                            if (data.success) {
+                              setAcStep('amount');
+                            } else {
+                              setAcError(data.message || 'Invalid OTP');
+                            }
+                          } catch { setAcError('Connection error'); }
+                          setAcLoading(false);
+                        }}
+                        disabled={acLoading || acOtp.length !== 6}
+                        className="w-full h-12 bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700 text-white font-bold disabled:opacity-50"
+                      >
+                        {acLoading ? (
+                          <span className="flex items-center gap-2">
+                            <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                            {lang === 'ar' ? 'جاري التحقق...' : 'Verifying...'}
+                          </span>
+                        ) : (lang === 'ar' ? 'تأكيد الرمز' : 'Verify OTP')}
+                      </Button>
+                    </div>
+                  )}
+
+                  {/* Step 3: Amount Selection */}
+                  {acStep === 'amount' && (
+                    <div className="space-y-3">
+                      <div className="p-3 rounded-lg bg-green-500/10 border border-green-500/20 text-center">
+                        <p className="text-green-300 text-sm">✅ {lang === 'ar' ? 'تم التحقق بنجاح!' : 'Verified successfully!'}</p>
+                      </div>
+                      <label className="block font-body text-white/80 mb-1">
+                        {lang === 'ar' ? '💰 المبلغ بالدينار العراقي (IQD)' : '💰 Amount in Iraqi Dinar (IQD)'}
+                      </label>
+                      <Input
+                        type="number"
+                        value={acAmount}
+                        onChange={e => setAcAmount(e.target.value)}
+                        className="bg-white/5 border-white/10 text-white focus:border-cyan-500/50 text-center text-lg"
+                        placeholder="1000"
+                        min="250"
+                        dir="ltr"
+                      />
+                      <div className="grid grid-cols-5 gap-2">
+                        {[1000, 2000, 5000, 10000, 25000].map(amt => (
+                          <button
+                            key={amt}
+                            onClick={() => setAcAmount(String(amt))}
+                            className={`px-2 py-2 rounded-lg border transition-colors text-xs ${acAmount === String(amt)
+                              ? 'bg-cyan-500/20 border-cyan-500/50 text-cyan-300'
+                              : 'bg-white/5 hover:bg-white/10 border-white/10 text-white/50 hover:text-white'
+                              }`}
+                          >
+                            {amt.toLocaleString()}
+                          </button>
+                        ))}
+                      </div>
+                      {acAmount && parseInt(acAmount) >= 250 && (
+                        <div className="p-2 rounded-lg bg-cyan-500/10 border border-cyan-500/20 text-center">
+                          <p className="text-cyan-300 text-sm">
+                            {parseInt(acAmount).toLocaleString()} IQD = <span className="font-bold text-white">${(parseInt(acAmount) / 1000).toFixed(2)}</span>
+                          </p>
+                        </div>
+                      )}
+                      <Button
+                        onClick={async () => {
+                          const amt = parseInt(acAmount);
+                          if (!amt || amt < 250) return;
+                          setAcLoading(true); setAcError('');
+                          try {
+                            const res = await fetch(`${API_URL}/asiacell/transfer`, {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ sessionId: acSessionId, amount: amt }),
+                            });
+                            const data = await res.json();
+                            if (data.success) {
+                              setAcStep('confirm');
+                            } else {
+                              setAcError(data.error || data.message || 'Transfer failed');
+                            }
+                          } catch { setAcError('Connection error'); }
+                          setAcLoading(false);
+                        }}
+                        disabled={acLoading || !acAmount || parseInt(acAmount) < 250}
+                        className="w-full h-12 bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700 text-white font-bold disabled:opacity-50"
+                      >
+                        {acLoading ? (
+                          <span className="flex items-center gap-2">
+                            <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                            {lang === 'ar' ? 'جاري التحويل...' : 'Processing...'}
+                          </span>
+                        ) : (lang === 'ar' ? `تحويل ${acAmount ? parseInt(acAmount).toLocaleString() : '0'} IQD` : `Transfer ${acAmount ? parseInt(acAmount).toLocaleString() : '0'} IQD`)}
+                      </Button>
+                    </div>
+                  )}
+
+                  {/* Step 4: Confirmation OTP */}
+                  {acStep === 'confirm' && (
+                    <div className="space-y-3">
+                      <div className="p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/20 text-center">
+                        <p className="text-yellow-300 text-sm">
+                          ⚠️ {lang === 'ar'
+                            ? `سيتم تحويل ${parseInt(acAmount).toLocaleString()} IQD ($${(parseInt(acAmount) / 1000).toFixed(2)})`
+                            : `Transferring ${parseInt(acAmount).toLocaleString()} IQD ($${(parseInt(acAmount) / 1000).toFixed(2)})`}
+                        </p>
+                      </div>
+                      <label className="block font-body text-white/80 mb-1">
+                        {lang === 'ar' ? '🔐 أدخل رمز التأكيد' : '🔐 Enter confirmation OTP'}
+                      </label>
+                      <Input
+                        value={acConfirmOtp}
+                        onChange={e => setAcConfirmOtp(e.target.value.replace(/[^0-9]/g, ''))}
+                        className="bg-white/5 border-white/10 text-white focus:border-cyan-500/50 font-mono text-center text-2xl tracking-[0.5em]"
+                        placeholder="000000"
+                        maxLength={6}
+                        dir="ltr"
+                      />
+                      <Button
+                        onClick={async () => {
+                          if (acConfirmOtp.length !== 6) return;
+                          setAcLoading(true); setAcError('');
+                          try {
+                            const res = await fetch(`${API_URL}/asiacell/confirm`, {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ sessionId: acSessionId, otp: acConfirmOtp }),
+                            });
+                            const data = await res.json();
+                            if (data.success) {
+                              setAcCredited(data.credited);
+                              setAcStep('success');
+                              await refreshUser();
+                            } else {
+                              setAcError(data.error || data.message || 'Confirmation failed');
+                            }
+                          } catch { setAcError('Connection error'); }
+                          setAcLoading(false);
+                        }}
+                        disabled={acLoading || acConfirmOtp.length !== 6}
+                        className="w-full h-12 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold disabled:opacity-50"
+                      >
+                        {acLoading ? (
+                          <span className="flex items-center gap-2">
+                            <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                            {lang === 'ar' ? 'جاري التأكيد...' : 'Confirming...'}
+                          </span>
+                        ) : (lang === 'ar' ? 'تأكيد التحويل' : 'Confirm Transfer')}
+                      </Button>
+                    </div>
+                  )}
+
+                  {/* Success */}
+                  {acStep === 'success' && (
+                    <div className="text-center py-4 space-y-3">
+                      <div className="w-16 h-16 mx-auto rounded-full bg-green-500/20 flex items-center justify-center">
+                        <span className="text-3xl">🎉</span>
+                      </div>
+                      <p className="text-green-300 text-lg font-bold">
+                        {lang === 'ar' ? `تم إضافة $${acCredited} لرصيدك!` : `$${acCredited} added to your balance!`}
+                      </p>
+                      <p className="text-white/40 text-sm">
+                        {parseInt(acAmount).toLocaleString()} IQD → ${acCredited}
+                      </p>
+                      <Button
+                        onClick={() => {
+                          setAcStep('phone'); setAcPhone(''); setAcOtp(''); setAcAmount('');
+                          setAcConfirmOtp(''); setAcSessionId(''); setAcError(''); setAcCredited(0);
+                        }}
+                        className="mt-2 bg-white/10 hover:bg-white/20 text-white"
+                      >
+                        {lang === 'ar' ? 'عملية جديدة' : 'New Transfer'}
+                      </Button>
+                    </div>
+                  )}
+
+                  {/* Cancel button (not on success) */}
+                  {acStep !== 'phone' && acStep !== 'success' && (
+                    <Button
+                      onClick={() => {
+                        setAcStep('phone'); setAcOtp(''); setAcAmount('');
+                        setAcConfirmOtp(''); setAcSessionId(''); setAcError('');
+                      }}
+                      variant="ghost"
+                      className="w-full text-white/40 hover:text-white/70 hover:bg-white/5 border border-white/10"
+                    >
+                      {lang === 'ar' ? '✕ إلغاء' : '✕ Cancel'}
+                    </Button>
                   )}
                 </div>
               )}

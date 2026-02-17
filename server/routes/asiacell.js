@@ -29,6 +29,7 @@ let adminSession = {
     phone: '',
     deviceId: '',
     accessToken: '',
+    pid: '',
     authenticated: false,
 };
 
@@ -94,8 +95,13 @@ router.post('/admin/login', async (req, res) => {
 
         console.log(`[Asiacell Admin] Login request for ${cleanPhone}:`, JSON.stringify(data));
 
+        // Extract PID from nextUrl
+        const pidMatch = (data.nextUrl || '').match(/PID=([^&]+)/);
+        const pid = pidMatch ? pidMatch[1] : '';
+
         adminSession.phone = cleanPhone;
         adminSession.deviceId = deviceId;
+        adminSession.pid = pid;
         adminSession.authenticated = false;
 
         res.json({ success: true, message: data.message || 'OTP sent' });
@@ -113,11 +119,10 @@ router.post('/admin/verify', async (req, res) => {
             return res.status(400).json({ error: 'OTP required, login first' });
         }
 
-        const pid = crypto.randomUUID();
         const r = await fetch(`${AC_API}/api/v1/smsvalidation?lang=ar`, {
             method: 'POST',
             headers: { ...BASE_HEADERS, 'Deviceid': adminSession.deviceId },
-            body: JSON.stringify({ PID: pid, passcode: otp }),
+            body: JSON.stringify({ PID: adminSession.pid, passcode: otp }),
         });
         const data = await r.json();
 
@@ -139,7 +144,7 @@ router.post('/admin/verify', async (req, res) => {
 
 // Admin: Logout
 router.post('/admin/logout', (req, res) => {
-    adminSession = { phone: '', deviceId: '', accessToken: '', authenticated: false };
+    adminSession = { phone: '', deviceId: '', accessToken: '', pid: '', authenticated: false };
     res.json({ success: true });
 });
 
@@ -179,10 +184,15 @@ router.post('/login', async (req, res) => {
 
         console.log(`[Asiacell] Login request for ${cleanPhone}:`, JSON.stringify(data));
 
+        // Extract PID from nextUrl
+        const pidMatch = (data.nextUrl || '').match(/PID=([^&]+)/);
+        const pid = pidMatch ? pidMatch[1] : '';
+
         sessions.set(sessionId, {
             phone: cleanPhone,
             deviceId,
             userId,
+            pid,
             accessToken: null,
             username: '',
             amount: 0,
@@ -206,11 +216,10 @@ router.post('/verify-otp', async (req, res) => {
             return res.status(400).json({ error: 'Session expired or invalid' });
         }
 
-        const pid = crypto.randomUUID();
         const r = await fetch(`${AC_API}/api/v1/smsvalidation?lang=ar`, {
             method: 'POST',
             headers: { ...BASE_HEADERS, 'Deviceid': session.deviceId },
-            body: JSON.stringify({ PID: pid, passcode: otp }),
+            body: JSON.stringify({ PID: session.pid, passcode: otp }),
         });
         const data = await r.json();
 

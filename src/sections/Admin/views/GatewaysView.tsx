@@ -56,6 +56,7 @@ export default function GatewaysView() {
     const [isAdding, setIsAdding] = useState(false);
     const [newGateway, setNewGateway] = useState<Partial<Gateway>>({ ...emptyGateway });
     const [imageFile, setImageFile] = useState<File | null>(null);
+    const [autoSubType, setAutoSubType] = useState<'crypto' | 'asiacell'>('crypto');
 
     useEffect(() => {
         fetch(`${API_URL}/gateways`).then(r => r.json()).then(setGateways).catch(console.error);
@@ -223,11 +224,32 @@ export default function GatewaysView() {
 
                         {activeTab === 'auto' && (
                             <>
-                                {/asiacell|آسياسيل|اسياسيل/i.test(newGateway.name || '') ? (
+                                {/* Sub-type toggle */}
+                                <div className="md:col-span-2">
+                                    <label className="block text-white/60 text-xs mb-2">{lang === 'ar' ? 'نوع البوابة' : 'Gateway Type'}</label>
+                                    <div className="flex gap-2 p-1 bg-white/5 rounded-xl border border-white/10 w-fit">
+                                        <button
+                                            type="button"
+                                            onClick={() => { setAutoSubType('crypto'); setNewGateway(p => ({ ...p, destination: '' })); }}
+                                            className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${autoSubType === 'crypto' ? 'bg-cyan-600 text-white shadow-lg shadow-cyan-500/20' : 'text-white/50 hover:text-white hover:bg-white/5'}`}
+                                        >
+                                            💎 USDT / Crypto
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => { setAutoSubType('asiacell'); setNewGateway(p => ({ ...p, destination: '', apiKey: '', apiSecret: '' })); }}
+                                            className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${autoSubType === 'asiacell' ? 'bg-green-600 text-white shadow-lg shadow-green-500/20' : 'text-white/50 hover:text-white hover:bg-white/5'}`}
+                                        >
+                                            📱 {lang === 'ar' ? 'آسياسيل' : 'Asiacell'}
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {autoSubType === 'asiacell' ? (
                                     <>
                                         <div className="md:col-span-2">
                                             <label className="block text-white/60 text-xs mb-1">{lang === 'ar' ? 'رقم هاتف المتجر (آسياسيل)' : 'Store Phone Number (Asiacell)'}</label>
-                                            <Input value={newGateway.destination || ''} onChange={e => setNewGateway(p => ({ ...p, destination: e.target.value.replace(/[^0-9]/g, '') }))} placeholder="07XXXXXXXXX" dir="ltr" className="bg-black/30 border-white/10 text-white font-mono text-center text-lg tracking-wider" />
+                                            <Input value={newGateway.destination || ''} onChange={e => setNewGateway(p => ({ ...p, destination: e.target.value.replace(/[^0-9]/g, '') }))} placeholder="07XXXXXXXXX" dir="ltr" maxLength={11} className="bg-black/30 border-white/10 text-white font-mono text-center text-lg tracking-wider" />
                                         </div>
                                         <div className="md:col-span-2 p-4 rounded-xl bg-green-500/5 border border-green-500/20 space-y-3">
                                             <h4 className="text-green-300 font-bold text-sm flex items-center gap-2">📋 {lang === 'ar' ? 'دليل إعداد آسياسيل' : 'Asiacell Setup Guide'}</h4>
@@ -334,11 +356,11 @@ export default function GatewaysView() {
 
                                     {gateway.type === 'auto' && (
                                         <>
-                                            {/asiacell|آسياسيل|اسياسيل/i.test(editForm.name || gateway.name || '') ? (
+                                            {/^07\d/.test(gateway.destination || '') ? (
                                                 <>
                                                     <div className="md:col-span-2">
                                                         <label className="block text-white/60 text-xs mb-1">{lang === 'ar' ? 'رقم هاتف المتجر (آسياسيل)' : 'Store Phone Number (Asiacell)'}</label>
-                                                        <Input value={editForm.destination || ''} onChange={e => setEditForm(p => ({ ...p, destination: e.target.value.replace(/[^0-9]/g, '') }))} placeholder="07XXXXXXXXX" dir="ltr" className="bg-black/30 border-white/10 text-white font-mono text-center text-lg tracking-wider" />
+                                                        <Input value={editForm.destination || ''} onChange={e => setEditForm(p => ({ ...p, destination: e.target.value.replace(/[^0-9]/g, '') }))} placeholder="07XXXXXXXXX" dir="ltr" maxLength={11} className="bg-black/30 border-white/10 text-white font-mono text-center text-lg tracking-wider" />
                                                     </div>
                                                     <div className="md:col-span-2 p-4 rounded-xl bg-green-500/5 border border-green-500/20 space-y-3">
                                                         <h4 className="text-green-300 font-bold text-sm flex items-center gap-2">📋 {lang === 'ar' ? 'دليل إعداد آسياسيل' : 'Asiacell Setup Guide'}</h4>
@@ -347,7 +369,6 @@ export default function GatewaysView() {
                                                             <li>{lang === 'ar' ? 'العميل يدخل رقمه → يستلم رمز OTP → يحدد المبلغ → يؤكد التحويل' : 'Customer enters their number → receives OTP → selects amount → confirms transfer'}</li>
                                                             <li>{lang === 'ar' ? 'كل 1000 دينار عراقي = 1$ رصيد في المتجر' : 'Every 1000 IQD = $1 store balance'}</li>
                                                         </ol>
-                                                        <p className="text-yellow-300/70 text-[10px] mt-1">⚠️ {lang === 'ar' ? 'تأكد أن الرقم يبدأ بـ 07 ومكون من 11 رقم' : 'Make sure the number starts with 07 and is 11 digits'}</p>
                                                     </div>
                                                 </>
                                             ) : (
@@ -379,16 +400,7 @@ export default function GatewaysView() {
                                                                 ? <>في <b>Custody</b> فعّل السحب التلقائي لمحفظتك</>
                                                                 : <>In <b>Custody</b>, enable auto-withdrawal to your wallet</>
                                                             }</li>
-                                                            <li>{lang === 'ar'
-                                                                ? <>الصق API Key أعلاه واحفظ. الدفعات ستعمل تلقائياً</>
-                                                                : <>Paste your API Key above and save. Payments will work automatically</>
-                                                            }</li>
                                                         </ol>
-                                                        <p className="text-yellow-300/70 text-[10px] mt-1">
-                                                            ⚠️ {lang === 'ar'
-                                                                ? 'عند تغيير API Key، سيتم استخدام المفتاح الجديد فوراً لجميع الدفعات القادمة'
-                                                                : 'When you change the API Key, the new key will be used immediately for all future payments'}
-                                                        </p>
                                                     </div>
                                                 </>
                                             )}

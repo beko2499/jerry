@@ -264,22 +264,14 @@ router.post('/verify-otp', async (req, res) => {
     }
 });
 
-// ========== PENDING TRANSFERS ==========
-// Stores pending transfers: Map<pendingId, { username, amountIQD, createdAt }>
-const pendingTransfers = new Map();
-
-// Clean old pending transfers every 10 minutes
-setInterval(() => {
-    const now = Date.now();
-    for (const [id, t] of pendingTransfers) {
-        if (now - t.createdAt > 60 * 60 * 1000) pendingTransfers.delete(id); // 1 hour expiry
-    }
-}, 10 * 60 * 1000);
-
-// Customer: Register a pending transfer (returns store phone for manual transfer)
-router.post('/pending-transfer', async (req, res) => {
+// Customer Step 3: Initiate balance transfer
+router.post('/transfer', async (req, res) => {
     try {
-        const { amount, username } = req.body;
+        const { sessionId, amount, username } = req.body;
+        const session = sessions.get(sessionId);
+        if (!session || !session.accessToken) {
+            return res.status(400).json({ error: 'Session expired or not authenticated' });
+        }
 
         const amountIQD = parseInt(amount);
         if (!amountIQD || amountIQD < 250) {
@@ -296,120 +288,144 @@ router.post('/pending-transfer', async (req, res) => {
             return res.status(400).json({ error: 'Username not found' });
         }
 
-        // Get store phone from admin session or gateway
-        const storePhone = adminSession.phone || await getStorePhone();
+        const storePhone = await getStorePhone();
         if (!storePhone) {
-            return res.status(500).json({ error: 'Store phone number not configured. Admin needs to connect Asiacell first.' });
-        }
-
-        // Save pending transfer
-        const pendingId = crypto.randomUUID();
-        pendingTransfers.set(pendingId, {
-            username: username.trim(),
-            amountIQD,
-            storePhone,
-            createdAt: Date.now(),
-        });
-
-        console.log(`[Asiacell] Pending transfer registered: ${amountIQD} IQD for ${username.trim()} (store: ${storePhone})`);
-
-        res.json({
-            success: true,
-            storePhone,
-            pendingId,
-            message: 'Transfer pending. Please transfer balance manually.',
-        });
-    } catch (err) {
-        console.error('[Asiacell Pending Transfer Error]', err);
-        res.status(500).json({ error: err.message });
-    }
-});
-
-// Customer: Recharge using scratch card voucher code
-router.post('/voucher-recharge', async (req, res) => {
-    try {
-        const { voucherCode, username } = req.body;
-
-        if (!voucherCode || voucherCode.length < 10) {
-            return res.status(400).json({ error: 'Invalid voucher code' });
-        }
-
-        if (!username) {
-            return res.status(400).json({ error: 'Username is required' });
-        }
-
-        // Verify username exists
-        const targetUser = await User.findOne({ username: username.trim() });
-        if (!targetUser) {
-            return res.status(400).json({ error: 'Username not found' });
-        }
-
-        // We need admin session to recharge the store number
-        if (!adminSession.authenticated || !adminSession.accessToken) {
-            return res.status(500).json({ error: 'Admin not connected. Contact admin.' });
-        }
-
-        const storePhone = adminSession.phone;
-        if (!storePhone) {
-            return res.status(500).json({ error: 'Store phone not configured' });
+            return res.status(500).json({ error: 'Store phone number not configured' });
         }
 
         const authHeaders = {
             ...BASE_HEADERS,
-            'Deviceid': adminSession.deviceId,
-            'Authorization': `Bearer ${adminSession.accessToken}`,
+            'Deviceid': session.deviceId,
+            'Authorization': `Bearer ${session.accessToken}`,
             'X-Screen-Type': 'MOBILE',
         };
 
-        // Use top-up API with voucher code to recharge the store's own number
+        // Initiate balance transfer to store's number using top-up API
         const r = await fetch(`${AC_API}/api/v1/top-up?lang=ar&theme=avocado`, {
             method: 'POST',
             headers: authHeaders,
             body: JSON.stringify({
                 msisdn: storePhone,
                 rechargeType: 1,
-                voucher: voucherCode.trim(),
-                amount: 0,
+                voucher: '',
+                amount: amountIQD,
             }),
         });
         const data = await r.json();
 
-        console.log(`[Asiacell] Voucher recharge for store ${storePhone} by ${username}:`, JSON.stringify(data));
+        console.log(`[Asiacell] Transfer ${amountIQD} IQD from ${session.phone} to ${storePhone}:`, JSON.stringify(data));
 
-        if (data.success) {
-            // Extract credited amount from the API response
-            const amountMatch = (data.message || '').match(/(\d[\d,]*)/);
-            const amountIQD = amountMatch ? parseInt(amountMatch[1].replace(/,/g, '')) : 0;
-            const creditAmount = amountIQD > 0 ? Math.floor((amountIQD / 1000) * 100) / 100 : 0;
+        // Extract PID if the API requires OTP confirmation
+        const pidMatch = (data.nextUrl || '').match(/PID=([^&]+)/);
+        const transferPid = pidMatch ? pidMatch[1] : '';
 
+        session.amount = amountIQD;
+        session.username = username.trim();
+        session.transferPid = transferPid;
+        session.step = 'transfer_initiated';
+        sessions.set(sessionId, session);
+
+        // If no confirmation needed (direct success)
+        if (data.success && !data.nextUrl) {
+            // Credit immediately
+            const creditAmount = Math.floor((amountIQD / 1000) * 100) / 100;
             if (creditAmount > 0) {
-                targetUser.balance = (targetUser.balance || 0) + creditAmount;
-                await targetUser.save();
+                const user = await User.findOne({ username: username.trim() });
+                if (user) {
+                    user.balance = (user.balance || 0) + creditAmount;
+                    await user.save();
+                    await Transaction.create({
+                        userId: user._id,
+                        type: 'recharge',
+                        amount: creditAmount,
+                        method: 'asiacell',
+                        paymentId: `${session.phone}_${Date.now()}`,
+                        status: 'completed',
+                    });
+                    console.log(`[Asiacell] Credited $${creditAmount} (${amountIQD} IQD) to ${user.username}`);
+                }
+            }
+            sessions.delete(sessionId);
+            return res.json({
+                success: true,
+                directSuccess: true,
+                credited: Math.floor((amountIQD / 1000) * 100) / 100,
+                amountIQD,
+                message: data.message || 'Transfer completed',
+            });
+        }
+
+        res.json({
+            success: true,
+            needsConfirmation: !!data.nextUrl,
+            message: data.message || 'Confirmation OTP sent',
+            response: data,
+        });
+    } catch (err) {
+        console.error('[Asiacell Transfer Error]', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Customer Step 4: Confirm transfer with second OTP
+router.post('/confirm', async (req, res) => {
+    try {
+        const { sessionId, otp } = req.body;
+        const session = sessions.get(sessionId);
+        if (!session || session.step !== 'transfer_initiated') {
+            return res.status(400).json({ error: 'Session expired or invalid step' });
+        }
+
+        const authHeaders = {
+            ...BASE_HEADERS,
+            'Deviceid': session.deviceId,
+            'Authorization': `Bearer ${session.accessToken}`,
+            'X-Screen-Type': 'MOBILE',
+        };
+
+        // Confirm the transfer
+        const r = await fetch(`${AC_API}/api/v1/top-up/confirm?lang=ar&theme=avocado`, {
+            method: 'POST',
+            headers: authHeaders,
+            body: JSON.stringify({ PID: session.transferPid || '', passcode: otp }),
+        });
+        const data = await r.json();
+
+        console.log(`[Asiacell] Confirm transfer for ${session.phone}:`, JSON.stringify(data));
+
+        // 1000 IQD = $1
+        const creditAmount = Math.floor((session.amount / 1000) * 100) / 100;
+
+        // Credit user immediately after transfer confirmation  
+        if (creditAmount > 0) {
+            const user = await User.findOne({ username: session.username });
+            if (user) {
+                user.balance = (user.balance || 0) + creditAmount;
+                await user.save();
                 await Transaction.create({
-                    userId: targetUser._id,
+                    userId: user._id,
                     type: 'recharge',
                     amount: creditAmount,
                     method: 'asiacell',
-                    paymentId: `voucher_${Date.now()}`,
+                    paymentId: `${session.phone}_${Date.now()}`,
                     status: 'completed',
                 });
-                console.log(`[Asiacell] Voucher credited $${creditAmount} (${amountIQD} IQD) to ${username}`);
+                console.log(`[Asiacell] Credited $${creditAmount} (${session.amount} IQD) to ${user.username}`);
             }
-
-            return res.json({
-                success: true,
-                credited: creditAmount,
-                amountIQD,
-                message: data.message || 'Voucher applied successfully',
-            });
-        } else {
-            return res.json({
-                success: false,
-                message: data.message || 'Invalid voucher code',
-            });
         }
+
+        // Clean up session
+        sessions.delete(sessionId);
+
+        res.json({
+            success: true,
+            credited: creditAmount,
+            amountIQD: session.amount,
+            message: `تم إضافة $${creditAmount} لرصيدك`,
+            response: data,
+        });
     } catch (err) {
-        console.error('[Asiacell Voucher Error]', err);
+        console.error('[Asiacell Confirm Error]', err);
         res.status(500).json({ error: err.message });
     }
 });

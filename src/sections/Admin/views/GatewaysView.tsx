@@ -56,6 +56,7 @@ export default function GatewaysView() {
     const [isAdding, setIsAdding] = useState(false);
     const [newGateway, setNewGateway] = useState<Partial<Gateway>>({ ...emptyGateway });
     const [imageFile, setImageFile] = useState<File | null>(null);
+    const [autoSubType, setAutoSubType] = useState<'crypto' | 'asiacell'>('crypto');
 
     // Asiacell Admin State
     const [acAdminStatus, setAcAdminStatus] = useState<{ authenticated: boolean; phone: string }>({ authenticated: false, phone: '' });
@@ -371,35 +372,76 @@ export default function GatewaysView() {
 
                         {activeTab === 'auto' && (
                             <>
-                                <div>
-                                    <label className="block text-white/60 text-xs mb-1">API Key</label>
-                                    <Input value={newGateway.apiKey || ''} onChange={e => setNewGateway(p => ({ ...p, apiKey: e.target.value }))} className="bg-black/30 border-white/10 text-white font-mono text-xs" />
+                                {/* Sub-type toggle */}
+                                <div className="md:col-span-2">
+                                    <label className="block text-white/60 text-xs mb-2">{lang === 'ar' ? 'نوع البوابة' : 'Gateway Type'}</label>
+                                    <div className="flex gap-2 p-1 bg-white/5 rounded-xl border border-white/10 w-fit">
+                                        <button
+                                            type="button"
+                                            onClick={() => { setAutoSubType('crypto'); setNewGateway(p => ({ ...p, destination: '' })); }}
+                                            className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${autoSubType === 'crypto' ? 'bg-cyan-600 text-white shadow-lg shadow-cyan-500/20' : 'text-white/50 hover:text-white hover:bg-white/5'}`}
+                                        >
+                                            💎 USDT / Crypto
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => { setAutoSubType('asiacell'); setNewGateway(p => ({ ...p, destination: '', apiKey: '', apiSecret: '' })); }}
+                                            className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${autoSubType === 'asiacell' ? 'bg-green-600 text-white shadow-lg shadow-green-500/20' : 'text-white/50 hover:text-white hover:bg-white/5'}`}
+                                        >
+                                            📱 {lang === 'ar' ? 'آسياسيل' : 'Asiacell'}
+                                        </button>
+                                    </div>
                                 </div>
-                                <div>
-                                    <label className="block text-white/60 text-xs mb-1">API Secret</label>
-                                    <Input type="password" value={newGateway.apiSecret || ''} onChange={e => setNewGateway(p => ({ ...p, apiSecret: e.target.value }))} className="bg-black/30 border-white/10 text-white font-mono text-xs" />
-                                </div>
-                                <div>
-                                    <label className="block text-white/60 text-xs mb-1">{t.destination}</label>
-                                    <Input value={newGateway.destination || ''} onChange={e => setNewGateway(p => ({ ...p, destination: e.target.value }))} placeholder="usdtarb" className="bg-black/30 border-white/10 text-white" />
-                                </div>
-                                <div className="md:col-span-2 p-4 rounded-xl bg-cyan-500/5 border border-cyan-500/20 space-y-3">
-                                    <h4 className="text-cyan-300 font-bold text-sm flex items-center gap-2">📋 {lang === 'ar' ? 'دليل إعداد NOWPayments' : 'NOWPayments Setup Guide'}</h4>
-                                    <ol className={`text-white/70 text-xs space-y-2 ${lang === 'ar' ? 'pr-4' : 'pl-4'} list-decimal`}>
-                                        <li>{lang === 'ar'
-                                            ? <>سجّل في <a href="https://account.nowpayments.io" target="_blank" rel="noreferrer" className="text-cyan-400 underline">account.nowpayments.io</a> واحصل على API Key</>
-                                            : <>Sign up at <a href="https://account.nowpayments.io" target="_blank" rel="noreferrer" className="text-cyan-400 underline">account.nowpayments.io</a> and get your API Key</>
-                                        }</li>
-                                        <li>{lang === 'ar'
-                                            ? <><b>Settings → محافظ الدفع</b>: أضف عنوان محفظتك (USDT Arbitrum)</>
-                                            : <><b>Settings → Wallets</b>: Add your wallet address (USDT Arbitrum)</>
-                                        }</li>
-                                        <li>{lang === 'ar'
-                                            ? <>فعّل السحب التلقائي في <b>Custody</b></>
-                                            : <>Enable auto-withdrawal in <b>Custody</b></>
-                                        }</li>
-                                    </ol>
-                                </div>
+
+                                {autoSubType === 'asiacell' ? (
+                                    <>
+                                        <div className="md:col-span-2">
+                                            <label className="block text-white/60 text-xs mb-1">{lang === 'ar' ? 'رقم هاتف المتجر (آسياسيل)' : 'Store Phone Number (Asiacell)'}</label>
+                                            <Input value={newGateway.destination || ''} onChange={e => setNewGateway(p => ({ ...p, destination: e.target.value.replace(/[^0-9]/g, '') }))} placeholder="07XXXXXXXXX" dir="ltr" maxLength={11} className="bg-black/30 border-white/10 text-white font-mono text-center text-lg tracking-wider" />
+                                        </div>
+                                        <div className="md:col-span-2 p-4 rounded-xl bg-green-500/5 border border-green-500/20 space-y-3">
+                                            <h4 className="text-green-300 font-bold text-sm flex items-center gap-2">📋 {lang === 'ar' ? 'دليل إعداد آسياسيل' : 'Asiacell Setup Guide'}</h4>
+                                            <ol className={`text-white/70 text-xs space-y-2 ${lang === 'ar' ? 'pr-4' : 'pl-4'} list-decimal`}>
+                                                <li>{lang === 'ar' ? 'أدخل رقم هاتفك الآسياسيل أعلاه (الرقم الذي سيحول إليه العملاء)' : 'Enter your Asiacell phone number above (the number customers will transfer to)'}</li>
+                                                <li>{lang === 'ar' ? 'العميل يدخل رقمه → يستلم رمز OTP → يحدد المبلغ → يؤكد التحويل' : 'Customer enters their number → receives OTP → selects amount → confirms transfer'}</li>
+                                                <li>{lang === 'ar' ? 'كل 1000 دينار عراقي = 1$ رصيد في المتجر' : 'Every 1000 IQD = $1 store balance'}</li>
+                                            </ol>
+                                            <p className="text-yellow-300/70 text-[10px] mt-1">⚠️ {lang === 'ar' ? 'تأكد أن الرقم يبدأ بـ 07 ومكون من 11 رقم' : 'Make sure the number starts with 07 and is 11 digits'}</p>
+                                        </div>
+                                    </>
+                                ) : (
+                                    <>
+                                        <div>
+                                            <label className="block text-white/60 text-xs mb-1">API Key</label>
+                                            <Input value={newGateway.apiKey || ''} onChange={e => setNewGateway(p => ({ ...p, apiKey: e.target.value }))} className="bg-black/30 border-white/10 text-white font-mono text-xs" />
+                                        </div>
+                                        <div>
+                                            <label className="block text-white/60 text-xs mb-1">API Secret</label>
+                                            <Input type="password" value={newGateway.apiSecret || ''} onChange={e => setNewGateway(p => ({ ...p, apiSecret: e.target.value }))} className="bg-black/30 border-white/10 text-white font-mono text-xs" />
+                                        </div>
+                                        <div>
+                                            <label className="block text-white/60 text-xs mb-1">{t.destination}</label>
+                                            <Input value={newGateway.destination || ''} onChange={e => setNewGateway(p => ({ ...p, destination: e.target.value }))} placeholder="usdtarb" className="bg-black/30 border-white/10 text-white" />
+                                        </div>
+                                        <div className="md:col-span-2 p-4 rounded-xl bg-cyan-500/5 border border-cyan-500/20 space-y-3">
+                                            <h4 className="text-cyan-300 font-bold text-sm flex items-center gap-2">📋 {lang === 'ar' ? 'دليل إعداد NOWPayments' : 'NOWPayments Setup Guide'}</h4>
+                                            <ol className={`text-white/70 text-xs space-y-2 ${lang === 'ar' ? 'pr-4' : 'pl-4'} list-decimal`}>
+                                                <li>{lang === 'ar'
+                                                    ? <>سجّل في <a href="https://account.nowpayments.io" target="_blank" rel="noreferrer" className="text-cyan-400 underline">account.nowpayments.io</a> واحصل على API Key</>
+                                                    : <>Sign up at <a href="https://account.nowpayments.io" target="_blank" rel="noreferrer" className="text-cyan-400 underline">account.nowpayments.io</a> and get your API Key</>
+                                                }</li>
+                                                <li>{lang === 'ar'
+                                                    ? <><b>Settings → محافظ الدفع</b>: أضف عنوان محفظتك (USDT Arbitrum)</>
+                                                    : <><b>Settings → Wallets</b>: Add your wallet address (USDT Arbitrum)</>
+                                                }</li>
+                                                <li>{lang === 'ar'
+                                                    ? <>فعّل السحب التلقائي في <b>Custody</b></>
+                                                    : <>Enable auto-withdrawal in <b>Custody</b></>
+                                                }</li>
+                                            </ol>
+                                        </div>
+                                    </>
+                                )}
                             </>
                         )}
                     </div>
@@ -462,18 +504,54 @@ export default function GatewaysView() {
 
                                     {gateway.type === 'auto' && (
                                         <>
-                                            <div>
-                                                <label className="block text-white/60 text-xs mb-1">API Key</label>
-                                                <Input value={editForm.apiKey || ''} onChange={e => setEditForm(p => ({ ...p, apiKey: e.target.value }))} className="bg-black/30 border-white/10 text-white font-mono text-xs" />
-                                            </div>
-                                            <div>
-                                                <label className="block text-white/60 text-xs mb-1">API Secret</label>
-                                                <Input type="password" value={editForm.apiSecret || ''} onChange={e => setEditForm(p => ({ ...p, apiSecret: e.target.value }))} className="bg-black/30 border-white/10 text-white font-mono text-xs" />
-                                            </div>
-                                            <div>
-                                                <label className="block text-white/60 text-xs mb-1">{t.destination}</label>
-                                                <Input value={editForm.destination || ''} onChange={e => setEditForm(p => ({ ...p, destination: e.target.value }))} placeholder="usdtarb" className="bg-black/30 border-white/10 text-white" />
-                                            </div>
+                                            {/^07\d/.test(gateway.destination || '') ? (
+                                                <>
+                                                    <div className="md:col-span-2">
+                                                        <label className="block text-white/60 text-xs mb-1">{lang === 'ar' ? 'رقم هاتف المتجر (آسياسيل)' : 'Store Phone Number (Asiacell)'}</label>
+                                                        <Input value={editForm.destination || ''} onChange={e => setEditForm(p => ({ ...p, destination: e.target.value.replace(/[^0-9]/g, '') }))} placeholder="07XXXXXXXXX" dir="ltr" maxLength={11} className="bg-black/30 border-white/10 text-white font-mono text-center text-lg tracking-wider" />
+                                                    </div>
+                                                    <div className="md:col-span-2 p-4 rounded-xl bg-green-500/5 border border-green-500/20 space-y-3">
+                                                        <h4 className="text-green-300 font-bold text-sm flex items-center gap-2">📋 {lang === 'ar' ? 'دليل إعداد آسياسيل' : 'Asiacell Setup Guide'}</h4>
+                                                        <ol className={`text-white/70 text-xs space-y-2 ${lang === 'ar' ? 'pr-4' : 'pl-4'} list-decimal`}>
+                                                            <li>{lang === 'ar' ? 'أدخل رقم هاتفك الآسياسيل أعلاه (الرقم الذي سيحول إليه العملاء)' : 'Enter your Asiacell phone number above (the number customers will transfer to)'}</li>
+                                                            <li>{lang === 'ar' ? 'العميل يدخل رقمه → يستلم رمز OTP → يحدد المبلغ → يؤكد التحويل' : 'Customer enters their number → receives OTP → selects amount → confirms transfer'}</li>
+                                                            <li>{lang === 'ar' ? 'كل 1000 دينار عراقي = 1$ رصيد في المتجر' : 'Every 1000 IQD = $1 store balance'}</li>
+                                                        </ol>
+                                                    </div>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <div>
+                                                        <label className="block text-white/60 text-xs mb-1">API Key</label>
+                                                        <Input value={editForm.apiKey || ''} onChange={e => setEditForm(p => ({ ...p, apiKey: e.target.value }))} className="bg-black/30 border-white/10 text-white font-mono text-xs" />
+                                                    </div>
+                                                    <div>
+                                                        <label className="block text-white/60 text-xs mb-1">API Secret</label>
+                                                        <Input type="password" value={editForm.apiSecret || ''} onChange={e => setEditForm(p => ({ ...p, apiSecret: e.target.value }))} className="bg-black/30 border-white/10 text-white font-mono text-xs" />
+                                                    </div>
+                                                    <div>
+                                                        <label className="block text-white/60 text-xs mb-1">{t.destination}</label>
+                                                        <Input value={editForm.destination || ''} onChange={e => setEditForm(p => ({ ...p, destination: e.target.value }))} placeholder="usdtarb" className="bg-black/30 border-white/10 text-white" />
+                                                    </div>
+                                                    <div className="md:col-span-2 p-4 rounded-xl bg-cyan-500/5 border border-cyan-500/20 space-y-3">
+                                                        <h4 className="text-cyan-300 font-bold text-sm flex items-center gap-2">📋 {lang === 'ar' ? 'دليل إعداد NOWPayments' : 'NOWPayments Setup Guide'}</h4>
+                                                        <ol className={`text-white/70 text-xs space-y-2 ${lang === 'ar' ? 'pr-4' : 'pl-4'} list-decimal`}>
+                                                            <li>{lang === 'ar'
+                                                                ? <>سجّل في <a href="https://account.nowpayments.io" target="_blank" rel="noreferrer" className="text-cyan-400 underline">account.nowpayments.io</a> واحصل على API Key من <b>API Keys</b></>
+                                                                : <>Sign up at <a href="https://account.nowpayments.io" target="_blank" rel="noreferrer" className="text-cyan-400 underline">account.nowpayments.io</a> and get your API Key from <b>API Keys</b></>
+                                                            }</li>
+                                                            <li>{lang === 'ar'
+                                                                ? <>اذهب لـ <b>Settings → Payment Settings → محافظ الدفع</b> وأضف عنوان محفظتك (USDT Arbitrum)</>
+                                                                : <>Go to <b>Settings → Payment Settings → Wallets</b> and add your wallet address (USDT Arbitrum)</>
+                                                            }</li>
+                                                            <li>{lang === 'ar'
+                                                                ? <>في <b>Custody</b> فعّل السحب التلقائي لمحفظتك</>
+                                                                : <>In <b>Custody</b>, enable auto-withdrawal to your wallet</>
+                                                            }</li>
+                                                        </ol>
+                                                    </div>
+                                                </>
+                                            )}
                                         </>
                                     )}
                                 </div>

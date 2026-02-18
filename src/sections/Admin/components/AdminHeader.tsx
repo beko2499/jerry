@@ -24,19 +24,6 @@ export default function AdminHeader() {
                     <Bell className="w-5 h-5" />
                     <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full animate-pulse" />
                 </Button>
-
-                {/* Admin Profile */}
-                <div className="flex items-center gap-3 pl-4 border-l border-white/10">
-                    <div className="text-right hidden md:block">
-                        <div className="text-sm font-bold text-white font-space">{t.adminUser}</div>
-                        <div className="text-xs text-white/50">{t.superAdmin}</div>
-                    </div>
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-red-500 to-purple-600 p-[1px]">
-                        <div className="w-full h-full rounded-full bg-black/50 flex items-center justify-center backdrop-blur-sm">
-                            <span className="font-bold text-white text-sm">AU</span>
-                        </div>
-                    </div>
-                </div>
             </div>
         </header>
     );

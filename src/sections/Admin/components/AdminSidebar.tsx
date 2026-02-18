@@ -151,10 +151,32 @@ export default function AdminSidebar({ activeItem, onItemClick, onLogout }: Admi
                 </nav>
             </aside>
 
+            {/* Mobile Bottom Navigation Bar (Restored) */}
+            <nav className="md:hidden fixed bottom-6 left-6 right-6 h-16 glass rounded-2xl border border-white/10 z-30 flex items-center justify-around px-4 shadow-2xl backdrop-blur-xl">
+                {menuItems.slice(0, 4).map((item) => {
+                    const Icon = item.icon;
+                    const isActive = activeItem === item.id;
+                    return (
+                        <button
+                            key={item.id}
+                            onClick={() => onItemClick(item.id)}
+                            className={`flex flex-col items-center justify-center gap-1 transition-all duration-300 ${isActive ? 'text-red-500 scale-110' : 'text-white/40 hover:text-white'}`}
+                        >
+                            <Icon className="w-5 h-5" />
+                            <span className="text-[10px] font-medium font-body">{item.label}</span>
+                        </button>
+                    );
+                })}
+                {/* Toggle Button for Side Menu - Integrated into Bottom Bar or separate? 
+                   User said "keep side menu", so I'll keep the side toggle. 
+                   The user's screenshot shows the toggle at the top left. 
+                   I'll move it slightly or adjust its styling so it doesn't look like "double". */}
+            </nav>
+
             {/* Mobile Header Toggle (Floating Hamburger) */}
             <button
                 onClick={() => setIsCollapsed(!isCollapsed)}
-                className={`md:hidden fixed top-4 left-4 z-30 p-2 rounded-lg bg-black/40 backdrop-blur-md border border-white/10 text-white shadow-lg ${isCollapsed ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300`}
+                className={`md:hidden fixed top-4 ${isRTL ? 'right-4' : 'left-4'} z-30 p-2.5 rounded-xl bg-red-500/20 backdrop-blur-md border border-red-500/30 text-white shadow-lg transition-all duration-300 active:scale-95`}
             >
                 <Layers className="w-6 h-6" />
             </button>

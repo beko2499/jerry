@@ -712,7 +712,7 @@ function AddFundsView() {
       id: gw._id,
       name: lang === 'ar' && gw.nameAr ? gw.nameAr : gw.name,
       type: gw.type === 'auto' && gw.mode === 'manual' ? 'manual' : gw.type,
-      image: gw.image || '/placeholder.png',
+      image: gw.image || (/^07\d/.test(gw.destination || '') ? '/asiacell.webp' : '/placeholder.png'),
       accountNumber: gw.accountNumber,
       contactType: gw.contactType,
       contactValue: gw.contactValue,

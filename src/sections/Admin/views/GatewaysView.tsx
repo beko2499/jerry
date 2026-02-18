@@ -25,6 +25,7 @@ interface Gateway {
     apiKey: string;
     apiSecret: string;
     mode: 'auto' | 'manual';
+    exchangeRate: number;
     sortOrder: number;
 }
 
@@ -65,6 +66,7 @@ export default function GatewaysView() {
     const [acAdminStep, setAcAdminStep] = useState<'idle' | 'otp' | 'connected'>('idle');
     const [acAdminLoading, setAcAdminLoading] = useState(false);
     const [acAdminMsg, setAcAdminMsg] = useState('');
+    const [acExchangeRate, setAcExchangeRate] = useState('1000');
 
     useEffect(() => {
         fetch(`${API_URL}/gateways`).then(r => r.json()).then(setGateways).catch(console.error);
@@ -72,7 +74,12 @@ export default function GatewaysView() {
         fetch(`${API_URL}/asiacell/admin/status`).then(r => r.json()).then(data => {
             setAcAdminStatus(data);
             if (data.authenticated) setAcAdminStep('connected');
-        }).catch(() => { });
+        }).catch(console.error);
+        // Load current exchange rate from the Asiacell gateway
+        fetch(`${API_URL}/gateways`).then(r => r.json()).then((gws: Gateway[]) => {
+            const acGw = gws.find(g => g.type === 'auto' && /^07/.test(g.destination || ''));
+            if (acGw?.exchangeRate) setAcExchangeRate(String(acGw.exchangeRate));
+        }).catch(console.error);
     }, []);
 
     const autoGateways = gateways.filter(g => g.type === 'auto');
@@ -302,6 +309,37 @@ export default function GatewaysView() {
                         <div className="space-y-3">
                             <div className="flex items-center justify-between">
                                 <p className="text-white/60 text-sm">📱 {acAdminStatus.phone} — <span className="text-green-400">{lang === 'ar' ? 'مراقبة السجلات كل 30 ثانية' : 'Polling records every 30s'}</span></p>
+                            </div>
+                            {/* Exchange Rate Setting */}
+                            <div className="flex flex-wrap items-end gap-2 p-3 rounded-xl bg-amber-500/5 border border-amber-500/20">
+                                <div className="flex-1 min-w-[120px]">
+                                    <label className="block text-amber-300/80 text-xs mb-1">{lang === 'ar' ? 'سعر الصرف (IQD لكل $1)' : 'Exchange Rate (IQD per $1)'}</label>
+                                    <Input
+                                        value={acExchangeRate}
+                                        onChange={e => setAcExchangeRate(e.target.value.replace(/[^0-9]/g, ''))}
+                                        dir="ltr"
+                                        className="bg-black/30 border-white/10 text-white font-mono text-center text-lg tracking-wider max-w-[150px]"
+                                    />
+                                </div>
+                                <Button
+                                    onClick={async () => {
+                                        const acGw = gateways.find(g => g.type === 'auto' && /^07/.test(g.destination || ''));
+                                        if (!acGw) { setAcAdminMsg(lang === 'ar' ? 'لم يتم العثور على بوابة آسياسيل' : 'Asiacell gateway not found'); return; }
+                                        const res = await fetch(`${API_URL}/gateways/${acGw._id}`, {
+                                            method: 'PUT',
+                                            headers: { 'Content-Type': 'application/json' },
+                                            body: JSON.stringify({ exchangeRate: parseInt(acExchangeRate) || 1000 }),
+                                        });
+                                        const updated = await res.json();
+                                        setGateways(prev => prev.map(g => g._id === acGw._id ? updated : g));
+                                        setAcAdminMsg(lang === 'ar' ? `✅ تم حفظ السعر: ${acExchangeRate} IQD = $1` : `✅ Rate saved: ${acExchangeRate} IQD = $1`);
+                                        setTimeout(() => setAcAdminMsg(''), 3000);
+                                    }}
+                                    size="sm"
+                                    className="bg-amber-600 hover:bg-amber-700 text-white gap-1"
+                                >
+                                    <Save className="w-3 h-3" /> {lang === 'ar' ? 'حفظ' : 'Save'}
+                                </Button>
                             </div>
                             <div className="flex gap-2">
                                 <Button onClick={acAdminCheckRecords} disabled={acAdminLoading} variant="outline" size="sm" className="border-green-500/30 text-green-400 hover:bg-green-500/10 gap-1">

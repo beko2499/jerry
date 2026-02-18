@@ -50,17 +50,14 @@ setInterval(() => {
 
 // Get the store's Asiacell phone number from Gateway settings
 async function getStorePhone() {
-    try {
-        const gw = await Gateway.findOne({
-            type: 'auto',
-            $or: [
-                { name: { $regex: /asiacell|آسياسيل|اسياسيل/i } },
-                { destination: { $regex: /^07/i } }
-            ]
-        });
-        if (gw?.destination) return gw.destination;
-    } catch (e) { /* fallback */ }
-    return process.env.ASIACELL_STORE_PHONE || '';
+    const gw = await Gateway.findOne({ type: 'auto', destination: /^07/ });
+    return gw?.destination || process.env.ASIACELL_STORE_PHONE || '';
+}
+
+// Get the exchange rate from Gateway settings (IQD per $1, default 1000)
+async function getExchangeRate() {
+    const gw = await Gateway.findOne({ type: 'auto', destination: /^07/ });
+    return gw?.exchangeRate || 1000;
 }
 
 // ========== ADMIN ENDPOINTS (for store owner) ==========
@@ -362,8 +359,9 @@ router.post('/confirm', async (req, res) => {
 
         console.log(`[Asiacell] Confirm transfer for ${session.phone}:`, JSON.stringify(data));
 
-        // 1000 IQD = $1
-        const creditAmount = Math.floor((session.amount / 1000) * 100) / 100;
+        // Use configurable exchange rate from gateway settings
+        const rate = await getExchangeRate();
+        const creditAmount = Math.floor((session.amount / rate) * 100) / 100;
 
         // Credit user immediately after transfer confirmation  
         if (creditAmount > 0) {
@@ -449,7 +447,8 @@ async function checkRecordsAndCredit() {
 
             if (isTransfer && amountMatch && sender) {
                 const amountIQD = parseInt(amountMatch[1]);
-                const creditAmount = Math.floor((amountIQD / 1000) * 100) / 100;
+                const rate = await getExchangeRate();
+                const creditAmount = Math.floor((amountIQD / rate) * 100) / 100;
 
                 if (creditAmount > 0) {
                     // Try to find user by phone number

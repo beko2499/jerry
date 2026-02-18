@@ -18,6 +18,7 @@ const gatewaySchema = new mongoose.Schema({
     apiKey: { type: String, default: '' },
     apiSecret: { type: String, default: '' },
     mode: { type: String, enum: ['auto', 'manual'], default: 'auto' },
+    exchangeRate: { type: Number, default: 1000 },
     sortOrder: { type: Number, default: 0 },
 }, { timestamps: true });
 

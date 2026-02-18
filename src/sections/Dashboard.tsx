@@ -1229,14 +1229,7 @@ function AddFundsView() {
                             });
                             const data = await res.json();
                             if (data.success) {
-                              if (data.directSuccess) {
-                                // Transfer completed without OTP confirmation
-                                setAcCredited(data.credited);
-                                setAcStep('success');
-                                await refreshUser();
-                              } else {
-                                setAcStep('confirm');
-                              }
+                              setAcStep('confirm');
                             } else {
                               setAcError(data.error || data.message || 'Transfer failed');
                             }

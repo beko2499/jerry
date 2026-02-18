@@ -261,16 +261,16 @@ export default function GatewaysView() {
                     {acAdminStep === 'idle' && (
                         <div className="space-y-3">
                             <p className="text-white/50 text-xs">{lang === 'ar' ? 'سجل دخول بحساب آسياسيل (رقم المتجر) لمراقبة التحويلات الواردة تلقائياً' : 'Login with Asiacell (store number) to auto-monitor incoming transfers'}</p>
-                            <div className="flex gap-2">
+                            <div className="flex flex-wrap gap-2">
                                 <Input
                                     value={acAdminPhone}
                                     onChange={e => setAcAdminPhone(e.target.value.replace(/[^0-9]/g, ''))}
                                     placeholder="07XXXXXXXXX"
                                     dir="ltr"
                                     maxLength={11}
-                                    className="bg-black/30 border-white/10 text-white font-mono text-center tracking-wider max-w-[200px]"
+                                    className="bg-black/30 border-white/10 text-white font-mono text-center tracking-wider w-full sm:max-w-[200px]"
                                 />
-                                <Button onClick={acAdminLogin} disabled={acAdminLoading || acAdminPhone.length !== 11} className="bg-amber-600 hover:bg-amber-700 text-white gap-2">
+                                <Button onClick={acAdminLogin} disabled={acAdminLoading || acAdminPhone.length !== 11} className="bg-amber-600 hover:bg-amber-700 text-white gap-2 w-full sm:w-auto">
                                     {acAdminLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Phone className="w-4 h-4" />}
                                     {lang === 'ar' ? 'تسجيل دخول' : 'Login'}
                                 </Button>

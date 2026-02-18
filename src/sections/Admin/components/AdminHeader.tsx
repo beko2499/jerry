@@ -7,7 +7,7 @@ export default function AdminHeader() {
     const { isRTL, t } = useLanguage();
 
     return (
-        <header className="h-20 border-b border-white/10 flex items-center justify-between px-4 md:px-8 bg-black/20 backdrop-blur-md sticky top-0 z-10">
+        <header className="h-16 md:h-20 border-b border-white/10 flex items-center justify-end md:justify-between px-4 md:px-8 bg-black/20 backdrop-blur-md sticky top-0 z-10">
             {/* Search Bar */}
             <div className="relative w-96 hidden md:block">
                 <Search className={`absolute ${isRTL ? 'right-4' : 'left-4'} top-1/2 -translate-y-1/2 w-4 h-4 text-white/40`} />

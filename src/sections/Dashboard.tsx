@@ -132,11 +132,11 @@ function OrdersView() {
                   <td className="px-4 md:px-6 py-3 md:py-4 font-body text-white/80 text-sm">{order.quantity}</td>
                   <td className="px-4 md:px-6 py-3 md:py-4 font-space text-white text-sm">{order.price}</td>
                   <td className="px-4 md:px-6 py-3 md:py-4">
-                    <span className={`px-2 md:px-3 py-1 rounded-full text-[10px] md:text-xs font-medium border ${order.statusColor}`}>
+                    <span className={`px-2 md:px-3 py-1 rounded-full text-[10px] md:text-xs font-medium border ${order.statusColor} whitespace-nowrap`}>
                       {order.status}
                     </span>
                   </td>
-                  <td className="px-4 md:px-6 py-3 md:py-4 font-body text-white/60 text-xs md:text-sm">{order.date}</td>
+                  <td className="px-4 md:px-6 py-3 md:py-4 font-body text-white/60 text-xs md:text-sm whitespace-nowrap">{order.date}</td>
                 </tr>
               ))}
             </tbody>
@@ -258,7 +258,7 @@ interface NewOrderViewProps {
 function NewOrderView({ onServiceClick }: NewOrderViewProps) {
   const { t } = useLanguage();
   return (
-    <div className="p-8">
+    <div className="p-4 md:p-8">
       <h2 className="font-space text-2xl text-white mb-6 tracking-wide drop-shadow-md">{t.newOrder}</h2>
       <ServicesList onServiceClick={onServiceClick} />
     </div>

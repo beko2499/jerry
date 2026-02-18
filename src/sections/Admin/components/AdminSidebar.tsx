@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
-import useDetectKeyboard from '@/hooks/useDetectKeyboard';
+
 
 interface AdminSidebarProps {
     activeItem: string;
@@ -109,56 +109,55 @@ export default function AdminSidebar({ activeItem, onItemClick, onLogout }: Admi
                 </div>
             </aside>
 
-            {/* Mobile Floating Bottom Bar */}
-            {!useDetectKeyboard() && (
-                <div className="md:hidden fixed bottom-12 left-6 right-6 z-50">
-                    <div className="bg-black/80 backdrop-blur-xl border border-white/10 rounded-2xl shadow-[0_0_30px_rgba(0,0,0,0.5)] h-16 px-4 flex items-center justify-between relative">
+            {/* Mobile Sidebar Overlay */}
+            <div className={`md:hidden fixed inset-0 z-40 bg-black/60 backdrop-blur-sm transition-opacity duration-300 ${isCollapsed ? 'opacity-0 pointer-events-none' : 'opacity-100'}`} onClick={() => setIsCollapsed(true)} />
 
-                        {/* Left Side: Gateways & Services */}
-                        <div className="flex items-center gap-1 w-1/3 justify-around">
-                            <button
-                                onClick={() => onItemClick('gateways')}
-                                className={`p-2 rounded-xl transition-all ${activeItem === 'gateways' ? 'text-purple-400' : 'text-white/50'}`}
-                            >
-                                <CreditCard className="w-6 h-6" />
-                            </button>
-                            <button
-                                onClick={() => onItemClick('services')}
-                                className={`p-2 rounded-xl transition-all ${activeItem === 'services' ? 'text-yellow-400' : 'text-white/50'}`}
-                            >
-                                <Layers className="w-6 h-6" />
-                            </button>
-                        </div>
-
-                        {/* Center: Dashboard/Stats (Floating FAB) */}
-                        <div className="absolute left-1/2 -translate-x-1/2 -top-6">
-                            <button
-                                onClick={() => onItemClick('stats')}
-                                className={`w-14 h-14 rounded-full bg-gradient-to-r from-red-500 to-purple-600 flex items-center justify-center shadow-[0_0_20px_rgba(239,68,68,0.5)] transition-transform duration-300 ${activeItem === 'stats' ? 'scale-110 ring-4 ring-black/50' : 'hover:scale-105'}`}
-                            >
-                                <LayoutDashboard className="w-8 h-8 text-white stroke-[2]" />
-                            </button>
-                        </div>
-
-                        {/* Right Side: Providers & Support */}
-                        <div className="flex items-center gap-1 w-1/3 justify-around">
-                            <button
-                                onClick={() => onItemClick('providers')}
-                                className={`p-2 rounded-xl transition-all ${activeItem === 'providers' ? 'text-pink-400' : 'text-white/50'}`}
-                            >
-                                <Users className="w-6 h-6" />
-                            </button>
-                            <button
-                                onClick={() => onItemClick('support')}
-                                className={`p-2 rounded-xl transition-all ${activeItem === 'support' ? 'text-green-400' : 'text-white/50'}`}
-                            >
-                                <MessageCircle className="w-6 h-6" />
-                            </button>
-                        </div>
-
-                    </div>
+            {/* Mobile Sidebar */}
+            <aside
+                className={`md:hidden fixed top-0 left-0 h-full w-72 bg-[#0d0d1a] border-r border-white/10 z-50 transform transition-transform duration-300 ease-in-out ${isCollapsed ? '-translate-x-full' : 'translate-x-0'}`}
+            >
+                <div className="p-5 border-b border-white/10 flex items-center justify-between">
+                    <span className="font-space font-bold text-white text-lg tracking-wide">{t.adminPanel}</span>
+                    <Button variant="ghost" size="icon" onClick={() => setIsCollapsed(true)} className="text-white/60 hover:text-white">
+                        <ChevronLeft className="w-6 h-6" />
+                    </Button>
                 </div>
-            )}
+
+                <nav className="p-4 space-y-2 overflow-y-auto h-[calc(100vh-80px)]">
+                    {menuItems.map((item) => {
+                        const Icon = item.icon;
+                        const isActive = activeItem === item.id;
+                        return (
+                            <button
+                                key={item.id}
+                                onClick={() => { onItemClick(item.id); setIsCollapsed(true); }}
+                                className={`w-full flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all ${isActive ? 'bg-white/10 text-white' : 'text-white/60 hover:text-white hover:bg-white/5'}`}
+                            >
+                                <Icon className={`w-5 h-5 ${item.color}`} />
+                                <span className="font-body text-sm font-medium">{item.label}</span>
+                            </button>
+                        );
+                    })}
+
+                    <div className="pt-4 mt-4 border-t border-white/10">
+                        <button
+                            onClick={onLogout}
+                            className="w-full flex items-center gap-4 px-4 py-3.5 rounded-xl text-red-400 hover:bg-red-500/10 transition-all"
+                        >
+                            <LogOut className="w-5 h-5" />
+                            <span className="font-body text-sm font-medium">{t.logout}</span>
+                        </button>
+                    </div>
+                </nav>
+            </aside>
+
+            {/* Mobile Header Toggle (Floating Hamburger) */}
+            <button
+                onClick={() => setIsCollapsed(!isCollapsed)}
+                className={`md:hidden fixed top-4 left-4 z-30 p-2 rounded-lg bg-black/40 backdrop-blur-md border border-white/10 text-white shadow-lg ${isCollapsed ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300`}
+            >
+                <Layers className="w-6 h-6" />
+            </button>
         </>
     );
 }

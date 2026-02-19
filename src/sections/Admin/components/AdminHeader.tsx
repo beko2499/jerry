@@ -70,7 +70,7 @@ export default function AdminHeader() {
 
                 {/* Notifications Dropdown */}
                 {showNotifs && (
-                    <div className="absolute top-full right-0 mt-2 w-80 md:w-96 bg-[#0d0d1a]/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl z-50 overflow-hidden">
+                    <div className="fixed md:absolute top-16 md:top-full left-2 right-2 md:left-auto md:right-0 mt-0 md:mt-2 w-auto md:w-96 bg-[#0d0d1a]/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl z-50 overflow-hidden">
                         <div className="p-3 border-b border-white/10 flex items-center justify-between">
                             <h3 className="text-white font-bold text-sm flex items-center gap-2">
                                 <AlertTriangle className="w-4 h-4 text-yellow-400" /> تنبيهات النظام

@@ -19,6 +19,7 @@ interface RegisterResult {
     error?: string;
     userId?: string;
     email?: string;
+    skipVerification?: boolean;
 }
 
 interface LoginResult {
@@ -85,7 +86,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             });
             const result = await res.json();
             if (!res.ok) return { success: false, error: result.error };
-            return { success: true, userId: result.userId, email: result.email };
+            return { success: true, userId: result.userId, email: result.email, skipVerification: result.skip_verification };
         } catch {
             return { success: false, error: 'connection_error' };
         }

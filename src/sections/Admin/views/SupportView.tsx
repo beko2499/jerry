@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { MessageCircle, Send, Save, Phone, Mail, Eye, EyeOff, Info } from 'lucide-react';
+import { MessageCircle, Send, Save, Phone, Mail, Eye, EyeOff, Info, ShieldCheck } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Switch } from '@/components/ui/switch';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
@@ -26,6 +27,7 @@ export default function SupportView() {
 
     const [showPassword, setShowPassword] = useState(false);
     const [showGuide, setShowGuide] = useState(false);
+    const [emailVerificationEnabled, setEmailVerificationEnabled] = useState(true);
 
     useEffect(() => {
         fetch(`${API_URL}/settings/support`)
@@ -36,6 +38,11 @@ export default function SupportView() {
         fetch(`${API_URL}/settings/email`)
             .then(r => r.json())
             .then(data => { if (data) setEmailConfig(data); })
+            .catch(console.error);
+
+        fetch(`${API_URL}/settings/emailVerification`)
+            .then(r => r.json())
+            .then(data => { if (data !== null) setEmailVerificationEnabled(data); })
             .catch(console.error);
     }, []);
 
@@ -63,6 +70,15 @@ export default function SupportView() {
             body: JSON.stringify({ value: emailConfig })
         });
         alert('Email settings saved!');
+    };
+
+    const toggleEmailVerification = async (enabled: boolean) => {
+        setEmailVerificationEnabled(enabled);
+        await fetch(`${API_URL}/settings/emailVerification`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ value: enabled })
+        });
     };
 
     return (
@@ -147,6 +163,21 @@ export default function SupportView() {
                         <Button onClick={handleSaveEmail} size="sm" className="bg-green-600 hover:bg-green-700 text-white gap-1.5">
                             <Save className="w-3.5 h-3.5" /> {t.saveChanges}
                         </Button>
+                    </div>
+
+                    {/* Verification Toggle */}
+                    <div className="flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/10">
+                        <div className="flex items-center gap-3">
+                            <ShieldCheck className={`w-5 h-5 ${emailVerificationEnabled ? 'text-green-400' : 'text-red-400'}`} />
+                            <div>
+                                <p className="text-white text-sm font-bold">التحقق من البريد عند التسجيل</p>
+                                <p className="text-white/40 text-xs">{emailVerificationEnabled ? 'مفعّل — يتم إرسال كود تحقق للبريد' : 'معطّل — التسجيل بدون تحقق'}</p>
+                            </div>
+                        </div>
+                        <Switch
+                            checked={emailVerificationEnabled}
+                            onCheckedChange={toggleEmailVerification}
+                        />
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

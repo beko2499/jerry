@@ -19,6 +19,29 @@ router.post('/register', async (req, res) => {
         const existsEmail = await User.findOne({ email: email.toLowerCase().trim() });
         if (existsEmail) return res.status(400).json({ error: 'email_exists' });
 
+        // Check if email verification is enabled
+        const Settings = require('../models/Settings');
+        const emailVerifSetting = await Settings.findOne({ key: 'emailVerification' });
+        const isVerificationEnabled = emailVerifSetting ? emailVerifSetting.value : true;
+
+        if (!isVerificationEnabled) {
+            // Skip verification — create as verified
+            const user = new User({
+                username: username.trim().toLowerCase(),
+                firstName, lastName, phone,
+                email: email.trim().toLowerCase(),
+                password,
+                isVerified: true,
+            });
+            await user.save();
+            return res.json({
+                message: 'registered',
+                userId: user._id,
+                email: user.email,
+                skip_verification: true,
+            });
+        }
+
         const code = generateCode();
         const user = new User({
             username: username.trim().toLowerCase(),
@@ -108,7 +131,18 @@ router.post('/login', async (req, res) => {
         if (!isMatch) return res.status(401).json({ error: 'invalid_credentials' });
 
         if (!user.isVerified) {
-            return res.status(403).json({ error: 'not_verified', userId: user._id, email: user.email });
+            // Check if verification is disabled — auto-verify
+            const Settings = require('../models/Settings');
+            const emailVerifSetting = await Settings.findOne({ key: 'emailVerification' });
+            const isVerificationEnabled = emailVerifSetting ? emailVerifSetting.value : true;
+            if (!isVerificationEnabled) {
+                user.isVerified = true;
+                user.verificationCode = null;
+                user.verificationCodeExpires = null;
+                await user.save();
+            } else {
+                return res.status(403).json({ error: 'not_verified', userId: user._id, email: user.email });
+            }
         }
 
         res.json({ user: { _id: user._id, username: user.username, firstName: user.firstName, lastName: user.lastName, phone: user.phone, email: user.email, balance: user.balance, role: user.role } });

@@ -117,9 +117,13 @@ export default function AuthPage() {
         });
         setIsLoading(false);
         if (result.success) {
-            setVerifyUserId(result.userId || '');
-            setVerifyUserEmail(result.email || regEmail);
-            setStep('verify');
+            if (result.skipVerification) {
+                setStep('success');
+            } else {
+                setVerifyUserId(result.userId || '');
+                setVerifyUserEmail(result.email || regEmail);
+                setStep('verify');
+            }
         } else {
             if (result.error === 'username_exists') {
                 setRegError(t.usernameExists);

@@ -19,7 +19,7 @@ interface Notification {
 }
 
 export default function NotificationsView() {
-    const { t } = useLanguage();
+    const { } = useLanguage();
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [showForm, setShowForm] = useState(false);
     const [form, setForm] = useState({ title: '', body: '', type: 'instant' as 'instant' | 'scheduled', scheduledAt: '' });

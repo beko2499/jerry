@@ -1383,7 +1383,7 @@ function SupportView() {
       <div className="space-y-3">
         {config.whatsapp && (
           <button
-            onClick={() => window.open(`https://wa.me/${config.whatsapp.replace(/[^0-9]/g, '')}`, '_blank')}
+            onClick={() => window.open(`https://wa.me/${config.whatsapp!.replace(/[^0-9]/g, '')}`, '_blank')}
             className="w-full flex items-center gap-4 p-4 rounded-2xl bg-green-500/10 border border-green-500/30 hover:bg-green-500/20 transition-all group"
           >
             <div className="w-12 h-12 rounded-xl bg-green-500/20 flex items-center justify-center">
@@ -1398,7 +1398,7 @@ function SupportView() {
 
         {config.telegram && (
           <button
-            onClick={() => window.open(`https://t.me/${config.telegram.replace('@', '')}`, '_blank')}
+            onClick={() => window.open(`https://t.me/${config.telegram!.replace('@', '')}`, '_blank')}
             className="w-full flex items-center gap-4 p-4 rounded-2xl bg-blue-500/10 border border-blue-500/30 hover:bg-blue-500/20 transition-all group"
           >
             <div className="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center">

@@ -21,7 +21,7 @@ interface UpdateEntry {
 }
 
 export default function ContentView() {
-    const { t } = useLanguage();
+    const { } = useLanguage();
     const [tab, setTab] = useState<'terms' | 'updates'>('terms');
 
     // Terms state

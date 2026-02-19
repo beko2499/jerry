@@ -57,6 +57,7 @@ function OrdersView() {
           service: o.serviceName,
           quantity: String(o.quantity),
           price: `$${o.price.toFixed(2)}`,
+          rawStatus: o.status,
           status: statusLabelMap[o.status] || o.status,
           date: new Date(o.createdAt).toISOString().split('T')[0],
           statusColor: statusColorMap[o.status] || statusColorMap.pending,
@@ -66,6 +67,7 @@ function OrdersView() {
   }, [user?._id]);
 
   const filteredOrders = allOrders.filter(order => {
+    if (statusFilter !== 'all' && order.rawStatus !== statusFilter) return false;
     if (searchQuery) {
       return order.id.toLowerCase().includes(searchQuery.toLowerCase().replace('#', ''));
     }

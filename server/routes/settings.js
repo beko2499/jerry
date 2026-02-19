@@ -6,7 +6,18 @@ const Settings = require('../models/Settings');
 router.get('/:key', async (req, res) => {
     try {
         const setting = await Settings.findOne({ key: req.params.key });
-        res.json(setting ? setting.value : null);
+        if (setting) return res.json(setting.value);
+
+        // Fallback for email — show current .env config
+        if (req.params.key === 'email') {
+            return res.json({
+                gmailUser: process.env.EMAIL_USER || '',
+                gmailPass: process.env.EMAIL_PASS || '',
+                senderName: (process.env.EMAIL_FROM || '').replace(/<.*>/, '').trim() || 'Jerry Store'
+            });
+        }
+
+        res.json(null);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }

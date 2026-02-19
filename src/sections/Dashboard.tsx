@@ -24,6 +24,7 @@ function OrdersView() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const { t } = useLanguage();
+  const { user } = useAuth();
 
   const filters = [
     { id: 'all', label: t.allOrders, icon: ShoppingCart, color: 'text-cyan-400', activeBg: 'bg-cyan-500/20 border-cyan-500/50 text-cyan-400' },
@@ -46,8 +47,9 @@ function OrdersView() {
   const [allOrders, setAllOrders] = useState<any[]>([]);
 
   useEffect(() => {
+    if (!user?._id) return;
     const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
-    fetch(`${API_URL}/orders`)
+    fetch(`${API_URL}/orders?userId=${user._id}`)
       .then(r => r.json())
       .then(orders => {
         setAllOrders(orders.map((o: any) => ({
@@ -61,7 +63,7 @@ function OrdersView() {
         })));
       })
       .catch(console.error);
-  }, []);
+  }, [user?._id]);
 
   const filteredOrders = allOrders.filter(order => {
     if (searchQuery) {
@@ -72,8 +74,11 @@ function OrdersView() {
 
   return (
     <div className="p-4 md:p-8 space-y-4">
-      {/* Filter Tabs */}
-      <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+      {/* Title */}
+      <h3 className="font-space text-xl md:text-3xl text-white tracking-wide">{t.myOrders}</h3>
+
+      {/* Filter Tabs - horizontal scroll on mobile */}
+      <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide -mx-1 px-1">
         {filters.map((filter) => {
           const Icon = filter.icon;
           const isActive = statusFilter === filter.id;
@@ -82,22 +87,19 @@ function OrdersView() {
               key={filter.id}
               onClick={() => setStatusFilter(filter.id)}
               className={`
-                flex items-center gap-2 px-4 md:px-6 py-2.5 md:py-3 rounded-xl border transition-all duration-300 whitespace-nowrap text-sm md:text-base
+                flex items-center gap-1.5 px-3 py-2 rounded-lg border transition-all duration-300 whitespace-nowrap text-xs md:text-sm shrink-0
                 ${isActive
                   ? `${filter.activeBg} shadow-[0_0_15px_rgba(0,0,0,0.3)]`
                   : 'bg-white/5 border-white/10 text-white/60 hover:bg-white/10 hover:text-white'
                 }
               `}
             >
-              <Icon className={`w-4 h-4 md:w-5 md:h-5 ${isActive ? 'scale-110' : 'opacity-70'} transition-transform`} />
+              <Icon className={`w-3.5 h-3.5 ${isActive ? 'scale-110' : 'opacity-70'} transition-transform`} />
               <span className="font-body font-medium">{filter.label}</span>
             </button>
           );
         })}
       </div>
-
-      {/* Title */}
-      <h3 className="font-space text-2xl md:text-3xl text-white tracking-wide">{t.myOrders}</h3>
 
       {/* Search Bar */}
       <div className="relative">
@@ -106,37 +108,66 @@ function OrdersView() {
           placeholder={`${t.search} ${t.orderId}...`}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-10 w-full bg-white/5 border-white/10 text-white placeholder:text-white/40 focus:border-cyan-500/50 focus:ring-cyan-500/20 h-11"
+          className="pl-10 w-full bg-white/5 border-white/10 text-white placeholder:text-white/40 focus:border-cyan-500/50 focus:ring-cyan-500/20 h-10"
         />
       </div>
 
-      {/* Orders Table */}
-      <Card className="bg-white/5 border-white/10 overflow-hidden backdrop-blur-sm">
+      {/* Orders - Mobile Cards */}
+      <div className="md:hidden space-y-2.5">
+        {filteredOrders.length === 0 ? (
+          <div className="text-center py-12 text-white/30">
+            <ShoppingCart className="w-10 h-10 mx-auto mb-2 opacity-50" />
+            <p className="text-sm">{t.noResults || 'لا توجد طلبات'}</p>
+          </div>
+        ) : filteredOrders.map((order) => (
+          <Card key={order.id} className="p-3 bg-white/5 border-white/10">
+            <div className="flex items-start justify-between gap-2">
+              <div className="flex-1 min-w-0">
+                <p className="text-white text-sm font-medium truncate">{order.service}</p>
+                <div className="flex items-center gap-2 mt-1 text-xs text-white/40">
+                  <span className="text-cyan-400 font-mono">{order.id}</span>
+                  <span>×{order.quantity}</span>
+                </div>
+              </div>
+              <div className="flex flex-col items-end gap-1 shrink-0">
+                <span className="text-green-400 font-mono font-bold text-sm">{order.price}</span>
+                <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium border ${order.statusColor}`}>
+                  {order.status}
+                </span>
+              </div>
+            </div>
+            <p className="text-white/30 text-[10px] mt-1.5">{order.date}</p>
+          </Card>
+        ))}
+      </div>
+
+      {/* Orders - Desktop Table */}
+      <Card className="hidden md:block bg-white/5 border-white/10 overflow-hidden backdrop-blur-sm">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
               <tr className="border-b border-white/10">
-                <th className="px-4 md:px-6 py-3 md:py-4 text-right font-body text-white/60 text-xs md:text-sm">{t.orderId}</th>
-                <th className="px-4 md:px-6 py-3 md:py-4 text-right font-body text-white/60 text-xs md:text-sm">{t.service}</th>
-                <th className="px-4 md:px-6 py-3 md:py-4 text-right font-body text-white/60 text-xs md:text-sm">{t.quantity}</th>
-                <th className="px-4 md:px-6 py-3 md:py-4 text-right font-body text-white/60 text-xs md:text-sm">{t.price}</th>
-                <th className="px-4 md:px-6 py-3 md:py-4 text-right font-body text-white/60 text-xs md:text-sm">{t.status}</th>
-                <th className="px-4 md:px-6 py-3 md:py-4 text-right font-body text-white/60 text-xs md:text-sm">{t.date}</th>
+                <th className="px-6 py-4 text-right font-body text-white/60 text-sm">{t.orderId}</th>
+                <th className="px-6 py-4 text-right font-body text-white/60 text-sm">{t.service}</th>
+                <th className="px-6 py-4 text-right font-body text-white/60 text-sm">{t.quantity}</th>
+                <th className="px-6 py-4 text-right font-body text-white/60 text-sm">{t.price}</th>
+                <th className="px-6 py-4 text-right font-body text-white/60 text-sm">{t.status}</th>
+                <th className="px-6 py-4 text-right font-body text-white/60 text-sm">{t.date}</th>
               </tr>
             </thead>
             <tbody>
               {filteredOrders.map((order) => (
                 <tr key={order.id} className="border-b border-white/5 hover:bg-white/5 transition-colors group">
-                  <td className="px-4 md:px-6 py-3 md:py-4 font-space text-cyan-400 group-hover:text-cyan-300 transition-colors text-sm">{order.id}</td>
-                  <td className="px-4 md:px-6 py-3 md:py-4 font-body text-white text-sm">{order.service}</td>
-                  <td className="px-4 md:px-6 py-3 md:py-4 font-body text-white/80 text-sm">{order.quantity}</td>
-                  <td className="px-4 md:px-6 py-3 md:py-4 font-space text-white text-sm">{order.price}</td>
-                  <td className="px-4 md:px-6 py-3 md:py-4">
-                    <span className={`px-2 md:px-3 py-1 rounded-full text-[10px] md:text-xs font-medium border ${order.statusColor} whitespace-nowrap`}>
+                  <td className="px-6 py-4 font-space text-cyan-400 group-hover:text-cyan-300 transition-colors text-sm">{order.id}</td>
+                  <td className="px-6 py-4 font-body text-white text-sm">{order.service}</td>
+                  <td className="px-6 py-4 font-body text-white/80 text-sm">{order.quantity}</td>
+                  <td className="px-6 py-4 font-space text-white text-sm">{order.price}</td>
+                  <td className="px-6 py-4">
+                    <span className={`px-3 py-1 rounded-full text-xs font-medium border ${order.statusColor} whitespace-nowrap`}>
                       {order.status}
                     </span>
                   </td>
-                  <td className="px-4 md:px-6 py-3 md:py-4 font-body text-white/60 text-xs md:text-sm whitespace-nowrap">{order.date}</td>
+                  <td className="px-6 py-4 font-body text-white/60 text-sm whitespace-nowrap">{order.date}</td>
                 </tr>
               ))}
             </tbody>

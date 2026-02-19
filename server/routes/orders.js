@@ -68,6 +68,26 @@ router.post('/', async (req, res) => {
                     user.balance = (user.balance || 0) + price;
                     await user.save();
                     await order.save();
+
+                    // Create admin notification for provider error
+                    try {
+                        const Notification = require('../models/Notification');
+                        const errMsg = (apiErr.message || '').toLowerCase();
+                        const isBalanceError = errMsg.includes('balance') || errMsg.includes('fund') || errMsg.includes('enough');
+                        await Notification.create({
+                            title: isBalanceError ? '⚠️ رصيد غير كافي عند المزود' : '❌ خطأ من المزود',
+                            body: isBalanceError
+                                ? `رصيدك عند المزود "${provider.name}" غير كافي. يرجى شحن الرصيد لإتمام الطلبات.\n\nالخطأ: ${apiErr.message}`
+                                : `فشل إرسال طلب للمزود "${provider.name}".\n\nالخطأ: ${apiErr.message}`,
+                            type: 'instant',
+                            audience: 'admin',
+                            status: 'sent',
+                            sentAt: new Date(),
+                        });
+                    } catch (notifErr) {
+                        console.error('Failed to create admin notification:', notifErr.message);
+                    }
+
                     return res.status(400).json({ error: apiErr.message, refunded: true });
                 }
             }

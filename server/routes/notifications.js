@@ -15,7 +15,17 @@ router.get('/', async (req, res) => {
 // Get sent notifications (user-facing)
 router.get('/user', async (req, res) => {
     try {
-        const notifications = await Notification.find({ status: 'sent' }).sort({ sentAt: -1 }).limit(50);
+        const notifications = await Notification.find({ status: 'sent', audience: { $ne: 'admin' } }).sort({ sentAt: -1 }).limit(50);
+        res.json(notifications);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Get admin notifications
+router.get('/admin', async (req, res) => {
+    try {
+        const notifications = await Notification.find({ audience: 'admin' }).sort({ createdAt: -1 }).limit(50);
         res.json(notifications);
     } catch (err) {
         res.status(500).json({ error: err.message });

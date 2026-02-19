@@ -1,43 +1,31 @@
 "use client"
 
 import * as React from "react"
+import * as SwitchPrimitive from "@radix-ui/react-switch"
+
 import { cn } from "@/lib/utils"
 
-interface SwitchProps {
-  checked?: boolean;
-  onCheckedChange?: (checked: boolean) => void;
-  disabled?: boolean;
-  className?: string;
-  id?: string;
-  name?: string;
-}
-
-function Switch({ checked = false, onCheckedChange, disabled = false, className, id, name }: SwitchProps) {
+function Switch({
+  className,
+  ...props
+}: React.ComponentProps<typeof SwitchPrimitive.Root>) {
   return (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={checked}
-      id={id}
-      disabled={disabled}
-      onClick={() => onCheckedChange?.(!checked)}
+    <SwitchPrimitive.Root
+      data-slot="switch"
       className={cn(
-        "relative inline-flex h-[28px] w-[50px] shrink-0 cursor-pointer rounded-full transition-all duration-300 ease-in-out focus:outline-none disabled:cursor-not-allowed disabled:opacity-50",
-        checked
-          ? "bg-gradient-to-r from-cyan-500 to-cyan-400 shadow-[0_0_14px_rgba(6,182,212,0.5)]"
-          : "bg-white/10 shadow-inner",
+        "peer inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-cyan-500 data-[state=checked]:shadow-[0_0_10px_rgba(0,255,255,0.3)] data-[state=unchecked]:bg-white/15",
         className
       )}
+      {...props}
     >
-      <span
+      <SwitchPrimitive.Thumb
+        data-slot="switch-thumb"
         className={cn(
-          "absolute top-[3px] left-[3px] h-[22px] w-[22px] rounded-full bg-white shadow-[0_1px_3px_rgba(0,0,0,0.3)] transition-transform duration-300 ease-in-out",
-          checked && "translate-x-[22px]"
+          "pointer-events-none block h-5 w-5 rounded-full bg-white shadow-lg ring-0 transition-transform duration-200 data-[state=checked]:translate-x-5 data-[state=unchecked]:translate-x-0"
         )}
       />
-    </button>
+    </SwitchPrimitive.Root>
   )
 }
 
 export { Switch }
-

@@ -190,6 +190,49 @@ router.get('/me/:id', async (req, res) => {
     }
 });
 
+// Update own profile (user)
+router.put('/profile/:id', async (req, res) => {
+    try {
+        const { email, currentPassword, newPassword, firstName, lastName, username } = req.body;
+        const user = await User.findById(req.params.id);
+        if (!user) return res.status(404).json({ error: 'User not found' });
+
+        // Verify current password
+        if (currentPassword) {
+            const isMatch = await user.comparePassword(currentPassword);
+            if (!isMatch) return res.status(400).json({ error: 'wrong_password' });
+        }
+
+        if (email && email !== user.email) {
+            const exists = await User.findOne({ email: email.toLowerCase().trim(), _id: { $ne: user._id } });
+            if (exists) return res.status(400).json({ error: 'email_exists' });
+            user.email = email.toLowerCase().trim();
+        }
+
+        if (username && username !== user.username) {
+            const exists = await User.findOne({ username: username.toLowerCase().trim(), _id: { $ne: user._id } });
+            if (exists) return res.status(400).json({ error: 'username_exists' });
+            user.username = username.toLowerCase().trim();
+        }
+
+        if (firstName) user.firstName = firstName;
+        if (lastName) user.lastName = lastName;
+
+        if (newPassword) {
+            if (!currentPassword) return res.status(400).json({ error: 'current_password_required' });
+            user.password = newPassword; // Will be hashed by pre-save hook
+        }
+
+        await user.save();
+        const userObj = user.toObject();
+        delete userObj.password;
+        delete userObj.verificationCode;
+        res.json(userObj);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // Update user (admin)
 router.put('/users/:id', async (req, res) => {
     try {

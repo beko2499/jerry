@@ -11,7 +11,8 @@ import {
     ShieldAlert,
     Ticket,
     FileText,
-    Bell
+    Bell,
+    Settings
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -37,6 +38,7 @@ export default function AdminSidebar({ activeItem, onItemClick, onLogout, hideBo
         { id: 'content', label: 'المحتوى', icon: FileText, color: 'text-orange-400' },
         { id: 'notifications', label: 'الإشعارات', icon: Bell, color: 'text-red-400' },
         { id: 'support', label: t.adminSupport, icon: MessageCircle, color: 'text-green-400' },
+        { id: 'settings', label: t.settings || 'الإعدادات', icon: Settings, color: 'text-slate-400' },
     ];
 
     return (

@@ -648,33 +648,115 @@ function ServiceDetailsView({ serviceId, serviceData, onBack }: ServiceDetailsVi
 }
 
 // Settings View Component
-
-// Settings View Component
 function SettingsView() {
   const { t } = useLanguage();
+  const { user, refreshUser } = useAuth();
+  const [email, setEmail] = useState(user?.email || '');
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  const handleSave = async () => {
+    setMessage(null);
+    if (newPassword && newPassword !== confirmPassword) {
+      setMessage({ type: 'error', text: 'كلمات المرور غير متطابقة' });
+      return;
+    }
+    if (newPassword && !currentPassword) {
+      setMessage({ type: 'error', text: 'يرجى إدخال كلمة المرور الحالية' });
+      return;
+    }
+    if (!email && !newPassword) {
+      setMessage({ type: 'error', text: 'لا توجد تغييرات لحفظها' });
+      return;
+    }
+    setSaving(true);
+    try {
+      const body: any = {};
+      if (email !== user?.email) body.email = email;
+      if (newPassword) { body.newPassword = newPassword; body.currentPassword = currentPassword; }
+      else if (currentPassword) body.currentPassword = currentPassword;
+
+      if (Object.keys(body).length === 0) {
+        setMessage({ type: 'error', text: 'لا توجد تغييرات لحفظها' });
+        setSaving(false);
+        return;
+      }
+
+      const res = await fetch(`${API_URL}/auth/profile/${user?._id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        const errMap: Record<string, string> = {
+          wrong_password: 'كلمة المرور الحالية غير صحيحة',
+          email_exists: 'البريد الإلكتروني مستخدم بالفعل',
+          current_password_required: 'يرجى إدخال كلمة المرور الحالية',
+        };
+        setMessage({ type: 'error', text: errMap[data.error] || data.error });
+      } else {
+        setMessage({ type: 'success', text: 'تم حفظ التغييرات بنجاح ✅' });
+        setCurrentPassword(''); setNewPassword(''); setConfirmPassword('');
+        await refreshUser();
+      }
+    } catch { setMessage({ type: 'error', text: 'حدث خطأ في الاتصال' }); }
+    setSaving(false);
+  };
+
   return (
-    <div className="p-8">
-      <h2 className="font-space text-2xl text-white mb-6 tracking-wide drop-shadow-md">{t.settings}</h2>
-      <Card className="p-8 bg-white/5 border-white/10 max-w-2xl backdrop-blur-sm">
-        <div className="space-y-6">
+    <div className="p-4 md:p-8">
+      <h2 className="font-space text-xl md:text-2xl text-white mb-6 tracking-wide">{t.settings}</h2>
+      <Card className="p-5 md:p-8 bg-white/5 border-white/10 max-w-lg backdrop-blur-sm">
+        <div className="space-y-5">
+          {/* Username (read-only) */}
           <div>
-            <label className="block font-body text-white/80 mb-2">{t.name}</label>
-            <Input className="bg-white/5 border-white/10 text-white focus:border-cyan-500/50" placeholder={t.username} />
+            <label className="block font-body text-white/50 text-sm mb-1.5">{t.username}</label>
+            <div className="px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white/40 text-sm font-mono">
+              @{user?.username}
+            </div>
           </div>
+
+          {/* Email */}
           <div>
-            <label className="block font-body text-white/80 mb-2">{t.email}</label>
-            <Input className="bg-white/5 border-white/10 text-white focus:border-cyan-500/50" placeholder="email@example.com" />
+            <label className="block font-body text-white/80 text-sm mb-1.5">{t.email}</label>
+            <Input value={email} onChange={e => setEmail(e.target.value)} className="bg-white/5 border-white/10 text-white focus:border-cyan-500/50 h-10" dir="ltr" />
           </div>
+
+          <div className="border-t border-white/10 pt-4">
+            <p className="text-white/50 text-xs mb-3">لتغيير كلمة المرور أو البريد، أدخل كلمة المرور الحالية</p>
+          </div>
+
+          {/* Current Password */}
           <div>
-            <label className="block font-body text-white/80 mb-2">{t.currentPassword}</label>
-            <Input type="password" className="bg-white/5 border-white/10 text-white focus:border-cyan-500/50" placeholder="********" />
+            <label className="block font-body text-white/80 text-sm mb-1.5">{t.currentPassword}</label>
+            <Input type="password" value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} className="bg-white/5 border-white/10 text-white focus:border-cyan-500/50 h-10" placeholder="••••••••" />
           </div>
+
+          {/* New Password */}
           <div>
-            <label className="block font-body text-white/80 mb-2">{t.newPassword}</label>
-            <Input type="password" className="bg-white/5 border-white/10 text-white focus:border-cyan-500/50" placeholder="********" />
+            <label className="block font-body text-white/80 text-sm mb-1.5">{t.newPassword}</label>
+            <Input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} className="bg-white/5 border-white/10 text-white focus:border-cyan-500/50 h-10" placeholder="••••••••" />
           </div>
-          <Button className="bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700 text-white shadow-lg shadow-cyan-500/20">
-            {t.saveChanges}
+
+          {/* Confirm Password */}
+          <div>
+            <label className="block font-body text-white/80 text-sm mb-1.5">تأكيد كلمة المرور الجديدة</label>
+            <Input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} className="bg-white/5 border-white/10 text-white focus:border-cyan-500/50 h-10" placeholder="••••••••" />
+          </div>
+
+          {/* Message */}
+          {message && (
+            <div className={`p-3 rounded-xl text-sm ${message.type === 'success' ? 'bg-green-500/10 text-green-400 border border-green-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'}`}>
+              {message.text}
+            </div>
+          )}
+
+          <Button onClick={handleSave} disabled={saving} className="w-full bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700 text-white shadow-lg shadow-cyan-500/20 h-11">
+            {saving ? '...' : t.saveChanges}
           </Button>
         </div>
       </Card>

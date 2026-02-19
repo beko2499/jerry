@@ -108,7 +108,7 @@ export default function Header({ onAddFundsClick, onNavigate, showMobileMenu, se
             {showNotifications && (
               <>
                 <div className="fixed inset-0 z-40" onClick={() => setShowNotifications(false)} />
-                <div className={`absolute top-full mt-2 z-50 w-80 max-h-96 bg-[#1a1a2e] border border-white/10 rounded-xl shadow-2xl shadow-black/50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 ${isRTL ? 'left-0' : 'right-0'}`}>
+                <div className="fixed md:absolute top-14 md:top-full right-2 md:right-0 left-2 md:left-auto mt-0 md:mt-2 z-50 md:w-80 max-h-[70vh] md:max-h-96 bg-[#1a1a2e] border border-white/10 rounded-xl shadow-2xl shadow-black/50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
                   <div className="p-3 border-b border-white/10">
                     <h3 className="text-white font-bold text-sm flex items-center gap-2">
                       <Bell className="w-4 h-4 text-cyan-400" />

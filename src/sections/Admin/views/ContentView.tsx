@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react';
-import { FileText, Save, Plus, Trash2, Megaphone } from 'lucide-react';
+import { FileText, Save, Plus, Trash2, Megaphone, Pencil, X, Check } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useLanguage } from '@/contexts/LanguageContext';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
@@ -21,74 +20,123 @@ interface UpdateEntry {
 }
 
 export default function ContentView() {
-    const { } = useLanguage();
     const [tab, setTab] = useState<'terms' | 'updates'>('terms');
 
     // Terms state
-    const [termsSections, setTermsSections] = useState<TermSection[]>([
-        { title: '', body: '' }
-    ]);
+    const [termsSections, setTermsSections] = useState<TermSection[]>([]);
+    const [termForm, setTermForm] = useState<TermSection>({ title: '', body: '' });
+    const [editingTermIdx, setEditingTermIdx] = useState<number | null>(null);
 
     // Updates state
     const [updates, setUpdates] = useState<UpdateEntry[]>([]);
+    const [updateForm, setUpdateForm] = useState<UpdateEntry>({ version: '', date: new Date().toISOString().split('T')[0], title: '', description: '', type: 'جديد' });
+    const [editingUpdateIdx, setEditingUpdateIdx] = useState<number | null>(null);
 
     const [saving, setSaving] = useState(false);
 
     useEffect(() => {
-        // Load terms
         fetch(`${API_URL}/settings/terms`)
             .then(r => r.json())
             .then(data => { if (data && Array.isArray(data)) setTermsSections(data); })
             .catch(console.error);
 
-        // Load updates
         fetch(`${API_URL}/settings/updates`)
             .then(r => r.json())
             .then(data => { if (data && Array.isArray(data)) setUpdates(data); })
             .catch(console.error);
     }, []);
 
-    const saveTerms = async () => {
+    // --- Terms ---
+    const saveTermsToDB = async (sections: TermSection[]) => {
         setSaving(true);
         await fetch(`${API_URL}/settings/terms`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ value: termsSections })
+            body: JSON.stringify({ value: sections })
         });
         setSaving(false);
-        alert('تم حفظ شروط الاستخدام!');
     };
 
-    const saveUpdates = async () => {
+    const addTerm = async () => {
+        if (!termForm.title.trim() || !termForm.body.trim()) return;
+        const newSections = [...termsSections, termForm];
+        setTermsSections(newSections);
+        setTermForm({ title: '', body: '' });
+        await saveTermsToDB(newSections);
+    };
+
+    const startEditTerm = (i: number) => {
+        setEditingTermIdx(i);
+        setTermForm({ ...termsSections[i] });
+    };
+
+    const saveEditTerm = async () => {
+        if (editingTermIdx === null) return;
+        const newSections = termsSections.map((s, idx) => idx === editingTermIdx ? termForm : s);
+        setTermsSections(newSections);
+        setEditingTermIdx(null);
+        setTermForm({ title: '', body: '' });
+        await saveTermsToDB(newSections);
+    };
+
+    const cancelEditTerm = () => {
+        setEditingTermIdx(null);
+        setTermForm({ title: '', body: '' });
+    };
+
+    const removeTerm = async (i: number) => {
+        const newSections = termsSections.filter((_, idx) => idx !== i);
+        setTermsSections(newSections);
+        await saveTermsToDB(newSections);
+    };
+
+    // --- Updates ---
+    const saveUpdatesToDB = async (entries: UpdateEntry[]) => {
         setSaving(true);
         await fetch(`${API_URL}/settings/updates`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ value: updates })
+            body: JSON.stringify({ value: entries })
         });
         setSaving(false);
-        alert('تم حفظ التحديثات!');
     };
 
-    // Terms handlers
-    const addSection = () => setTermsSections(prev => [...prev, { title: '', body: '' }]);
-    const removeSection = (i: number) => setTermsSections(prev => prev.filter((_, idx) => idx !== i));
-    const updateSection = (i: number, key: keyof TermSection, val: string) => {
-        setTermsSections(prev => prev.map((s, idx) => idx === i ? { ...s, [key]: val } : s));
+    const addUpdateEntry = async () => {
+        if (!updateForm.title.trim()) return;
+        const newUpdates = [updateForm, ...updates];
+        setUpdates(newUpdates);
+        setUpdateForm({ version: '', date: new Date().toISOString().split('T')[0], title: '', description: '', type: 'جديد' });
+        await saveUpdatesToDB(newUpdates);
     };
 
-    // Updates handlers
-    const addUpdate = () => setUpdates(prev => [{ version: '', date: new Date().toISOString().split('T')[0], title: '', description: '', type: 'جديد' }, ...prev]);
-    const removeUpdate = (i: number) => setUpdates(prev => prev.filter((_, idx) => idx !== i));
-    const updateEntry = (i: number, key: keyof UpdateEntry, val: string) => {
-        setUpdates(prev => prev.map((u, idx) => idx === i ? { ...u, [key]: val } : u));
+    const startEditUpdate = (i: number) => {
+        setEditingUpdateIdx(i);
+        setUpdateForm({ ...updates[i] });
+    };
+
+    const saveEditUpdate = async () => {
+        if (editingUpdateIdx === null) return;
+        const newUpdates = updates.map((u, idx) => idx === editingUpdateIdx ? updateForm : u);
+        setUpdates(newUpdates);
+        setEditingUpdateIdx(null);
+        setUpdateForm({ version: '', date: new Date().toISOString().split('T')[0], title: '', description: '', type: 'جديد' });
+        await saveUpdatesToDB(newUpdates);
+    };
+
+    const cancelEditUpdate = () => {
+        setEditingUpdateIdx(null);
+        setUpdateForm({ version: '', date: new Date().toISOString().split('T')[0], title: '', description: '', type: 'جديد' });
+    };
+
+    const removeUpdate = async (i: number) => {
+        const newUpdates = updates.filter((_, idx) => idx !== i);
+        setUpdates(newUpdates);
+        await saveUpdatesToDB(newUpdates);
     };
 
     return (
         <div className="p-4 md:p-8 space-y-6">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <h2 className="font-space text-2xl md:text-3xl text-white tracking-wide">إدارة المحتوى</h2>
-            </div>
+            <h2 className="font-space text-2xl md:text-3xl text-white tracking-wide">إدارة المحتوى</h2>
 
             {/* Tabs */}
             <div className="flex gap-2">
@@ -106,112 +154,158 @@ export default function ContentView() {
                 </button>
             </div>
 
-            {/* Terms Tab */}
+            {/* ===================== TERMS TAB ===================== */}
             {tab === 'terms' && (
                 <div className="space-y-4">
-                    <div className="flex justify-between items-center">
-                        <p className="text-white/50 text-sm">أقسام شروط الاستخدام التي تظهر للمستخدم</p>
+                    {/* Input Form */}
+                    <Card className="p-4 bg-cyan-500/5 border border-cyan-500/20 space-y-3">
+                        <h3 className="text-white font-bold text-sm">{editingTermIdx !== null ? '✏️ تعديل القسم' : '➕ إضافة قسم جديد'}</h3>
+                        <Input
+                            value={termForm.title}
+                            onChange={e => setTermForm(p => ({ ...p, title: e.target.value }))}
+                            placeholder="عنوان القسم"
+                            className="bg-black/30 border-white/10 text-white"
+                        />
+                        <textarea
+                            value={termForm.body}
+                            onChange={e => setTermForm(p => ({ ...p, body: e.target.value }))}
+                            placeholder="محتوى القسم..."
+                            className="w-full h-24 p-3 bg-black/30 border border-white/10 rounded-xl text-white text-sm outline-none focus:border-cyan-500/50 resize-none"
+                        />
                         <div className="flex gap-2">
-                            <Button onClick={addSection} size="sm" className="bg-cyan-600 hover:bg-cyan-700 text-white gap-1.5">
-                                <Plus className="w-3.5 h-3.5" /> إضافة قسم
-                            </Button>
-                            <Button onClick={saveTerms} disabled={saving} size="sm" className="bg-green-600 hover:bg-green-700 text-white gap-1.5">
-                                <Save className="w-3.5 h-3.5" /> حفظ
-                            </Button>
+                            {editingTermIdx !== null ? (
+                                <>
+                                    <Button onClick={saveEditTerm} disabled={saving} size="sm" className="bg-green-600 hover:bg-green-700 text-white gap-1.5">
+                                        <Check className="w-3.5 h-3.5" /> حفظ التعديل
+                                    </Button>
+                                    <Button onClick={cancelEditTerm} size="sm" variant="outline" className="border-white/20 text-white/60 gap-1.5">
+                                        <X className="w-3.5 h-3.5" /> إلغاء
+                                    </Button>
+                                </>
+                            ) : (
+                                <Button onClick={addTerm} disabled={saving || !termForm.title.trim()} size="sm" className="bg-cyan-600 hover:bg-cyan-700 text-white gap-1.5">
+                                    <Plus className="w-3.5 h-3.5" /> إضافة
+                                </Button>
+                            )}
                         </div>
-                    </div>
+                    </Card>
 
+                    {/* Saved Cards */}
                     {termsSections.map((section, i) => (
-                        <Card key={i} className="p-4 bg-white/5 border border-white/10 space-y-3">
-                            <div className="flex items-center justify-between">
-                                <span className="text-white/40 text-xs font-mono">القسم {i + 1}</span>
-                                {termsSections.length > 1 && (
-                                    <button onClick={() => removeSection(i)} className="text-red-400 hover:text-red-300 p-1">
-                                        <Trash2 className="w-4 h-4" />
+                        <Card key={i} className="p-4 bg-white/5 border border-white/10 hover:border-white/20 transition-all">
+                            <div className="flex items-start justify-between gap-3">
+                                <div className="flex-1">
+                                    <span className="text-white/30 text-[10px] font-mono">القسم {i + 1}</span>
+                                    <h4 className="text-white font-bold text-sm">{section.title}</h4>
+                                    <p className="text-white/50 text-xs mt-1 leading-relaxed">{section.body}</p>
+                                </div>
+                                <div className="flex gap-1 shrink-0">
+                                    <button onClick={() => startEditTerm(i)} className="text-cyan-400/60 hover:text-cyan-400 p-1.5 transition-colors">
+                                        <Pencil className="w-3.5 h-3.5" />
                                     </button>
-                                )}
+                                    <button onClick={() => removeTerm(i)} className="text-red-400/60 hover:text-red-400 p-1.5 transition-colors">
+                                        <Trash2 className="w-3.5 h-3.5" />
+                                    </button>
+                                </div>
                             </div>
-                            <Input
-                                value={section.title}
-                                onChange={e => updateSection(i, 'title', e.target.value)}
-                                placeholder="عنوان القسم"
-                                className="bg-black/30 border-white/10 text-white"
-                            />
-                            <textarea
-                                value={section.body}
-                                onChange={e => updateSection(i, 'body', e.target.value)}
-                                placeholder="محتوى القسم..."
-                                className="w-full h-24 p-3 bg-black/30 border border-white/10 rounded-xl text-white text-sm outline-none focus:border-cyan-500/50 resize-none"
-                            />
                         </Card>
                     ))}
+
+                    {termsSections.length === 0 && (
+                        <Card className="p-8 bg-white/5 border border-white/10 text-center">
+                            <p className="text-white/40 text-sm">لا توجد أقسام. أضف قسم جديد من الأعلى.</p>
+                        </Card>
+                    )}
                 </div>
             )}
 
-            {/* Updates Tab */}
+            {/* ===================== UPDATES TAB ===================== */}
             {tab === 'updates' && (
                 <div className="space-y-4">
-                    <div className="flex justify-between items-center">
-                        <p className="text-white/50 text-sm">قائمة التحديثات التي تظهر للمستخدم</p>
-                        <div className="flex gap-2">
-                            <Button onClick={addUpdate} size="sm" className="bg-purple-600 hover:bg-purple-700 text-white gap-1.5">
-                                <Plus className="w-3.5 h-3.5" /> إضافة تحديث
-                            </Button>
-                            <Button onClick={saveUpdates} disabled={saving} size="sm" className="bg-green-600 hover:bg-green-700 text-white gap-1.5">
-                                <Save className="w-3.5 h-3.5" /> حفظ
-                            </Button>
-                        </div>
-                    </div>
-
-                    {updates.map((update, i) => (
-                        <Card key={i} className="p-4 bg-white/5 border border-white/10 space-y-3">
-                            <div className="flex items-center justify-between">
-                                <span className="text-white/40 text-xs font-mono">{update.version || `تحديث ${i + 1}`}</span>
-                                <button onClick={() => removeUpdate(i)} className="text-red-400 hover:text-red-300 p-1">
-                                    <Trash2 className="w-4 h-4" />
-                                </button>
-                            </div>
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                                <Input
-                                    value={update.version}
-                                    onChange={e => updateEntry(i, 'version', e.target.value)}
-                                    placeholder="v2.6"
-                                    className="bg-black/30 border-white/10 text-white"
-                                />
-                                <Input
-                                    type="date"
-                                    value={update.date}
-                                    onChange={e => updateEntry(i, 'date', e.target.value)}
-                                    className="bg-black/30 border-white/10 text-white"
-                                />
-                                <select
-                                    value={update.type}
-                                    onChange={e => updateEntry(i, 'type', e.target.value)}
-                                    className="h-10 px-3 bg-black/30 border border-white/10 rounded-xl text-white text-sm outline-none"
-                                >
-                                    <option value="جديد">جديد</option>
-                                    <option value="تحسين">تحسين</option>
-                                    <option value="إصلاح">إصلاح</option>
-                                </select>
-                            </div>
+                    {/* Input Form */}
+                    <Card className="p-4 bg-purple-500/5 border border-purple-500/20 space-y-3">
+                        <h3 className="text-white font-bold text-sm">{editingUpdateIdx !== null ? '✏️ تعديل التحديث' : '➕ إضافة تحديث جديد'}</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                             <Input
-                                value={update.title}
-                                onChange={e => updateEntry(i, 'title', e.target.value)}
-                                placeholder="عنوان التحديث"
+                                value={updateForm.version}
+                                onChange={e => setUpdateForm(p => ({ ...p, version: e.target.value }))}
+                                placeholder="v2.6"
                                 className="bg-black/30 border-white/10 text-white"
                             />
-                            <textarea
-                                value={update.description}
-                                onChange={e => updateEntry(i, 'description', e.target.value)}
-                                placeholder="وصف التحديث..."
-                                className="w-full h-20 p-3 bg-black/30 border border-white/10 rounded-xl text-white text-sm outline-none focus:border-cyan-500/50 resize-none"
+                            <Input
+                                type="date"
+                                value={updateForm.date}
+                                onChange={e => setUpdateForm(p => ({ ...p, date: e.target.value }))}
+                                className="bg-black/30 border-white/10 text-white"
                             />
+                            <select
+                                value={updateForm.type}
+                                onChange={e => setUpdateForm(p => ({ ...p, type: e.target.value }))}
+                                className="h-10 px-3 bg-black/30 border border-white/10 rounded-xl text-white text-sm outline-none"
+                            >
+                                <option value="جديد">جديد</option>
+                                <option value="تحسين">تحسين</option>
+                                <option value="إصلاح">إصلاح</option>
+                            </select>
+                        </div>
+                        <Input
+                            value={updateForm.title}
+                            onChange={e => setUpdateForm(p => ({ ...p, title: e.target.value }))}
+                            placeholder="عنوان التحديث"
+                            className="bg-black/30 border-white/10 text-white"
+                        />
+                        <textarea
+                            value={updateForm.description}
+                            onChange={e => setUpdateForm(p => ({ ...p, description: e.target.value }))}
+                            placeholder="وصف التحديث..."
+                            className="w-full h-20 p-3 bg-black/30 border border-white/10 rounded-xl text-white text-sm outline-none focus:border-cyan-500/50 resize-none"
+                        />
+                        <div className="flex gap-2">
+                            {editingUpdateIdx !== null ? (
+                                <>
+                                    <Button onClick={saveEditUpdate} disabled={saving} size="sm" className="bg-green-600 hover:bg-green-700 text-white gap-1.5">
+                                        <Check className="w-3.5 h-3.5" /> حفظ التعديل
+                                    </Button>
+                                    <Button onClick={cancelEditUpdate} size="sm" variant="outline" className="border-white/20 text-white/60 gap-1.5">
+                                        <X className="w-3.5 h-3.5" /> إلغاء
+                                    </Button>
+                                </>
+                            ) : (
+                                <Button onClick={addUpdateEntry} disabled={saving || !updateForm.title.trim()} size="sm" className="bg-purple-600 hover:bg-purple-700 text-white gap-1.5">
+                                    <Plus className="w-3.5 h-3.5" /> إضافة
+                                </Button>
+                            )}
+                        </div>
+                    </Card>
+
+                    {/* Saved Cards */}
+                    {updates.map((update, i) => (
+                        <Card key={i} className="p-4 bg-white/5 border border-white/10 hover:border-white/20 transition-all">
+                            <div className="flex items-start justify-between gap-3">
+                                <div className="flex-1">
+                                    <div className="flex items-center gap-2 mb-1">
+                                        {update.version && <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">{update.version}</span>}
+                                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${update.type === 'جديد' ? 'bg-green-500/20 text-green-400 border-green-500/30' : update.type === 'إصلاح' ? 'bg-red-500/20 text-red-400 border-red-500/30' : 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30'}`}>{update.type}</span>
+                                        <span className="text-white/20 text-[10px] font-mono">{update.date}</span>
+                                    </div>
+                                    <h4 className="text-white font-bold text-sm">{update.title}</h4>
+                                    {update.description && <p className="text-white/50 text-xs mt-1 leading-relaxed">{update.description}</p>}
+                                </div>
+                                <div className="flex gap-1 shrink-0">
+                                    <button onClick={() => startEditUpdate(i)} className="text-purple-400/60 hover:text-purple-400 p-1.5 transition-colors">
+                                        <Pencil className="w-3.5 h-3.5" />
+                                    </button>
+                                    <button onClick={() => removeUpdate(i)} className="text-red-400/60 hover:text-red-400 p-1.5 transition-colors">
+                                        <Trash2 className="w-3.5 h-3.5" />
+                                    </button>
+                                </div>
+                            </div>
                         </Card>
                     ))}
 
                     {updates.length === 0 && (
                         <Card className="p-8 bg-white/5 border border-white/10 text-center">
-                            <p className="text-white/40">لا توجد تحديثات. اضغط "إضافة تحديث" لإنشاء أول تحديث.</p>
+                            <p className="text-white/40 text-sm">لا توجد تحديثات. أضف تحديث جديد من الأعلى.</p>
                         </Card>
                     )}
                 </div>

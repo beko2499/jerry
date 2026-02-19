@@ -130,6 +130,8 @@ router.post('/login', async (req, res) => {
         const isMatch = await user.comparePassword(password.trim());
         if (!isMatch) return res.status(401).json({ error: 'invalid_credentials' });
 
+        if (user.banned) return res.status(403).json({ error: 'banned' });
+
         if (!user.isVerified) {
             // Check if verification is disabled — auto-verify
             const Settings = require('../models/Settings');
@@ -188,4 +190,48 @@ router.get('/me/:id', async (req, res) => {
     }
 });
 
+// Update user (admin)
+router.put('/users/:id', async (req, res) => {
+    try {
+        const { firstName, lastName, phone, email, balance } = req.body;
+        const updates = {};
+        if (firstName !== undefined) updates.firstName = firstName;
+        if (lastName !== undefined) updates.lastName = lastName;
+        if (phone !== undefined) updates.phone = phone;
+        if (email !== undefined) updates.email = email;
+        if (balance !== undefined) updates.balance = parseFloat(balance);
+
+        const user = await User.findByIdAndUpdate(req.params.id, updates, { new: true }).select('-password -verificationCode');
+        if (!user) return res.status(404).json({ error: 'User not found' });
+        res.json(user);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Delete user (admin)
+router.delete('/users/:id', async (req, res) => {
+    try {
+        const user = await User.findByIdAndDelete(req.params.id);
+        if (!user) return res.status(404).json({ error: 'User not found' });
+        res.json({ message: 'User deleted' });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Ban/Unban user (admin)
+router.patch('/users/:id/ban', async (req, res) => {
+    try {
+        const user = await User.findById(req.params.id);
+        if (!user) return res.status(404).json({ error: 'User not found' });
+        user.banned = !user.banned;
+        await user.save();
+        res.json({ banned: user.banned });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 module.exports = router;
+

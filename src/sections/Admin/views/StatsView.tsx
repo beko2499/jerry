@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Users, ShoppingCart, DollarSign, Activity, ArrowLeft, Search, Mail, Phone, Calendar, Hash, CheckCircle, Clock, XCircle, CreditCard, Wallet } from 'lucide-react';
+import { Users, ShoppingCart, DollarSign, Activity, ArrowLeft, Search, Mail, Phone, Calendar, Hash, CheckCircle, Clock, XCircle, CreditCard, Wallet, X, Edit3, Trash2, Ban, ShieldCheck, Save } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
@@ -22,6 +23,12 @@ export default function StatsView() {
     const [users, setUsers] = useState<any[]>([]);
     const [orders, setOrders] = useState<any[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
+
+    // User modal state
+    const [selectedUser, setSelectedUser] = useState<any>(null);
+    const [isEditing, setIsEditing] = useState(false);
+    const [editForm, setEditForm] = useState({ firstName: '', lastName: '', phone: '', email: '', balance: '' });
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
     useEffect(() => {
         fetch(`${API_URL}/stats`).then(r => r.json()).then(setData).catch(console.error);
@@ -95,6 +102,63 @@ export default function StatsView() {
         return o.orderId?.toLowerCase().includes(q) || o.serviceName?.toLowerCase().includes(q);
     });
 
+    // ===== User Management Functions =====
+    const openUserModal = (user: any) => {
+        setSelectedUser(user);
+        setEditForm({
+            firstName: user.firstName || '', lastName: user.lastName || '',
+            phone: user.phone || '', email: user.email || '',
+            balance: user.balance?.toString() || '0',
+        });
+        setIsEditing(false);
+        setShowDeleteConfirm(false);
+    };
+
+    const closeUserModal = () => {
+        setSelectedUser(null);
+        setIsEditing(false);
+        setShowDeleteConfirm(false);
+    };
+
+    const handleSaveUser = async () => {
+        if (!selectedUser) return;
+        try {
+            const res = await fetch(`${API_URL}/auth/users/${selectedUser._id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(editForm),
+            });
+            if (res.ok) {
+                const updated = await res.json();
+                setUsers(prev => prev.map(u => u._id === updated._id ? updated : u));
+                setSelectedUser(updated);
+                setIsEditing(false);
+            }
+        } catch (err) { console.error(err); }
+    };
+
+    const handleDeleteUser = async () => {
+        if (!selectedUser) return;
+        try {
+            await fetch(`${API_URL}/auth/users/${selectedUser._id}`, { method: 'DELETE' });
+            setUsers(prev => prev.filter(u => u._id !== selectedUser._id));
+            closeUserModal();
+        } catch (err) { console.error(err); }
+    };
+
+    const handleToggleBan = async () => {
+        if (!selectedUser) return;
+        try {
+            const res = await fetch(`${API_URL}/auth/users/${selectedUser._id}/ban`, { method: 'PATCH' });
+            if (res.ok) {
+                const { banned } = await res.json();
+                const updated = { ...selectedUser, banned };
+                setSelectedUser(updated);
+                setUsers(prev => prev.map(u => u._id === updated._id ? updated : u));
+            }
+        } catch (err) { console.error(err); }
+    };
+
     // ===== DETAIL VIEWS =====
     if (detailView) {
         const currentStat = stats.find(s => s.key === detailView)!;
@@ -140,11 +204,21 @@ export default function StatsView() {
                                 <p>{t.noResults || 'لا توجد نتائج'}</p>
                             </div>
                         ) : filteredUsers.map(user => (
-                            <Card key={user._id} className="p-4 bg-white/5 border-white/10 hover:border-white/20 transition-all">
+                            <Card
+                                key={user._id}
+                                onClick={() => openUserModal(user)}
+                                className={`p-4 border cursor-pointer transition-all hover:scale-[1.01] active:scale-[0.99] ${user.banned
+                                        ? 'bg-red-500/5 border-red-500/20 hover:border-red-500/40'
+                                        : 'bg-white/5 border-white/10 hover:border-cyan-500/30'
+                                    }`}
+                            >
                                 <div className="flex items-center gap-4">
                                     {/* Avatar */}
-                                    <div className="w-11 h-11 rounded-full bg-gradient-to-br from-cyan-500/30 to-purple-500/30 border border-white/10 flex items-center justify-center text-white font-bold text-sm shrink-0">
-                                        {user.firstName?.charAt(0) || '?'}{user.lastName?.charAt(0) || ''}
+                                    <div className={`w-11 h-11 rounded-full border flex items-center justify-center text-white font-bold text-sm shrink-0 ${user.banned
+                                            ? 'bg-red-500/20 border-red-500/30'
+                                            : 'bg-gradient-to-br from-cyan-500/30 to-purple-500/30 border-white/10'
+                                        }`}>
+                                        {user.banned ? <Ban className="w-5 h-5 text-red-400" /> : <>{user.firstName?.charAt(0) || '?'}{user.lastName?.charAt(0) || ''}</>}
                                     </div>
 
                                     {/* Info */}
@@ -152,12 +226,15 @@ export default function StatsView() {
                                         <div className="flex items-center gap-2 flex-wrap">
                                             <span className="text-white font-medium text-sm">{user.firstName} {user.lastName}</span>
                                             <span className="text-cyan-400 font-mono text-xs bg-cyan-500/10 px-2 py-0.5 rounded-full">@{user.username}</span>
-                                            {user.isVerified && (
+                                            {user.banned && (
+                                                <span className="text-red-400 text-[10px] bg-red-500/10 px-1.5 py-0.5 rounded-full font-bold">🚫 محظور</span>
+                                            )}
+                                            {!user.banned && user.isVerified && (
                                                 <span className="text-green-400 text-[10px] bg-green-500/10 px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
                                                     <CheckCircle className="w-3 h-3" /> {t.verified || 'مؤكد'}
                                                 </span>
                                             )}
-                                            {!user.isVerified && (
+                                            {!user.banned && !user.isVerified && (
                                                 <span className="text-yellow-400 text-[10px] bg-yellow-500/10 px-1.5 py-0.5 rounded-full">
                                                     {t.unverified || 'غير مؤكد'}
                                                 </span>
@@ -181,6 +258,134 @@ export default function StatsView() {
                         <p className="text-center text-white/20 text-xs pt-2">
                             {filteredUsers.length} {t.totalUsers || 'مستخدم'}
                         </p>
+
+                        {/* ===== USER DETAIL MODAL ===== */}
+                        {selectedUser && (
+                            <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={closeUserModal}>
+                                <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
+                                <div
+                                    className="relative w-full max-w-lg bg-[#0d0d1a] border border-white/10 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200 max-h-[90vh] overflow-y-auto"
+                                    onClick={e => e.stopPropagation()}
+                                >
+                                    {/* Header */}
+                                    <div className={`p-5 border-b border-white/10 ${selectedUser.banned ? 'bg-red-500/10' : 'bg-gradient-to-r from-cyan-500/10 to-purple-500/10'}`}>
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-3">
+                                                <div className={`w-14 h-14 rounded-full border-2 flex items-center justify-center text-white font-bold text-lg ${selectedUser.banned ? 'bg-red-500/20 border-red-500/40' : 'bg-gradient-to-br from-cyan-500/30 to-purple-500/30 border-cyan-500/30'
+                                                    }`}>
+                                                    {selectedUser.banned ? <Ban className="w-7 h-7 text-red-400" /> : <>{selectedUser.firstName?.charAt(0)}{selectedUser.lastName?.charAt(0)}</>}
+                                                </div>
+                                                <div>
+                                                    <h3 className="text-white font-bold text-lg">{selectedUser.firstName} {selectedUser.lastName}</h3>
+                                                    <p className="text-cyan-400 font-mono text-sm">@{selectedUser.username}</p>
+                                                </div>
+                                            </div>
+                                            <button onClick={closeUserModal} className="p-2 rounded-xl hover:bg-white/10 transition-colors">
+                                                <X className="w-5 h-5 text-white/50" />
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {/* Content */}
+                                    <div className="p-5 space-y-4">
+                                        {/* Status Badges */}
+                                        <div className="flex flex-wrap gap-2">
+                                            {selectedUser.banned && <span className="px-3 py-1 rounded-full text-xs font-bold bg-red-500/20 text-red-400 border border-red-500/30">🚫 محظور</span>}
+                                            {selectedUser.isVerified
+                                                ? <span className="px-3 py-1 rounded-full text-xs font-bold bg-green-500/20 text-green-400 border border-green-500/30 flex items-center gap-1"><ShieldCheck className="w-3 h-3" /> مؤكد</span>
+                                                : <span className="px-3 py-1 rounded-full text-xs font-bold bg-yellow-500/20 text-yellow-400 border border-yellow-500/30">غير مؤكد</span>
+                                            }
+                                            <span className="px-3 py-1 rounded-full text-xs font-bold bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">{selectedUser.role}</span>
+                                        </div>
+
+                                        {/* Info Fields */}
+                                        {isEditing ? (
+                                            <div className="space-y-3">
+                                                <div className="grid grid-cols-2 gap-3">
+                                                    <div>
+                                                        <label className="text-white/50 text-xs mb-1 block">الاسم الأول</label>
+                                                        <Input value={editForm.firstName} onChange={e => setEditForm(p => ({ ...p, firstName: e.target.value }))} className="bg-black/40 border-white/10 text-white h-10" />
+                                                    </div>
+                                                    <div>
+                                                        <label className="text-white/50 text-xs mb-1 block">الاسم الأخير</label>
+                                                        <Input value={editForm.lastName} onChange={e => setEditForm(p => ({ ...p, lastName: e.target.value }))} className="bg-black/40 border-white/10 text-white h-10" />
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <label className="text-white/50 text-xs mb-1 block">البريد الإلكتروني</label>
+                                                    <Input value={editForm.email} onChange={e => setEditForm(p => ({ ...p, email: e.target.value }))} className="bg-black/40 border-white/10 text-white h-10" dir="ltr" />
+                                                </div>
+                                                <div>
+                                                    <label className="text-white/50 text-xs mb-1 block">رقم الهاتف</label>
+                                                    <Input value={editForm.phone} onChange={e => setEditForm(p => ({ ...p, phone: e.target.value }))} className="bg-black/40 border-white/10 text-white h-10" dir="ltr" />
+                                                </div>
+                                                <div>
+                                                    <label className="text-white/50 text-xs mb-1 block">الرصيد ($)</label>
+                                                    <Input type="number" step="0.01" value={editForm.balance} onChange={e => setEditForm(p => ({ ...p, balance: e.target.value }))} className="bg-black/40 border-white/10 text-white h-10" dir="ltr" />
+                                                </div>
+                                                <div className="flex gap-2">
+                                                    <Button onClick={handleSaveUser} className="flex-1 bg-green-600 hover:bg-green-700 text-white gap-2">
+                                                        <Save className="w-4 h-4" /> حفظ
+                                                    </Button>
+                                                    <Button onClick={() => setIsEditing(false)} variant="ghost" className="flex-1 text-white/60 hover:bg-white/5">
+                                                        إلغاء
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <div className="space-y-3">
+                                                {[
+                                                    { icon: <Mail className="w-4 h-4 text-cyan-400" />, label: 'البريد', value: selectedUser.email },
+                                                    { icon: <Phone className="w-4 h-4 text-green-400" />, label: 'الهاتف', value: selectedUser.phone || '—' },
+                                                    { icon: <DollarSign className="w-4 h-4 text-yellow-400" />, label: 'الرصيد', value: `$${selectedUser.balance?.toFixed(2) || '0.00'}` },
+                                                    { icon: <Calendar className="w-4 h-4 text-purple-400" />, label: 'تاريخ التسجيل', value: new Date(selectedUser.createdAt).toLocaleDateString('ar-IQ', { year: 'numeric', month: 'long', day: 'numeric' }) },
+                                                    { icon: <Clock className="w-4 h-4 text-blue-400" />, label: 'آخر تحديث', value: new Date(selectedUser.updatedAt).toLocaleDateString('ar-IQ', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' }) },
+                                                ].map((item, i) => (
+                                                    <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/5">
+                                                        {item.icon}
+                                                        <span className="text-white/40 text-xs w-24 shrink-0">{item.label}</span>
+                                                        <span className="text-white text-sm font-medium" dir="ltr">{item.value}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+
+                                        {/* Delete Confirmation */}
+                                        {showDeleteConfirm && (
+                                            <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/30 space-y-3">
+                                                <p className="text-red-400 text-sm font-bold">⚠️ هل أنت متأكد من حذف هذا المستخدم نهائياً؟</p>
+                                                <p className="text-white/40 text-xs">سيتم حذف جميع بيانات المستخدم ولا يمكن التراجع.</p>
+                                                <div className="flex gap-2">
+                                                    <Button onClick={handleDeleteUser} className="flex-1 bg-red-600 hover:bg-red-700 text-white gap-2">
+                                                        <Trash2 className="w-4 h-4" /> نعم، احذف
+                                                    </Button>
+                                                    <Button onClick={() => setShowDeleteConfirm(false)} variant="ghost" className="flex-1 text-white/60 hover:bg-white/5">
+                                                        إلغاء
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Action Buttons */}
+                                        {!isEditing && !showDeleteConfirm && (
+                                            <div className="grid grid-cols-3 gap-2 pt-2">
+                                                <Button onClick={() => setIsEditing(true)} className="bg-cyan-600 hover:bg-cyan-700 text-white gap-1.5 text-xs h-10">
+                                                    <Edit3 className="w-3.5 h-3.5" /> تعديل
+                                                </Button>
+                                                <Button onClick={handleToggleBan} className={`gap-1.5 text-xs h-10 ${selectedUser.banned ? 'bg-green-600 hover:bg-green-700' : 'bg-orange-600 hover:bg-orange-700'
+                                                    } text-white`}>
+                                                    {selectedUser.banned ? <ShieldCheck className="w-3.5 h-3.5" /> : <Ban className="w-3.5 h-3.5" />}
+                                                    {selectedUser.banned ? 'رفع الحظر' : 'حظر'}
+                                                </Button>
+                                                <Button onClick={() => setShowDeleteConfirm(true)} className="bg-red-600 hover:bg-red-700 text-white gap-1.5 text-xs h-10">
+                                                    <Trash2 className="w-3.5 h-3.5" /> حذف
+                                                </Button>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 )}
 

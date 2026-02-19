@@ -10,6 +10,7 @@ const userSchema = new mongoose.Schema({
     password: { type: String, required: true },
     balance: { type: Number, default: 0 },
     role: { type: String, enum: ['user', 'admin'], default: 'user' },
+    banned: { type: Boolean, default: false },
     isVerified: { type: Boolean, default: false },
     verificationCode: { type: String, default: null },
     verificationCodeExpires: { type: Date, default: null },

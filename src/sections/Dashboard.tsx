@@ -1358,28 +1358,80 @@ function AddFundsView() {
 
 // Support View Component
 function SupportView() {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
+  const [config, setConfig] = useState<{ whatsapp?: string; telegram?: string; email?: string; supportMessage?: string }>({});
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch(`${API_URL}/settings/support`)
+      .then(r => r.json())
+      .then(data => { if (data) setConfig(data); })
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, []);
+
   return (
-    <div className="p-8">
-      <h2 className="font-space text-2xl text-white mb-6 tracking-wide drop-shadow-md">{t.support}</h2>
-      <Card className="p-8 bg-white/5 border-white/10 max-w-2xl backdrop-blur-sm">
-        <div className="space-y-6">
-          <div>
-            <label className="block font-body text-white/80 mb-2">{t.subject}</label>
-            <Input className="bg-white/5 border-white/10 text-white focus:border-cyan-500/50" placeholder={t.ticketSubject} />
-          </div>
-          <div>
-            <label className="block font-body text-white/80 mb-2">{t.message}</label>
-            <textarea
-              className="w-full h-32 px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-white/40 focus:border-cyan-500/50 focus:outline-none resize-none transition-colors"
-              placeholder={t.writeMessage}
-            />
-          </div>
-          <Button className="bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700 text-white shadow-lg shadow-cyan-500/20">
-            {t.sendTicket}
-          </Button>
-        </div>
-      </Card>
+    <div className="p-4 md:p-8 space-y-6 max-w-2xl">
+      <h2 className="font-space text-2xl md:text-3xl text-white tracking-wide">{t.support}</h2>
+
+      {config.supportMessage && (
+        <Card className="p-5 bg-white/5 border-white/10 backdrop-blur-sm">
+          <p className="text-white/70 text-sm font-body leading-relaxed">{config.supportMessage}</p>
+        </Card>
+      )}
+
+      <div className="space-y-3">
+        {config.whatsapp && (
+          <button
+            onClick={() => window.open(`https://wa.me/${config.whatsapp.replace(/[^0-9]/g, '')}`, '_blank')}
+            className="w-full flex items-center gap-4 p-4 rounded-2xl bg-green-500/10 border border-green-500/30 hover:bg-green-500/20 transition-all group"
+          >
+            <div className="w-12 h-12 rounded-xl bg-green-500/20 flex items-center justify-center">
+              <svg viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6 text-green-400"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" /><path d="M12 2C6.477 2 2 6.477 2 12c0 1.89.525 3.66 1.438 5.168L2 22l4.832-1.438A9.955 9.955 0 0012 22c5.523 0 10-4.477 10-10S17.523 2 12 2zm0 18c-1.66 0-3.203-.51-4.484-1.375l-.32-.191-2.872.855.855-2.872-.191-.32A7.963 7.963 0 014 12c0-4.411 3.589-8 8-8s8 3.589 8 8-3.589 8-8 8z" /></svg>
+            </div>
+            <div className="flex-1 text-start">
+              <p className="text-white font-bold text-sm">{lang === 'ar' ? 'واتساب' : 'WhatsApp'}</p>
+              <p className="text-white/40 text-xs" dir="ltr">{config.whatsapp}</p>
+            </div>
+          </button>
+        )}
+
+        {config.telegram && (
+          <button
+            onClick={() => window.open(`https://t.me/${config.telegram.replace('@', '')}`, '_blank')}
+            className="w-full flex items-center gap-4 p-4 rounded-2xl bg-blue-500/10 border border-blue-500/30 hover:bg-blue-500/20 transition-all group"
+          >
+            <div className="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center">
+              <svg viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6 text-blue-400"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .24z" /></svg>
+            </div>
+            <div className="flex-1 text-start">
+              <p className="text-white font-bold text-sm">{lang === 'ar' ? 'تلجرام' : 'Telegram'}</p>
+              <p className="text-white/40 text-xs">{config.telegram}</p>
+            </div>
+          </button>
+        )}
+
+        {config.email && (
+          <button
+            onClick={() => window.open(`mailto:${config.email}`, '_blank')}
+            className="w-full flex items-center gap-4 p-4 rounded-2xl bg-purple-500/10 border border-purple-500/30 hover:bg-purple-500/20 transition-all group"
+          >
+            <div className="w-12 h-12 rounded-xl bg-purple-500/20 flex items-center justify-center">
+              <span className="text-2xl">📧</span>
+            </div>
+            <div className="flex-1 text-start">
+              <p className="text-white font-bold text-sm">{lang === 'ar' ? 'البريد الإلكتروني' : 'Email'}</p>
+              <p className="text-white/40 text-xs">{config.email}</p>
+            </div>
+          </button>
+        )}
+
+        {!loading && !config.whatsapp && !config.telegram && !config.email && (
+          <Card className="p-6 bg-white/5 border-white/10 text-center">
+            <p className="text-white/40 text-sm">{lang === 'ar' ? 'لا توجد وسائل اتصال متاحة حالياً' : 'No contact channels available'}</p>
+          </Card>
+        )}
+      </div>
     </div>
   );
 }
@@ -1387,25 +1439,35 @@ function SupportView() {
 // Terms of Use View
 function TermsView() {
   const { t } = useLanguage();
+  const [sections, setSections] = useState<{ title: string; body: string }[]>([]);
+
+  useEffect(() => {
+    fetch(`${API_URL}/settings/terms`)
+      .then(r => r.json())
+      .then(data => {
+        if (data && Array.isArray(data) && data.length > 0) setSections(data);
+        else setSections([
+          { title: '1. القبول بالشروط', body: 'باستخدامك لمنصة Jerry، فإنك توافق على جميع الشروط والأحكام المذكورة أدناه. يرجى قراءتها بعناية قبل استخدام أي خدمة.' },
+          { title: '2. الخدمات المقدمة', body: 'نقدم خدمات التسويق الرقمي بما في ذلك زيادة المتابعين والمشاهدات واللايكات عبر منصات التواصل الاجتماعي المختلفة.' },
+          { title: '3. سياسة الاسترداد', body: 'لا يمكن استرداد المبالغ بعد بدء تنفيذ الطلب. في حالة عدم اكتمال الطلب، سيتم إرجاع الرصيد المتبقي إلى حسابك.' },
+          { title: '4. المسؤولية', body: 'لا تتحمل المنصة أي مسؤولية عن أي إجراءات تتخذها منصات التواصل الاجتماعي تجاه حساباتك نتيجة استخدام خدماتنا.' },
+          { title: '5. الخصوصية', body: 'نحترم خصوصيتك ولا نشارك بياناتك الشخصية مع أي طرف ثالث. يتم استخدام بياناتك فقط لتقديم الخدمات المطلوبة.' },
+        ]);
+      })
+      .catch(console.error);
+  }, []);
+
   return (
     <div className="p-4 md:p-8 space-y-4 max-w-3xl">
       <h2 className="font-space text-2xl md:text-3xl text-white tracking-wide">{t.termsOfService}</h2>
       <Card className="p-5 md:p-8 bg-white/5 border-white/10 backdrop-blur-sm space-y-4">
         <div className="space-y-3 text-white/70 text-sm leading-relaxed font-body">
-          <h3 className="text-white font-bold text-base">1. القبول بالشروط</h3>
-          <p>باستخدامك لمنصة Jerry، فإنك توافق على جميع الشروط والأحكام المذكورة أدناه. يرجى قراءتها بعناية قبل استخدام أي خدمة.</p>
-
-          <h3 className="text-white font-bold text-base">2. الخدمات المقدمة</h3>
-          <p>نقدم خدمات التسويق الرقمي بما في ذلك زيادة المتابعين والمشاهدات واللايكات عبر منصات التواصل الاجتماعي المختلفة.</p>
-
-          <h3 className="text-white font-bold text-base">3. سياسة الاسترداد</h3>
-          <p>لا يمكن استرداد المبالغ بعد بدء تنفيذ الطلب. في حالة عدم اكتمال الطلب، سيتم إرجاع الرصيد المتبقي إلى حسابك.</p>
-
-          <h3 className="text-white font-bold text-base">4. المسؤولية</h3>
-          <p>لا تتحمل المنصة أي مسؤولية عن أي إجراءات تتخذها منصات التواصل الاجتماعي تجاه حساباتك نتيجة استخدام خدماتنا.</p>
-
-          <h3 className="text-white font-bold text-base">5. الخصوصية</h3>
-          <p>نحترم خصوصيتك ولا نشارك بياناتك الشخصية مع أي طرف ثالث. يتم استخدام بياناتك فقط لتقديم الخدمات المطلوبة.</p>
+          {sections.map((s, i) => (
+            <div key={i}>
+              <h3 className="text-white font-bold text-base">{s.title}</h3>
+              <p>{s.body}</p>
+            </div>
+          ))}
         </div>
       </Card>
     </div>
@@ -1415,12 +1477,21 @@ function TermsView() {
 // Updates View
 function UpdatesView() {
   const { t } = useLanguage();
-  const updates = [
-    { version: 'v2.5', date: '2025-02-15', title: 'تحسينات واجهة المستخدم', description: 'تحسين التصميم العام وإضافة قائمة جانبية جديدة للموبايل مع تحسين سرعة التطبيق.', type: 'تحسين' },
-    { version: 'v2.4', date: '2025-02-10', title: 'إضافة خدمات تليجرام', description: 'تمت إضافة خدمات جديدة لتليجرام تشمل الأعضاء والمشاهدات بضمانات متعددة.', type: 'جديد' },
-    { version: 'v2.3', date: '2025-02-01', title: 'نظام البحث الذكي', description: 'إضافة خاصية البحث عن الخدمات والأقسام بالاسم من الشريط السفلي.', type: 'جديد' },
-    { version: 'v2.2', date: '2025-01-25', title: 'دعم اللغة الكردية', description: 'إضافة دعم كامل للغة الكردية مع تحسينات على اللغة العربية والإنجليزية.', type: 'جديد' },
-  ];
+  const [updates, setUpdates] = useState<{ version: string; date: string; title: string; description: string; type: string }[]>([]);
+
+  useEffect(() => {
+    fetch(`${API_URL}/settings/updates`)
+      .then(r => r.json())
+      .then(data => {
+        if (data && Array.isArray(data) && data.length > 0) setUpdates(data);
+        else setUpdates([
+          { version: 'v2.5', date: '2025-02-15', title: 'تحسينات واجهة المستخدم', description: 'تحسين التصميم العام وإضافة قائمة جانبية جديدة للموبايل مع تحسين سرعة التطبيق.', type: 'تحسين' },
+          { version: 'v2.4', date: '2025-02-10', title: 'إضافة خدمات تليجرام', description: 'تمت إضافة خدمات جديدة لتليجرام تشمل الأعضاء والمشاهدات بضمانات متعددة.', type: 'جديد' },
+          { version: 'v2.3', date: '2025-02-01', title: 'نظام البحث الذكي', description: 'إضافة خاصية البحث عن الخدمات والأقسام بالاسم من الشريط السفلي.', type: 'جديد' },
+        ]);
+      })
+      .catch(console.error);
+  }, []);
 
   return (
     <div className="p-4 md:p-8 space-y-4 max-w-3xl">
@@ -1434,7 +1505,7 @@ function UpdatesView() {
                 <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">
                   {update.version}
                 </span>
-                <span className={`px-2 py-0.5 rounded-full text-xs font-medium border ${update.type === 'جديد' ? 'bg-green-500/20 text-green-400 border-green-500/30' : 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30'}`}>
+                <span className={`px-2 py-0.5 rounded-full text-xs font-medium border ${update.type === 'جديد' ? 'bg-green-500/20 text-green-400 border-green-500/30' : update.type === 'إصلاح' ? 'bg-red-500/20 text-red-400 border-red-500/30' : 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30'}`}>
                   {update.type}
                 </span>
               </div>

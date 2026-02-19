@@ -1,10 +1,12 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Search, Bell, Plus, LogOut, Menu, X, Wallet, MessageCircle, FileText, Megaphone, Globe, ShoppingBag, ClipboardList } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 interface HeaderProps {
   onAddFundsClick?: () => void;
@@ -17,6 +19,21 @@ export default function Header({ onAddFundsClick, onNavigate, showMobileMenu, se
   const { user, logout } = useAuth();
   const { t, isRTL, lang, toggleLanguage } = useLanguage();
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [notifications, setNotifications] = useState<{ _id: string; title: string; body: string; sentAt: string }[]>([]);
+  const [lastSeenCount, setLastSeenCount] = useState(0);
+
+  useEffect(() => {
+    const fetchNotifs = () => {
+      fetch(`${API_URL}/notifications/user`)
+        .then(r => r.json())
+        .then(data => { if (Array.isArray(data)) setNotifications(data); })
+        .catch(console.error);
+    };
+    fetchNotifs();
+    const interval = setInterval(fetchNotifs, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   const initials = user
     ? `${user.firstName.charAt(0)}${user.lastName.charAt(0)}`
@@ -75,14 +92,47 @@ export default function Header({ onAddFundsClick, onNavigate, showMobileMenu, se
           </Button>
 
           {/* Notifications */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="relative w-9 h-9 md:w-11 md:h-11 rounded-lg md:rounded-xl bg-white/5 hover:bg-white/10 text-white/70 hover:text-white transition-all"
-          >
-            <Bell className="w-4 h-4 md:w-5 md:h-5" />
-            <span className="absolute top-1.5 right-1.5 md:top-2 md:right-2 w-2 h-2 bg-red-500 rounded-full animate-pulse shadow-[0_0_5px_rgba(239,68,68,0.8)]"></span>
-          </Button>
+          <div className="relative">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => { setShowNotifications(!showNotifications); setLastSeenCount(notifications.length); }}
+              className="relative w-9 h-9 md:w-11 md:h-11 rounded-lg md:rounded-xl bg-white/5 hover:bg-white/10 text-white/70 hover:text-white transition-all"
+            >
+              <Bell className="w-4 h-4 md:w-5 md:h-5" />
+              {notifications.length > lastSeenCount && (
+                <span className="absolute top-1.5 right-1.5 md:top-2 md:right-2 w-2 h-2 bg-red-500 rounded-full animate-pulse shadow-[0_0_5px_rgba(239,68,68,0.8)]"></span>
+              )}
+            </Button>
+
+            {showNotifications && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setShowNotifications(false)} />
+                <div className={`absolute top-full mt-2 z-50 w-80 max-h-96 bg-[#1a1a2e] border border-white/10 rounded-xl shadow-2xl shadow-black/50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 ${isRTL ? 'left-0' : 'right-0'}`}>
+                  <div className="p-3 border-b border-white/10">
+                    <h3 className="text-white font-bold text-sm flex items-center gap-2">
+                      <Bell className="w-4 h-4 text-cyan-400" />
+                      {lang === 'ar' ? 'الإشعارات' : 'Notifications'}
+                      {notifications.length > 0 && <span className="text-[10px] bg-cyan-500/20 text-cyan-400 px-1.5 py-0.5 rounded-full">{notifications.length}</span>}
+                    </h3>
+                  </div>
+                  <div className="overflow-y-auto max-h-80 custom-scrollbar">
+                    {notifications.length > 0 ? notifications.slice(0, 20).map(n => (
+                      <div key={n._id} className="p-3 border-b border-white/5 hover:bg-white/5 transition-colors">
+                        <p className="text-white text-xs font-bold">{n.title}</p>
+                        <p className="text-white/40 text-[11px] mt-0.5 line-clamp-2">{n.body}</p>
+                        <p className="text-white/20 text-[10px] mt-1">{new Date(n.sentAt).toLocaleDateString('ar-IQ', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
+                      </div>
+                    )) : (
+                      <div className="p-6 text-center">
+                        <p className="text-white/30 text-xs">{lang === 'ar' ? 'لا توجد إشعارات' : 'No notifications'}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
 
           {/* Desktop: User Avatar + Dropdown */}
           <div className="relative hidden md:block">

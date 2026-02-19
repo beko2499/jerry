@@ -26,6 +26,7 @@ app.use('/api/upload', require('./routes/upload'));
 app.use('/api/coupons', require('./routes/coupons'));
 app.use('/api/nowpayments', require('./routes/nowpayments'));
 app.use('/api/asiacell', require('./routes/asiacell'));
+app.use('/api/notifications', require('./routes/notifications'));
 
 // Health check
 app.get('/api/health', (req, res) => res.json({ status: 'ok', time: new Date() }));
@@ -93,6 +94,22 @@ mongoose.connect(MONGO_URI)
                 console.error('[Auto-Sync] Error:', err.message);
             }
         }, 2 * 60 * 1000); // Every 2 minutes
+
+        // Scheduled notifications sender — every 60 seconds
+        const Notification = require('./models/Notification');
+        setInterval(async () => {
+            try {
+                const due = await Notification.find({ status: 'pending', type: 'scheduled', scheduledAt: { $lte: new Date() } });
+                for (const n of due) {
+                    n.status = 'sent';
+                    n.sentAt = new Date();
+                    await n.save();
+                }
+                if (due.length > 0) console.log(`[Notifications] Sent ${due.length} scheduled notification(s)`);
+            } catch (err) {
+                console.error('[Notifications] Error:', err.message);
+            }
+        }, 60 * 1000); // Every 1 minute
     })
     .catch(err => {
         console.error('❌ MongoDB connection error:', err.message);

@@ -8,6 +8,8 @@ import ProvidersView from './views/ProvidersView';
 import ServicesView from './views/ServicesView';
 import SupportView from './views/SupportView';
 import CouponsView from './views/CouponsView';
+import ContentView from './views/ContentView';
+import NotificationsView from './views/NotificationsView';
 
 interface AdminDashboardProps {
     onLogout: () => void;
@@ -31,6 +33,10 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
                 return <SupportView />;
             case 'coupons':
                 return <CouponsView />;
+            case 'content':
+                return <ContentView />;
+            case 'notifications':
+                return <NotificationsView />;
             default:
                 return <StatsView />;
         }

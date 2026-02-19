@@ -9,7 +9,9 @@ import {
     ChevronLeft,
     ChevronRight,
     ShieldAlert,
-    Ticket
+    Ticket,
+    FileText,
+    Bell
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -32,6 +34,8 @@ export default function AdminSidebar({ activeItem, onItemClick, onLogout, hideBo
         { id: 'providers', label: t.providers, icon: Users, color: 'text-pink-400' },
         { id: 'services', label: t.adminServices, icon: Layers, color: 'text-yellow-400' },
         { id: 'coupons', label: t.coupons || 'Coupons', icon: Ticket, color: 'text-amber-400' },
+        { id: 'content', label: 'المحتوى', icon: FileText, color: 'text-orange-400' },
+        { id: 'notifications', label: 'الإشعارات', icon: Bell, color: 'text-red-400' },
         { id: 'support', label: t.adminSupport, icon: MessageCircle, color: 'text-green-400' },
     ];
 

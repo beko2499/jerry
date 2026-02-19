@@ -1,19 +1,56 @@
 const nodemailer = require('nodemailer');
+const Settings = require('../models/Settings');
 
-const transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com',
-  port: 587,
-  secure: false,
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-  tls: {
-    rejectUnauthorized: false
+let cachedTransporter = null;
+let cachedConfig = null;
+
+async function getTransporter() {
+  try {
+    const setting = await Settings.findOne({ key: 'email' });
+    const dbConfig = setting ? setting.value : null;
+
+    if (dbConfig && dbConfig.gmailUser && dbConfig.gmailPass) {
+      // Check if config changed
+      const configKey = `${dbConfig.gmailUser}:${dbConfig.gmailPass}`;
+      if (cachedConfig !== configKey) {
+        cachedTransporter = nodemailer.createTransport({
+          host: 'smtp.gmail.com',
+          port: 587,
+          secure: false,
+          auth: {
+            user: dbConfig.gmailUser,
+            pass: dbConfig.gmailPass,
+          },
+          tls: { rejectUnauthorized: false }
+        });
+        cachedConfig = configKey;
+      }
+      return { transporter: cachedTransporter, fromName: dbConfig.senderName || 'Jerry Store', fromEmail: dbConfig.gmailUser };
+    }
+  } catch (err) {
+    console.error('Failed to load email config from DB:', err.message);
   }
-});
+
+  // Fallback to env vars
+  if (!cachedTransporter || !cachedConfig) {
+    cachedTransporter = nodemailer.createTransport({
+      host: 'smtp.gmail.com',
+      port: 587,
+      secure: false,
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+      tls: { rejectUnauthorized: false }
+    });
+    cachedConfig = 'env';
+  }
+  return { transporter: cachedTransporter, fromName: 'JerryFollow', fromEmail: process.env.EMAIL_FROM || process.env.EMAIL_USER };
+}
 
 async function sendVerificationEmail(to, code) {
+  const { transporter, fromName, fromEmail } = await getTransporter();
+
   const html = `
     <div dir="rtl" style="font-family: 'Segoe UI', Tahoma, sans-serif; max-width: 480px; margin: 0 auto; background: linear-gradient(135deg, #0a0a1a 0%, #1a1a3e 100%); border-radius: 16px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1);">
       <div style="padding: 40px 30px; text-align: center;">
@@ -41,7 +78,7 @@ async function sendVerificationEmail(to, code) {
   `;
 
   await transporter.sendMail({
-    from: `"JerryFollow" <${process.env.EMAIL_FROM || process.env.EMAIL_USER}>`,
+    from: `"${fromName}" <${fromEmail}>`,
     to,
     subject: '🔐 كود التأكيد — متجر جيري',
     html,

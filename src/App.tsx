@@ -11,9 +11,28 @@ function AppContent() {
   const [showDashboard, setShowDashboard] = useState(false);
   const { isAuthenticated } = useAuth();
 
-  // Admin State
+  // Admin State — persist with 24h expiry
   const [isAdminMode, setIsAdminMode] = useState(false);
-  const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
+  const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(() => {
+    const session = localStorage.getItem('adminSession');
+    if (session) {
+      const { timestamp } = JSON.parse(session);
+      const hoursElapsed = (Date.now() - timestamp) / (1000 * 60 * 60);
+      if (hoursElapsed < 24) return true;
+      localStorage.removeItem('adminSession');
+    }
+    return false;
+  });
+
+  const handleAdminLogin = () => {
+    localStorage.setItem('adminSession', JSON.stringify({ timestamp: Date.now() }));
+    setIsAdminLoggedIn(true);
+  };
+
+  const handleAdminLogout = () => {
+    localStorage.removeItem('adminSession');
+    setIsAdminLoggedIn(false);
+  };
 
   useEffect(() => {
     // Simple URL check for admin route
@@ -40,9 +59,9 @@ function AppContent() {
   // Admin Routing Flow
   if (isAdminMode) {
     if (isAdminLoggedIn) {
-      return <AdminDashboard onLogout={() => setIsAdminLoggedIn(false)} />;
+      return <AdminDashboard onLogout={handleAdminLogout} />;
     }
-    return <AdminLogin onLogin={() => setIsAdminLoggedIn(true)} />;
+    return <AdminLogin onLogin={handleAdminLogin} />;
   }
 
   // User Routing Flow

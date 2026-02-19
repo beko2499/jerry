@@ -269,43 +269,45 @@ export default function ProvidersView() {
 
             {/* Import Services Modal */}
             {importingProviderId && (
-                <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => { setImportingProviderId(null); setSmmServices([]); }}>
-                    <div className="bg-[#0d1117] border border-white/10 rounded-2xl w-full max-w-4xl max-h-[85vh] flex flex-col" onClick={e => e.stopPropagation()}>
+                <div className="fixed inset-0 z-[60] bg-black/80 backdrop-blur-sm flex items-end md:items-center justify-center md:p-4" onClick={() => { setImportingProviderId(null); setSmmServices([]); }}>
+                    <div className="bg-[#0d1117] border-t md:border border-white/10 md:rounded-2xl w-full md:max-w-4xl h-[100dvh] md:h-auto md:max-h-[90vh] flex flex-col" onClick={e => e.stopPropagation()}>
                         {/* Header */}
-                        <div className="p-4 md:p-6 border-b border-white/10 flex-shrink-0">
-                            <div className="flex items-center justify-between mb-4">
-                                <h3 className="text-white font-bold text-lg">{lang === 'ar' ? '📦 استيراد الخدمات من المزود' : '📦 Import Services from Provider'}</h3>
+                        <div className="p-3 md:p-6 border-b border-white/10 flex-shrink-0">
+                            <div className="flex items-center justify-between mb-3">
+                                <h3 className="text-white font-bold text-base md:text-lg">{lang === 'ar' ? '📦 استيراد الخدمات من المزود' : '📦 Import Services from Provider'}</h3>
                                 <Button variant="ghost" size="sm" onClick={() => { setImportingProviderId(null); setSmmServices([]); }} className="text-white/40 hover:text-white">
                                     <X className="w-5 h-5" />
                                 </Button>
                             </div>
 
                             {smmServices.length > 0 && (
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                                    {/* Search */}
-                                    <div className="relative">
-                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
-                                        <Input value={searchFilter} onChange={e => setSearchFilter(e.target.value)}
-                                            placeholder={lang === 'ar' ? 'بحث...' : 'Search...'}
-                                            className="bg-black/30 border-white/10 text-white pl-9 text-sm" dir="ltr" />
-                                    </div>
-                                    {/* Category filter */}
-                                    <select value={categoryFilter} onChange={e => setCategoryFilter(e.target.value)}
-                                        className="bg-black/30 border border-white/10 text-white rounded-lg px-3 py-2 text-sm">
-                                        <option value="">{lang === 'ar' ? 'كل الأقسام' : 'All Categories'}</option>
-                                        {smmCategories.map(c => <option key={c} value={c}>{c}</option>)}
-                                    </select>
-                                    {/* Stats */}
-                                    <div className="flex items-center gap-3 text-sm">
-                                        <span className="text-white/50">{filteredServices.length} / {smmServices.length}</span>
-                                        <span className="text-cyan-400 font-bold">{selectedServices.size} {lang === 'ar' ? 'محدد' : 'selected'}</span>
+                                <div className="space-y-2">
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                                        {/* Search */}
+                                        <div className="relative">
+                                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
+                                            <Input value={searchFilter} onChange={e => setSearchFilter(e.target.value)}
+                                                placeholder={lang === 'ar' ? 'بحث بالاسم أو الرقم...' : 'Search by name or ID...'}
+                                                className="bg-black/30 border-white/10 text-white pl-9 text-sm h-10" dir="ltr" />
+                                        </div>
+                                        {/* Category filter */}
+                                        <select value={categoryFilter} onChange={e => setCategoryFilter(e.target.value)}
+                                            className="bg-black/30 border border-white/10 text-white rounded-lg px-3 h-10 text-sm w-full">
+                                            <option value="">{lang === 'ar' ? 'كل الأقسام' : 'All Categories'}</option>
+                                            {smmCategories.map(c => <option key={c} value={c}>{c}</option>)}
+                                        </select>
+                                        {/* Stats */}
+                                        <div className="flex items-center gap-3 text-sm justify-between md:justify-start">
+                                            <span className="text-white/50">{filteredServices.length} / {smmServices.length}</span>
+                                            <span className="text-cyan-400 font-bold">{selectedServices.size} {lang === 'ar' ? 'محدد' : 'selected'}</span>
+                                        </div>
                                     </div>
                                 </div>
                             )}
                         </div>
 
                         {/* Services list */}
-                        <div className="flex-1 overflow-y-auto p-4 md:p-6">
+                        <div className="flex-1 overflow-y-auto p-2 md:p-6 overscroll-contain">
                             {loadingServices ? (
                                 <div className="flex items-center justify-center py-20">
                                     <RefreshCw className="w-8 h-8 text-cyan-400 animate-spin" />
@@ -314,27 +316,29 @@ export default function ProvidersView() {
                             ) : smmServices.length > 0 ? (
                                 <div className="space-y-1">
                                     {/* Select all */}
-                                    <div className="flex items-center gap-3 p-2 bg-white/5 rounded-lg mb-3 sticky top-0 z-10">
-                                        <button onClick={toggleAll} className={`w-5 h-5 rounded border flex items-center justify-center transition-all ${selectedServices.size === filteredServices.length && filteredServices.length > 0 ? 'bg-cyan-500 border-cyan-500' : 'border-white/20 hover:border-white/40'}`}>
-                                            {selectedServices.size === filteredServices.length && filteredServices.length > 0 && <Check className="w-3 h-3 text-white" />}
+                                    <div className="flex items-center gap-3 p-2.5 bg-white/5 rounded-lg mb-2 sticky top-0 z-10 backdrop-blur-sm">
+                                        <button onClick={toggleAll} className={`w-6 h-6 rounded border-2 flex items-center justify-center transition-all flex-shrink-0 ${selectedServices.size === filteredServices.length && filteredServices.length > 0 ? 'bg-cyan-500 border-cyan-500' : 'border-white/20 hover:border-white/40'}`}>
+                                            {selectedServices.size === filteredServices.length && filteredServices.length > 0 && <Check className="w-4 h-4 text-white" />}
                                         </button>
                                         <span className="text-white/70 text-sm font-bold">{lang === 'ar' ? 'تحديد الكل' : 'Select All'}</span>
                                     </div>
 
                                     {filteredServices.map(svc => (
                                         <div key={svc.service} onClick={() => toggleService(svc.service)}
-                                            className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all ${selectedServices.has(svc.service) ? 'bg-cyan-500/10 border border-cyan-500/30' : 'bg-white/[0.02] border border-transparent hover:bg-white/5'}`}>
-                                            <div className={`w-5 h-5 rounded border flex-shrink-0 flex items-center justify-center transition-all ${selectedServices.has(svc.service) ? 'bg-cyan-500 border-cyan-500' : 'border-white/20'}`}>
-                                                {selectedServices.has(svc.service) && <Check className="w-3 h-3 text-white" />}
+                                            className={`flex items-start gap-3 p-3 md:p-3.5 rounded-xl cursor-pointer transition-all active:scale-[0.98] ${selectedServices.has(svc.service) ? 'bg-cyan-500/10 border border-cyan-500/30' : 'bg-white/[0.02] border border-transparent hover:bg-white/5'}`}>
+                                            <div className={`w-6 h-6 rounded border-2 flex-shrink-0 flex items-center justify-center transition-all mt-0.5 ${selectedServices.has(svc.service) ? 'bg-cyan-500 border-cyan-500' : 'border-white/20'}`}>
+                                                {selectedServices.has(svc.service) && <Check className="w-4 h-4 text-white" />}
                                             </div>
                                             <div className="flex-1 min-w-0">
-                                                <span className="text-white text-sm block truncate">{svc.name}</span>
-                                                <span className="text-white/30 text-xs">{svc.category}</span>
-                                            </div>
-                                            <div className="flex items-center gap-3 flex-shrink-0 text-xs">
-                                                <span className="text-green-400 font-mono font-bold">${parseFloat(svc.rate).toFixed(2)}</span>
-                                                <span className="text-white/30">{svc.min}-{svc.max}</span>
-                                                <span className="text-white/20 font-mono">#{svc.service}</span>
+                                                <p className="text-white text-sm leading-relaxed break-words">{svc.name}</p>
+                                                <div className="flex items-center gap-2 mt-1 flex-wrap">
+                                                    <span className="text-white/30 text-xs">{svc.category}</span>
+                                                    <span className="text-white/10">•</span>
+                                                    <span className="text-green-400 font-mono text-xs font-bold">${parseFloat(svc.rate).toFixed(2)}</span>
+                                                    <span className="text-white/10">•</span>
+                                                    <span className="text-white/30 text-xs">{svc.min}-{svc.max}</span>
+                                                    <span className="text-white/20 font-mono text-xs">#{svc.service}</span>
+                                                </div>
                                             </div>
                                         </div>
                                     ))}
@@ -348,13 +352,13 @@ export default function ProvidersView() {
 
                         {/* Import controls */}
                         {smmServices.length > 0 && (
-                            <div className="p-4 md:p-6 border-t border-white/10 flex-shrink-0 space-y-3">
+                            <div className="p-3 md:p-6 border-t border-white/10 flex-shrink-0 space-y-3 bg-[#0d1117]">
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                                     {/* Category to import into */}
                                     <div>
                                         <label className="text-white/50 text-xs mb-1 block">{lang === 'ar' ? 'استيراد إلى قسم' : 'Import to Category'}</label>
                                         <select value={importCategoryId} onChange={e => setImportCategoryId(e.target.value)}
-                                            className="w-full bg-black/30 border border-white/10 text-white rounded-lg px-3 py-2 text-sm">
+                                            className="w-full bg-black/30 border border-white/10 text-white rounded-lg px-3 h-10 text-sm">
                                             <option value="">{lang === 'ar' ? 'اختر القسم...' : 'Select category...'}</option>
                                             {categories.map(c => <option key={c._id} value={c._id}>{c.name || c.nameKey}</option>)}
                                         </select>
@@ -364,14 +368,14 @@ export default function ProvidersView() {
                                         <label className="text-white/50 text-xs mb-1 block">{lang === 'ar' ? 'مضاعف السعر' : 'Price Multiplier'}</label>
                                         <div className="flex items-center gap-2">
                                             <Input type="number" step="0.1" min="1" value={priceMultiplier} onChange={e => setPriceMultiplier(parseFloat(e.target.value) || 1)}
-                                                className="bg-black/30 border-white/10 text-white text-center text-sm" dir="ltr" />
+                                                className="bg-black/30 border-white/10 text-white text-center text-sm h-10" dir="ltr" />
                                             <span className="text-white/40 text-xs whitespace-nowrap">× {lang === 'ar' ? 'سعر المزود' : 'provider price'}</span>
                                         </div>
                                     </div>
                                     {/* Import button */}
                                     <div className="flex items-end">
                                         <Button onClick={handleImportSelected} disabled={!importCategoryId || selectedServices.size === 0}
-                                            className="w-full bg-green-600 hover:bg-green-700 disabled:opacity-30 text-white gap-2">
+                                            className="w-full bg-green-600 hover:bg-green-700 disabled:opacity-30 text-white gap-2 h-10">
                                             <Download className="w-4 h-4" /> {lang === 'ar' ? `استيراد (${selectedServices.size})` : `Import (${selectedServices.size})`}
                                         </Button>
                                     </div>

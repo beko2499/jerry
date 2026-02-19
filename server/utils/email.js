@@ -2,50 +2,42 @@ const nodemailer = require('nodemailer');
 const Settings = require('../models/Settings');
 
 let cachedTransporter = null;
-let cachedConfig = null;
+let cachedConfigKey = null;
 
 async function getTransporter() {
+  // Always check DB for latest config
+  let dbConfig = null;
   try {
     const setting = await Settings.findOne({ key: 'email' });
-    const dbConfig = setting ? setting.value : null;
-
-    if (dbConfig && dbConfig.gmailUser && dbConfig.gmailPass) {
-      // Check if config changed
-      const configKey = `${dbConfig.gmailUser}:${dbConfig.gmailPass}`;
-      if (cachedConfig !== configKey) {
-        cachedTransporter = nodemailer.createTransport({
-          host: 'smtp.gmail.com',
-          port: 587,
-          secure: false,
-          auth: {
-            user: dbConfig.gmailUser,
-            pass: dbConfig.gmailPass,
-          },
-          tls: { rejectUnauthorized: false }
-        });
-        cachedConfig = configKey;
-      }
-      return { transporter: cachedTransporter, fromName: dbConfig.senderName || 'Jerry Store', fromEmail: dbConfig.gmailUser };
-    }
+    dbConfig = setting ? setting.value : null;
   } catch (err) {
     console.error('Failed to load email config from DB:', err.message);
   }
 
-  // Fallback to env vars
-  if (!cachedTransporter || !cachedConfig) {
+  const gmailUser = (dbConfig && dbConfig.gmailUser) ? dbConfig.gmailUser : process.env.EMAIL_USER;
+  const gmailPass = (dbConfig && dbConfig.gmailPass) ? dbConfig.gmailPass : process.env.EMAIL_PASS;
+  const senderName = (dbConfig && dbConfig.senderName) ? dbConfig.senderName : 'Jerry Store';
+
+  // Build config key to detect changes
+  const configKey = `${gmailUser}:${gmailPass}`;
+
+  // Recreate transporter if config changed
+  if (cachedConfigKey !== configKey || !cachedTransporter) {
     cachedTransporter = nodemailer.createTransport({
       host: 'smtp.gmail.com',
       port: 587,
       secure: false,
       auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
+        user: gmailUser,
+        pass: gmailPass,
       },
       tls: { rejectUnauthorized: false }
     });
-    cachedConfig = 'env';
+    cachedConfigKey = configKey;
+    console.log('📧 Email transporter created/updated for:', gmailUser);
   }
-  return { transporter: cachedTransporter, fromName: 'JerryFollow', fromEmail: process.env.EMAIL_FROM || process.env.EMAIL_USER };
+
+  return { transporter: cachedTransporter, fromName: senderName, fromEmail: gmailUser };
 }
 
 async function sendVerificationEmail(to, code) {

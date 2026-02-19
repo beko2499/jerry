@@ -15,6 +15,7 @@ interface AdminDashboardProps {
 
 export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
     const [activeItem, setActiveItem] = useState('stats');
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     const renderContent = () => {
         switch (activeItem) {
@@ -23,7 +24,7 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
             case 'gateways':
                 return <GatewaysView />;
             case 'providers':
-                return <ProvidersView />;
+                return <ProvidersView onModalChange={setIsModalOpen} />;
             case 'services':
                 return <ServicesView />;
             case 'support':
@@ -46,6 +47,7 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
                 activeItem={activeItem}
                 onItemClick={setActiveItem}
                 onLogout={onLogout}
+                hideBottomNav={isModalOpen}
             />
 
             <div className="flex-1 flex flex-col overflow-hidden relative z-10 bg-black/20 backdrop-blur-[2px]">

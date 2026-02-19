@@ -36,7 +36,7 @@ interface Category {
     parentId: string | null;
 }
 
-export default function ProvidersView() {
+export default function ProvidersView({ onModalChange }: { onModalChange?: (open: boolean) => void }) {
     const { t, lang } = useLanguage();
     const [providers, setProviders] = useState<Provider[]>([]);
     const [isAdding, setIsAdding] = useState(false);
@@ -110,6 +110,7 @@ export default function ProvidersView() {
     const handleFetchServices = async (id: string) => {
         setLoadingServices(true);
         setImportingProviderId(id);
+        onModalChange?.(true);
         setSmmServices([]);
         setSelectedServices(new Set());
         setSearchFilter('');
@@ -269,13 +270,13 @@ export default function ProvidersView() {
 
             {/* Import Services Modal */}
             {importingProviderId && (
-                <div className="fixed inset-0 z-[60] bg-black/80 backdrop-blur-sm flex items-end md:items-center justify-center md:p-4" onClick={() => { setImportingProviderId(null); setSmmServices([]); }}>
+                <div className="fixed inset-0 z-[60] bg-black/80 backdrop-blur-sm flex items-end md:items-center justify-center md:p-4" onClick={() => { setImportingProviderId(null); setSmmServices([]); onModalChange?.(false); }}>
                     <div className="bg-[#0d1117] border-t md:border border-white/10 md:rounded-2xl w-full md:max-w-4xl h-[100dvh] md:h-auto md:max-h-[90vh] flex flex-col" onClick={e => e.stopPropagation()}>
                         {/* Header */}
                         <div className="p-3 md:p-6 border-b border-white/10 flex-shrink-0">
                             <div className="flex items-center justify-between mb-3">
                                 <h3 className="text-white font-bold text-base md:text-lg">{lang === 'ar' ? '📦 استيراد الخدمات من المزود' : '📦 Import Services from Provider'}</h3>
-                                <Button variant="ghost" size="sm" onClick={() => { setImportingProviderId(null); setSmmServices([]); }} className="text-white/40 hover:text-white">
+                                <Button variant="ghost" size="sm" onClick={() => { setImportingProviderId(null); setSmmServices([]); onModalChange?.(false); }} className="text-white/40 hover:text-white">
                                     <X className="w-5 h-5" />
                                 </Button>
                             </div>

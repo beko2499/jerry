@@ -668,6 +668,7 @@ function AddFundsView() {
   const [paymentStatus, setPaymentStatus] = useState('');
   const [paymentError, setPaymentError] = useState('');
   const [copied, setCopied] = useState(false);
+  const [manualAmount, setManualAmount] = useState('');
   const [couponCode, setCouponCode] = useState('');
   const [couponMsg, setCouponMsg] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   const [isRedeeming, setIsRedeeming] = useState(false);
@@ -778,10 +779,7 @@ function AddFundsView() {
                   className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                 />
                 <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/10 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
-                {/* Type Badge */}
-                <div className={`absolute top-3 ${lang === 'ar' ? 'right-3' : 'left-3'} px-2 py-0.5 rounded-full text-[10px] font-bold ${method.type === 'auto' ? 'bg-cyan-500/30 text-cyan-200 border border-cyan-400/40' : method.type === 'code' ? 'bg-purple-500/30 text-purple-200 border border-purple-400/40' : 'bg-yellow-500/30 text-yellow-200 border border-yellow-400/40'}`}>
-                  {method.type === 'auto' ? '⚡' : method.type === 'code' ? '🎟️' : '✋'} {method.description}
-                </div>
+
               </Card>
               <div className="text-center">
                 <h3 className="font-body text-base md:text-lg text-white font-bold group-hover:text-cyan-400 transition-colors">
@@ -833,17 +831,21 @@ function AddFundsView() {
 
                   <div>
                     <label className="block font-body text-white/80 mb-2">{t.amountTransferred}</label>
-                    <Input type="number" className="bg-white/5 border-white/10 text-white focus:border-cyan-500/50" placeholder="0.00" />
+                    <Input type="number" value={manualAmount} onChange={e => setManualAmount(e.target.value)} className="bg-white/5 border-white/10 text-white focus:border-cyan-500/50" placeholder="0.00" />
                   </div>
 
                   {selectedMethodData.contactType && selectedMethodData.contactValue && (
                     <Button
                       className={`w-full h-12 font-bold gap-2 ${selectedMethodData.contactType === 'whatsapp' ? 'bg-green-600 hover:bg-green-700' : 'bg-blue-500 hover:bg-blue-600'} text-white`}
                       onClick={() => {
+                        const msg = lang === 'ar'
+                          ? `طلب شحن رصيد\n👤 المستخدم: ${user?.username || ''}\n💳 طريقة الدفع: ${selectedMethodData?.name || ''}\n💰 المبلغ المحول: ${manualAmount || '0'}$\n📋 رقم الحساب: ${selectedMethodData?.accountNumber || ''}`
+                          : `Balance top-up request\n👤 Username: ${user?.username || ''}\n💳 Payment method: ${selectedMethodData?.name || ''}\n💰 Amount transferred: $${manualAmount || '0'}\n📋 Account: ${selectedMethodData?.accountNumber || ''}`;
+                        const encodedMsg = encodeURIComponent(msg);
                         if (selectedMethodData.contactType === 'whatsapp') {
-                          window.open(`https://wa.me/${selectedMethodData.contactValue.replace(/[^0-9]/g, '')}`, '_blank');
+                          window.open(`https://wa.me/${selectedMethodData.contactValue.replace(/[^0-9]/g, '')}?text=${encodedMsg}`, '_blank');
                         } else {
-                          window.open(`https://t.me/${selectedMethodData.contactValue.replace('@', '')}`, '_blank');
+                          window.open(`https://t.me/${selectedMethodData.contactValue.replace('@', '')}?text=${encodedMsg}`, '_blank');
                         }
                       }}
                     >

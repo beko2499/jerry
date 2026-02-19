@@ -58,7 +58,7 @@ export default function Header({ onAddFundsClick, onNavigate, showMobileMenu, se
         </div>
 
         {/* Mobile: Title (Center) */}
-        <h1 className="md:hidden font-space text-lg font-bold text-white tracking-[0.2em] bg-gradient-to-r from-white to-cyan-300 bg-clip-text text-transparent flex-1 text-center">JERRY</h1>
+        <h1 onClick={() => onNavigate?.('new-order')} className="md:hidden font-space text-lg font-bold text-white tracking-[0.2em] bg-gradient-to-r from-white to-cyan-300 bg-clip-text text-transparent flex-1 text-center cursor-pointer">JERRY</h1>
 
         {/* Right Section */}
         <div className="flex items-center gap-2 md:gap-4 shrink-0">
@@ -145,7 +145,13 @@ export default function Header({ onAddFundsClick, onNavigate, showMobileMenu, se
 
             {/* Drawer Header */}
             <div className="p-5 border-b border-white/10 flex items-center justify-between">
-              <div className="flex items-center gap-3">
+              <div
+                className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity"
+                onClick={() => {
+                  setShowMobileMenu(false);
+                  onNavigate?.('settings');
+                }}
+              >
                 <Avatar className="w-10 h-10 rounded-xl border border-cyan-500/30">
                   <AvatarFallback className="bg-gradient-to-br from-cyan-500 to-purple-600 text-white font-space text-sm">
                     {initials}

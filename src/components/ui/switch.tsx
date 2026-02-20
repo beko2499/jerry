@@ -1,30 +1,37 @@
 "use client"
 
 import * as React from "react"
-import * as SwitchPrimitive from "@radix-ui/react-switch"
-
 import { cn } from "@/lib/utils"
 
-function Switch({
-  className,
-  ...props
-}: React.ComponentProps<typeof SwitchPrimitive.Root>) {
+interface SwitchProps {
+  checked?: boolean;
+  onCheckedChange?: (checked: boolean) => void;
+  disabled?: boolean;
+  className?: string;
+}
+
+function Switch({ checked = false, onCheckedChange, disabled = false, className }: SwitchProps) {
   return (
-    <SwitchPrimitive.Root
-      data-slot="switch"
+    <button
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      disabled={disabled}
+      onClick={() => onCheckedChange?.(!checked)}
       className={cn(
-        "peer inline-flex h-6 w-10 shrink-0 cursor-pointer items-center rounded-full p-[3px] transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/50 disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-cyan-500 data-[state=checked]:shadow-[0_0_10px_rgba(0,255,255,0.3)] data-[state=unchecked]:bg-white/20",
+        "relative inline-flex h-6 w-10 shrink-0 cursor-pointer rounded-full transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/50",
+        checked ? "bg-cyan-500 shadow-[0_0_10px_rgba(0,255,255,0.3)]" : "bg-white/20",
+        disabled && "cursor-not-allowed opacity-50",
         className
       )}
-      {...props}
     >
-      <SwitchPrimitive.Thumb
-        data-slot="switch-thumb"
+      <span
         className={cn(
-          "pointer-events-none block size-[18px] rounded-full bg-white shadow-md transition-transform duration-200 data-[state=checked]:translate-x-4 data-[state=unchecked]:translate-x-0"
+          "absolute top-[3px] block h-[18px] w-[18px] rounded-full bg-white shadow-md transition-all duration-200",
+          checked ? "left-[19px]" : "left-[3px]"
         )}
       />
-    </SwitchPrimitive.Root>
+    </button>
   )
 }
 

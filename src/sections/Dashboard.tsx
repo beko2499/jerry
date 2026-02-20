@@ -187,7 +187,7 @@ interface SearchViewProps {
   onCategorySelect?: (categoryId: string, categoryName: string) => void;
 }
 
-function SearchView({ onNavigate, onServiceSelect, onCategorySelect }: SearchViewProps) {
+function SearchView({ onNavigate: _onNavigate, onServiceSelect, onCategorySelect }: SearchViewProps) {
   const [query, setQuery] = useState('');
   const { t } = useLanguage();
   const [services, setServices] = useState<any[]>([]);

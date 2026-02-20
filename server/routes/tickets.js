@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Ticket = require('../models/Ticket');
+const Notification = require('../models/Notification');
 
 // Create ticket (user)
 router.post('/', async (req, res) => {
@@ -10,6 +11,8 @@ router.post('/', async (req, res) => {
             return res.status(400).json({ error: 'Missing required fields' });
         }
         const ticket = await Ticket.create({ userId, topic, message });
+        // Notify admin
+        await Notification.create({ title: '🎫 تذكرة جديدة', body: `موضوع: ${topic}\n${message.substring(0, 100)}`, audience: 'admin', type: 'instant', status: 'sent', sentAt: new Date() });
         res.status(201).json(ticket);
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -50,6 +53,10 @@ router.put('/:id/reply', async (req, res) => {
             { new: true }
         ).populate('userId', 'username firstName lastName email phone');
         if (!ticket) return res.status(404).json({ error: 'Ticket not found' });
+        // Notify user
+        if (ticket.userId?._id) {
+            await Notification.create({ title: '✉️ رد على تذكرتك', body: `تم الرد على تذكرة: ${ticket.topic}`, audience: 'users', userId: ticket.userId._id, type: 'instant', status: 'sent', sentAt: new Date() });
+        }
         res.json(ticket);
     } catch (err) {
         res.status(500).json({ error: err.message });

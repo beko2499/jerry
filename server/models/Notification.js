@@ -5,6 +5,7 @@ const notificationSchema = new mongoose.Schema({
     body: { type: String, required: true },
     type: { type: String, enum: ['instant', 'scheduled'], default: 'instant' },
     audience: { type: String, enum: ['users', 'admin'], default: 'users' },
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
     scheduledAt: { type: Date },
     sentAt: { type: Date },
     status: { type: String, enum: ['pending', 'sent'], default: 'pending' },

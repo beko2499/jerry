@@ -1,10 +1,27 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Bell, Search, AlertTriangle, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+
+const playNotifSound = () => {
+    try {
+        const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.frequency.setValueAtTime(880, ctx.currentTime);
+        osc.frequency.setValueAtTime(1100, ctx.currentTime + 0.1);
+        osc.frequency.setValueAtTime(1320, ctx.currentTime + 0.2);
+        gain.gain.setValueAtTime(0.3, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
+        osc.start(ctx.currentTime);
+        osc.stop(ctx.currentTime + 0.4);
+    } catch (e) { }
+};
 
 interface AdminNotification {
     _id: string;
@@ -17,16 +34,25 @@ export default function AdminHeader() {
     const { isRTL, t } = useLanguage();
     const [showNotifs, setShowNotifs] = useState(false);
     const [notifications, setNotifications] = useState<AdminNotification[]>([]);
+    const prevCountRef = useRef(0);
 
     useEffect(() => {
         const fetchAdminNotifs = () => {
             fetch(`${API_URL}/notifications/admin`)
                 .then(r => r.json())
-                .then(data => { if (Array.isArray(data)) setNotifications(data); })
+                .then(data => {
+                    if (Array.isArray(data)) {
+                        if (prevCountRef.current > 0 && data.length > prevCountRef.current) {
+                            playNotifSound();
+                        }
+                        prevCountRef.current = data.length;
+                        setNotifications(data);
+                    }
+                })
                 .catch(console.error);
         };
         fetchAdminNotifs();
-        const interval = setInterval(fetchAdminNotifs, 30000);
+        const interval = setInterval(fetchAdminNotifs, 15000);
         return () => clearInterval(interval);
     }, []);
 

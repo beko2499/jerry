@@ -15,7 +15,12 @@ router.get('/', async (req, res) => {
 // Get sent notifications (user-facing)
 router.get('/user', async (req, res) => {
     try {
-        const notifications = await Notification.find({ status: 'sent', audience: { $ne: 'admin' } }).sort({ sentAt: -1 }).limit(50);
+        const filter = { status: 'sent', audience: { $ne: 'admin' } };
+        if (req.query.userId) {
+            // Return general user notifications OR targeted to this specific user
+            filter.$or = [{ userId: null }, { userId: req.query.userId }];
+        }
+        const notifications = await Notification.find(filter).sort({ sentAt: -1 }).limit(50);
         res.json(notifications);
     } catch (err) {
         res.status(500).json({ error: err.message });

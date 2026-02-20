@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Search, Bell, Plus, LogOut, Menu, X, Wallet, MessageCircle, FileText, Megaphone, Globe, ShoppingBag, ClipboardList } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -7,6 +7,23 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+
+const playNotifSound = () => {
+  try {
+    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.frequency.setValueAtTime(660, ctx.currentTime);
+    osc.frequency.setValueAtTime(880, ctx.currentTime + 0.12);
+    osc.frequency.setValueAtTime(1100, ctx.currentTime + 0.24);
+    gain.gain.setValueAtTime(0.25, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.5);
+  } catch (e) { }
+};
 
 interface HeaderProps {
   onAddFundsClick?: () => void;
@@ -22,18 +39,27 @@ export default function Header({ onAddFundsClick, onNavigate, showMobileMenu, se
   const [showNotifications, setShowNotifications] = useState(false);
   const [notifications, setNotifications] = useState<{ _id: string; title: string; body: string; sentAt: string }[]>([]);
   const [lastSeenCount, setLastSeenCount] = useState(0);
+  const prevCountRef = useRef(0);
 
   useEffect(() => {
     const fetchNotifs = () => {
-      fetch(`${API_URL}/notifications/user`)
+      fetch(`${API_URL}/notifications/user${user?._id ? `?userId=${user._id}` : ''}`)
         .then(r => r.json())
-        .then(data => { if (Array.isArray(data)) setNotifications(data); })
+        .then(data => {
+          if (Array.isArray(data)) {
+            if (prevCountRef.current > 0 && data.length > prevCountRef.current) {
+              playNotifSound();
+            }
+            prevCountRef.current = data.length;
+            setNotifications(data);
+          }
+        })
         .catch(console.error);
     };
     fetchNotifs();
-    const interval = setInterval(fetchNotifs, 30000);
+    const interval = setInterval(fetchNotifs, 15000);
     return () => clearInterval(interval);
-  }, []);
+  }, [user?._id]);
 
   const initials = user
     ? `${user.firstName.charAt(0)}${user.lastName.charAt(0)}`

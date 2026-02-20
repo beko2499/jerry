@@ -648,10 +648,10 @@ function ServiceDetailsView({ serviceId, serviceData, onBack }: ServiceDetailsVi
 }
 
 // Settings View Component
-function SettingsView() {
+function SettingsView({ defaultTab = 'referral' }: { defaultTab?: 'settings' | 'referral' | 'api' }) {
   const { t } = useLanguage();
   const { user, refreshUser } = useAuth();
-  const [tab, setTab] = useState<'settings' | 'referral' | 'api'>('referral');
+  const [tab, setTab] = useState<'settings' | 'referral' | 'api'>(defaultTab);
   const [email, setEmail] = useState(user?.email || '');
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -710,7 +710,11 @@ function SettingsView() {
   const refLink = refStats ? `${siteUrl}/?ref=${refStats.referralCode}` : '';
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(refLink);
+    try {
+      navigator.clipboard.writeText(refLink);
+    } catch {
+      const ta = document.createElement('textarea'); ta.value = refLink; ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+    }
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -837,7 +841,7 @@ function SettingsView() {
                 <button onClick={() => setShowApiKey(!showApiKey)} className="px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all shrink-0">
                   <span className="text-white/40 text-sm">{showApiKey ? '🙈' : '👁️'}</span>
                 </button>
-                <button onClick={() => { navigator.clipboard.writeText(apiKey); setApiCopied(true); setTimeout(() => setApiCopied(false), 2000); }} className="px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all shrink-0">
+                <button onClick={() => { try { navigator.clipboard.writeText(apiKey); } catch { const ta = document.createElement('textarea'); ta.value = apiKey; ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); } setApiCopied(true); setTimeout(() => setApiCopied(false), 2000); }} className="px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all shrink-0">
                   {apiCopied ? <span className="text-green-400 text-sm">✅</span> : <span className="text-white/40 text-sm">📋</span>}
                 </button>
               </div>
@@ -954,7 +958,11 @@ function AddFundsView() {
   const isAsiacell = selectedMethodData?.type === 'auto' && /^07\d/.test(selectedMethodData?.destination || '');
 
   const copyText = (text: string) => {
-    navigator.clipboard.writeText(text);
+    try {
+      navigator.clipboard.writeText(text);
+    } catch {
+      const ta = document.createElement('textarea'); ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+    }
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -1838,6 +1846,8 @@ export default function Dashboard() {
         return <OrdersView />;
       case 'settings':
         return <SettingsView />;
+      case 'api':
+        return <SettingsView defaultTab="api" />;
       case 'support':
         return <SupportView />;
       case 'add-funds':

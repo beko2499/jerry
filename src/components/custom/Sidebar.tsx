@@ -6,7 +6,8 @@ import {
   MessageCircle,
   Search,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Code
 } from 'lucide-react';
 import { Logo } from '@/components/Logo';
 import { Button } from '@/components/ui/button';
@@ -26,6 +27,7 @@ export default function Sidebar({ activeItem, onItemClick, hideBottomBar }: Side
   const menuItems = [
     { id: 'new-order', label: t.newOrder, icon: Plus, color: 'text-cyan-400' },
     { id: 'orders', label: t.myOrders, icon: ShoppingCart, color: 'text-purple-400' },
+    { id: 'api', label: 'API', icon: Code, color: 'text-green-400' },
     { id: 'settings', label: t.settings, icon: Settings, color: 'text-pink-400' },
     { id: 'support', label: t.support, icon: MessageCircle, color: 'text-yellow-400' },
   ];

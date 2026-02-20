@@ -183,41 +183,40 @@ function OrdersView() {
 // Search View Component
 interface SearchViewProps {
   onNavigate: (item: string) => void;
+  onServiceSelect?: (service: any) => void;
+  onCategorySelect?: (categoryId: string, categoryName: string) => void;
 }
 
-function SearchView({ onNavigate }: SearchViewProps) {
+function SearchView({ onNavigate, onServiceSelect, onCategorySelect }: SearchViewProps) {
   const [query, setQuery] = useState('');
   const { t } = useLanguage();
+  const [services, setServices] = useState<any[]>([]);
+  const [categories, setCategories] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const searchableItems = [
-    { id: '1', name: (t as any).jerryServicesCard || 'Jerry Services', category: (t as any).categories || 'Categories', target: 'jerry-services', image: '/jerry-services.png' },
-    { id: '2', name: (t as any).cardsSection || 'Cards Section', category: (t as any).categories || 'Categories', target: 'new-order', image: '/cards.png' },
-    { id: '3', name: (t as any).gamingSection || 'Gaming Section', category: (t as any).categories || 'Categories', target: 'new-order', image: '/games.png' },
-    { id: '4', name: (t as any).subscriptionsSection || 'Subscriptions', category: (t as any).categories || 'Categories', target: 'new-order', image: '/subscriptions.png' },
-    { id: '5', name: (t as any).phoneTopUp || 'Phone Top-Up', category: (t as any).categories || 'Categories', target: 'new-order' },
-    { id: '6', name: (t as any).miscServices || 'Misc Services', category: (t as any).categories || 'Categories', target: 'new-order' },
-    // Telegram services
-    { id: '1823', name: 'ط§ط¹ط¶ط§ط، طھظ„ظٹط¬ط±ط§ظ… ط­ط³ط§ط¨ط§طھ ظ…ط­ط°ظˆظپظ‡', category: (t as any).telegramServicesName || 'Telegram', target: 'telegram-services' },
-    { id: '1824', name: 'ط§ط¹ط¶ط§ط، طھظ„ظٹط¬ط±ط§ظ… ط¨ط¯ظˆظ† ظ†ط²ظˆظ„ ظ„ظ„ط§ط¨ط¯ (ظ…ظ…ظ„ظˆظƒظ‡)', category: (t as any).telegramServicesName || 'Telegram', target: 'telegram-services' },
-    { id: '1825', name: 'ط§ط¹ط¶ط§ط، طھظ„ظٹط¬ط±ط§ظ… ط¨ط¯ظˆظ† ظ†ط²ظˆظ„ ظ„ظ„ط§ط¨ط¯ ظ„ظ„ظƒط±ظˆط¨ط§طھ (ظ…ظ…ظ„ظˆظƒظ‡)', category: (t as any).telegramServicesName || 'Telegram', target: 'telegram-services' },
-    { id: '1826', name: 'ط§ط¹ط¶ط§ط، طھظ„ظٹط¬ط±ط§ظ… ط±ط®ظٹطµ (ظ…ظ…ظ„ظˆظƒظ‡)', category: (t as any).telegramServicesName || 'Telegram', target: 'telegram-services' },
-    { id: '1827', name: 'ظ…ط´ط§ظ‡ط¯ط§طھ طھظ„ظٹط¬ط±ط§ظ…', category: (t as any).telegramServicesName || 'Telegram', target: 'telegram-services' },
-    // Instagram
-    { id: 'insta-1', name: 'ظ…طھط§ط¨ط¹ظٹظ† ط§ظ†ط³طھظ‚ط±ط§ظ…', category: (t as any).instaServices || 'Instagram', target: 'jerry-services' },
-    { id: 'insta-2', name: 'ظ„ط§ظٹظƒط§طھ ط§ظ†ط³طھظ‚ط±ط§ظ…', category: (t as any).instaServices || 'Instagram', target: 'jerry-services' },
-    // TikTok
-    { id: 'tiktok-1', name: 'ظ…طھط§ط¨ط¹ظٹظ† طھظٹظƒ طھظˆظƒ', category: (t as any).tiktokServices || 'TikTok', target: 'jerry-services' },
-    { id: 'tiktok-2', name: 'ظ…ط´ط§ظ‡ط¯ط§طھ طھظٹظƒ طھظˆظƒ', category: (t as any).tiktokServices || 'TikTok', target: 'jerry-services' },
-    // Facebook
-    { id: 'fb-1', name: 'ظ„ط§ظٹظƒط§طھ ظپظٹط³ط¨ظˆظƒ', category: (t as any).facebookServices || 'Facebook', target: 'jerry-services' },
-    { id: 'fb-2', name: 'ظ…طھط§ط¨ط¹ظٹظ† ظپظٹط³ط¨ظˆظƒ', category: (t as any).facebookServices || 'Facebook', target: 'jerry-services' },
-  ];
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [svcRes, catRes] = await Promise.all([
+          fetch(`${API_URL}/services`),
+          fetch(`${API_URL}/categories`),
+        ]);
+        const svcData = await svcRes.json();
+        const catData = await catRes.json();
+        setServices(Array.isArray(svcData) ? svcData : []);
+        setCategories(Array.isArray(catData) ? catData : []);
+      } catch (e) { console.error(e); }
+      setLoading(false);
+    };
+    fetchData();
+  }, []);
 
-  const results = query.length > 0
-    ? searchableItems.filter(item =>
-      item.name.toLowerCase().includes(query.toLowerCase()) ||
-      item.category.toLowerCase().includes(query.toLowerCase())
-    )
+  const filteredServices = query.length > 0
+    ? services.filter(s => s.name?.toLowerCase().includes(query.toLowerCase()))
+    : [];
+
+  const filteredCategories = query.length > 0
+    ? categories.filter(c => c.name?.toLowerCase().includes(query.toLowerCase()))
     : [];
 
   return (
@@ -236,44 +235,84 @@ function SearchView({ onNavigate }: SearchViewProps) {
         />
       </div>
 
+      {loading && <p className="text-white/40 text-sm text-center py-8">جاري التحميل...</p>}
+
       {/* Results */}
-      {query.length > 0 && (
-        <div className="space-y-2">
-          {results.length > 0 ? (
-            results.map(item => (
-              <Card
-                key={item.id}
-                className="p-3 bg-white/5 border-white/10 hover:border-cyan-500/30 hover:bg-white/10 transition-all cursor-pointer backdrop-blur-sm"
-                onClick={() => onNavigate(item.target)}
-              >
-                <div className="flex items-center gap-3">
-                  {item.image ? (
-                    <div className="w-12 h-12 rounded-xl overflow-hidden shrink-0">
-                      <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+      {query.length > 0 && !loading && (
+        <div className="space-y-3">
+          {/* Categories */}
+          {filteredCategories.length > 0 && (
+            <div>
+              <p className="text-white/40 text-xs mb-2 font-medium">الأقسام</p>
+              <div className="space-y-2">
+                {filteredCategories.map(cat => (
+                  <Card
+                    key={cat._id}
+                    className="p-3 bg-white/5 border-white/10 hover:border-cyan-500/30 hover:bg-white/10 transition-all cursor-pointer backdrop-blur-sm"
+                    onClick={() => {
+                      if (onCategorySelect) onCategorySelect(cat._id, cat.name);
+                    }}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-xl overflow-hidden shrink-0 bg-gradient-to-br from-purple-500/20 to-pink-500/20 flex items-center justify-center">
+                        {cat.image ? <img src={`${API_URL.replace('/api', '')}${cat.image}`} alt={cat.name} className="w-full h-full object-cover" /> : <span className="text-xl">📂</span>}
+                      </div>
+                      <div className="overflow-hidden">
+                        <h4 className="text-white font-medium text-sm truncate">{cat.name}</h4>
+                        <p className="text-white/40 text-xs">قسم</p>
+                      </div>
                     </div>
-                  ) : (
-                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500/20 to-purple-500/20 flex items-center justify-center shrink-0">
-                      <Search className="w-5 h-5 text-cyan-400" />
+                  </Card>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Services */}
+          {filteredServices.length > 0 && (
+            <div>
+              <p className="text-white/40 text-xs mb-2 font-medium">الخدمات ({filteredServices.length})</p>
+              <div className="space-y-2">
+                {filteredServices.slice(0, 20).map(svc => (
+                  <Card
+                    key={svc._id}
+                    className="p-3 bg-white/5 border-white/10 hover:border-cyan-500/30 hover:bg-white/10 transition-all cursor-pointer backdrop-blur-sm"
+                    onClick={() => {
+                      if (onServiceSelect) onServiceSelect(svc);
+                    }}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500/20 to-purple-500/20 flex items-center justify-center shrink-0">
+                        <span className="text-xl">⚡</span>
+                      </div>
+                      <div className="overflow-hidden flex-1">
+                        <h4 className="text-white font-medium text-sm truncate">{svc.name}</h4>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <span className="text-white/40 text-xs truncate">{svc.description || ''}</span>
+                          <span className="text-cyan-400 text-xs font-bold shrink-0" dir="ltr">${svc.price?.toFixed(2)}</span>
+                        </div>
+                      </div>
                     </div>
-                  )}
-                  <div className="overflow-hidden">
-                    <h4 className="text-white font-medium text-sm truncate">{item.name}</h4>
-                    <p className="text-white/40 text-xs truncate">{item.category}</p>
-                  </div>
-                </div>
-              </Card>
-            ))
-          ) : (
+                  </Card>
+                ))}
+                {filteredServices.length > 20 && (
+                  <p className="text-white/30 text-xs text-center">+{filteredServices.length - 20} نتيجة أخرى</p>
+                )}
+              </div>
+            </div>
+          )}
+
+          {filteredServices.length === 0 && filteredCategories.length === 0 && (
             <div className="text-center py-12">
               <Search className="w-12 h-12 text-white/10 mx-auto mb-4" />
-              <p className="text-white/40 text-sm">ظ„ط§ طھظˆط¬ط¯ ظ†طھط§ط¦ط¬</p>
+              <p className="text-white/40 text-sm">لا توجد نتائج</p>
             </div>
           )}
         </div>
       )}
 
       {/* Empty state when no query */}
-      {query.length === 0 && (
+      {query.length === 0 && !loading && (
         <div className="text-center py-16">
           <Search className="w-16 h-16 text-white/10 mx-auto mb-4" />
           <p className="text-white/50 text-base">{t.searchPlaceholder}</p>
@@ -2028,7 +2067,19 @@ export default function Dashboard() {
           }}
         />;
       case 'search':
-        return <SearchView onNavigate={setActiveItem} />;
+        return <SearchView
+          onNavigate={setActiveItem}
+          onServiceSelect={(svc) => {
+            setSelectedService(svc._id);
+            setSelectedServiceData(svc);
+            setActiveItem('service-details');
+          }}
+          onCategorySelect={(catId, catName) => {
+            setBrowseCategoryId(catId);
+            setBrowseCategoryName(catName);
+            setActiveItem('browse-category');
+          }}
+        />;
       case 'orders':
         return <OrdersView />;
       case 'settings':

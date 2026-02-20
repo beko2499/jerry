@@ -651,7 +651,7 @@ function ServiceDetailsView({ serviceId, serviceData, onBack }: ServiceDetailsVi
 function SettingsView() {
   const { t } = useLanguage();
   const { user, refreshUser } = useAuth();
-  const [tab, setTab] = useState<'settings' | 'referral'>('referral');
+  const [tab, setTab] = useState<'settings' | 'referral' | 'api'>('referral');
   const [email, setEmail] = useState(user?.email || '');
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -661,12 +661,21 @@ function SettingsView() {
   // Referral states
   const [refStats, setRefStats] = useState<{ referralCode: string; totalReferrals: number; totalEarnings: number; commissionRate: number } | null>(null);
   const [copied, setCopied] = useState(false);
+  // API states
+  const [apiKey, setApiKey] = useState('');
+  const [showApiKey, setShowApiKey] = useState(false);
+  const [apiCopied, setApiCopied] = useState(false);
+  const [regenerating, setRegenerating] = useState(false);
 
   useEffect(() => {
     if (user?._id) {
       fetch(`${API_URL}/referrals/stats/${user._id}`)
         .then(r => r.json())
         .then(data => { if (data.referralCode) setRefStats(data); })
+        .catch(console.error);
+      fetch(`${API_URL}/v2/key/${user._id}`)
+        .then(r => r.json())
+        .then(data => { if (data.apiKey) setApiKey(data.apiKey); })
         .catch(console.error);
     }
   }, [user?._id]);
@@ -717,6 +726,9 @@ function SettingsView() {
         </button>
         <button onClick={() => setTab('settings')} className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${tab === 'settings' ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30' : 'bg-white/5 text-white/50 border border-white/10 hover:bg-white/10'}`}>
           الاعدادات
+        </button>
+        <button onClick={() => setTab('api')} className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${tab === 'api' ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30' : 'bg-white/5 text-white/50 border border-white/10 hover:bg-white/10'}`}>
+          API
         </button>
       </div>
 
@@ -801,6 +813,62 @@ function SettingsView() {
               <p className="text-green-400 font-bold text-2xl" dir="ltr">${(refStats?.totalEarnings || 0).toFixed(2)}</p>
             </Card>
           </div>
+        </div>
+      )}
+
+      {tab === 'api' && (
+        <div className="max-w-lg space-y-4">
+          <Card className="p-5 bg-white/5 border-white/10 backdrop-blur-sm">
+            <div className="flex items-start gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-cyan-500/20 flex items-center justify-center text-lg shrink-0">🔑</div>
+              <div>
+                <h3 className="text-white font-bold text-sm">API</h3>
+                <p className="text-white/50 text-xs mt-1">استخدم مفتاح API لربط خدماتنا مع موقعك</p>
+              </div>
+            </div>
+
+            {/* API Key */}
+            <div>
+              <label className="block text-white/40 text-xs mb-2">الرمز الخاص بك</label>
+              <div className="flex items-center gap-2">
+                <div className="flex-1 px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white/70 text-sm font-mono truncate" dir="ltr">
+                  {apiKey ? (showApiKey ? apiKey : apiKey.substring(0, 10) + '...' + apiKey.substring(apiKey.length - 6)) : '...'}
+                </div>
+                <button onClick={() => setShowApiKey(!showApiKey)} className="px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all shrink-0">
+                  <span className="text-white/40 text-sm">{showApiKey ? '🙈' : '👁️'}</span>
+                </button>
+                <button onClick={() => { navigator.clipboard.writeText(apiKey); setApiCopied(true); setTimeout(() => setApiCopied(false), 2000); }} className="px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all shrink-0">
+                  {apiCopied ? <span className="text-green-400 text-sm">✅</span> : <span className="text-white/40 text-sm">📋</span>}
+                </button>
+              </div>
+            </div>
+
+            {/* Regenerate */}
+            <button
+              onClick={async () => {
+                setRegenerating(true);
+                try {
+                  const res = await fetch(`${API_URL}/v2/generate-key`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId: user?._id }) });
+                  const data = await res.json();
+                  if (data.apiKey) setApiKey(data.apiKey);
+                } catch (e) { console.error(e); }
+                setRegenerating(false);
+              }}
+              disabled={regenerating}
+              className="mt-3 w-full py-2.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm font-medium hover:bg-red-500/20 transition-all"
+            >
+              {regenerating ? '...' : 'تغيير الرمز المميز'}
+            </button>
+          </Card>
+
+          {/* API Endpoint Info */}
+          <Card className="p-5 bg-white/5 border-white/10 backdrop-blur-sm">
+            <h3 className="text-white font-bold text-sm mb-3">📡 عنوان API</h3>
+            <div className="px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-cyan-400 text-sm font-mono" dir="ltr">
+              {window.location.origin.replace(/:\d+$/, '').replace('http://', 'https://')}/api/v2
+            </div>
+            <p className="text-white/30 text-xs mt-2">استخدم هذا العنوان مع المفتاح للوصول إلى خدماتنا عبر API</p>
+          </Card>
         </div>
       )}
     </div>

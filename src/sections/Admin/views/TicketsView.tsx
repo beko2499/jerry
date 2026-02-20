@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { useLanguage } from '@/contexts/LanguageContext';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { X, Send, Mail, User, MessageCircle, Clock, CheckCircle } from 'lucide-react';
@@ -7,7 +6,6 @@ import { X, Send, Mail, User, MessageCircle, Clock, CheckCircle } from 'lucide-r
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 export default function TicketsView() {
-    const { t } = useLanguage();
     const [tickets, setTickets] = useState<any[]>([]);
     const [tab, setTab] = useState<'open' | 'closed'>('open');
     const [selectedTicket, setSelectedTicket] = useState<any>(null);

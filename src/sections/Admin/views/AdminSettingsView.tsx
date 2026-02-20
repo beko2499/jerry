@@ -28,8 +28,6 @@ export default function AdminSettingsView() {
 
     // Settings states
     const [username, setUsername] = useState(user?.username || '');
-    const [firstName, setFirstName] = useState(user?.firstName || '');
-    const [lastName, setLastName] = useState(user?.lastName || '');
     const [currentPassword, setCurrentPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
@@ -64,8 +62,6 @@ export default function AdminSettingsView() {
         try {
             const body: any = {};
             if (username !== user?.username) body.username = username;
-            if (firstName !== user?.firstName) body.firstName = firstName;
-            if (lastName !== user?.lastName) body.lastName = lastName;
             if (newPassword) { body.newPassword = newPassword; body.currentPassword = currentPassword; }
             else if (currentPassword) body.currentPassword = currentPassword;
             if (Object.keys(body).length === 0) { setMessage({ type: 'error', text: 'لا توجد تغييرات لحفظها' }); setSaving(false); return; }
@@ -126,14 +122,7 @@ export default function AdminSettingsView() {
                             <label className="block font-body text-white/80 text-sm mb-1.5">{t.username || 'اسم المستخدم'}</label>
                             <Input value={username} onChange={e => setUsername(e.target.value)} className="bg-white/5 border-white/10 text-white focus:border-red-500/50 h-10" dir="ltr" />
                         </div>
-                        <div>
-                            <label className="block font-body text-white/80 text-sm mb-1.5">{t.firstName || 'الاسم الأول'}</label>
-                            <Input value={firstName} onChange={e => setFirstName(e.target.value)} className="bg-white/5 border-white/10 text-white focus:border-red-500/50 h-10" />
-                        </div>
-                        <div>
-                            <label className="block font-body text-white/80 text-sm mb-1.5">{t.lastName || 'اسم العائلة'}</label>
-                            <Input value={lastName} onChange={e => setLastName(e.target.value)} className="bg-white/5 border-white/10 text-white focus:border-red-500/50 h-10" />
-                        </div>
+
                         <div className="border-t border-white/10 pt-4">
                             <p className="text-white/50 text-xs mb-3">تغيير كلمة المرور</p>
                         </div>

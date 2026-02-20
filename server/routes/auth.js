@@ -169,15 +169,61 @@ router.post('/login', async (req, res) => {
     }
 });
 
-// Admin Login
+// Admin Login — Rate Limited (5 attempts, 10hr lockout)
+const adminLoginAttempts = new Map(); // IP -> { count, lockedUntil }
+const ADMIN_MAX_ATTEMPTS = 5;
+const ADMIN_LOCKOUT_MS = 10 * 60 * 60 * 1000; // 10 hours
+
 router.post('/admin-login', async (req, res) => {
+    const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress || req.ip;
+    const now = Date.now();
+
+    // Check if IP is locked
+    const record = adminLoginAttempts.get(ip);
+    if (record && record.lockedUntil && now < record.lockedUntil) {
+        const remainingMs = record.lockedUntil - now;
+        const remainingHours = Math.ceil(remainingMs / (60 * 60 * 1000));
+        return res.status(429).json({
+            error: 'too_many_attempts',
+            remainingHours,
+            lockedUntil: record.lockedUntil
+        });
+    }
+
+    // Reset if lockout expired
+    if (record && record.lockedUntil && now >= record.lockedUntil) {
+        adminLoginAttempts.delete(ip);
+    }
+
     try {
         const { username, password } = req.body;
         const user = await User.findOne({ username: username.trim().toLowerCase(), role: 'admin' });
-        if (!user) return res.status(401).json({ error: 'invalid_credentials' });
+
+        if (!user) {
+            // Track failed attempt
+            const attempts = (adminLoginAttempts.get(ip)?.count || 0) + 1;
+            if (attempts >= ADMIN_MAX_ATTEMPTS) {
+                adminLoginAttempts.set(ip, { count: attempts, lockedUntil: now + ADMIN_LOCKOUT_MS });
+                return res.status(429).json({ error: 'too_many_attempts', remainingHours: 10 });
+            }
+            adminLoginAttempts.set(ip, { count: attempts, lockedUntil: null });
+            return res.status(401).json({ error: 'invalid_credentials', remainingAttempts: ADMIN_MAX_ATTEMPTS - attempts });
+        }
 
         const isMatch = await user.comparePassword(password.trim());
-        if (!isMatch) return res.status(401).json({ error: 'invalid_credentials' });
+        if (!isMatch) {
+            // Track failed attempt
+            const attempts = (adminLoginAttempts.get(ip)?.count || 0) + 1;
+            if (attempts >= ADMIN_MAX_ATTEMPTS) {
+                adminLoginAttempts.set(ip, { count: attempts, lockedUntil: now + ADMIN_LOCKOUT_MS });
+                return res.status(429).json({ error: 'too_many_attempts', remainingHours: 10 });
+            }
+            adminLoginAttempts.set(ip, { count: attempts, lockedUntil: null });
+            return res.status(401).json({ error: 'invalid_credentials', remainingAttempts: ADMIN_MAX_ATTEMPTS - attempts });
+        }
+
+        // Success — clear attempts
+        adminLoginAttempts.delete(ip);
 
         res.json({ user: { _id: user._id, username: user.username, firstName: user.firstName, lastName: user.lastName, role: user.role } });
     } catch (err) {

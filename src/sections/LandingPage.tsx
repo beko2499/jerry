@@ -85,14 +85,14 @@ export default function LandingPage({ onEnter }: LandingPageProps) {
           </div>
 
           <h1
-            className={`${isRTL ? 'font-arabic tracking-normal pb-4' : 'font-space tracking-wider'} text-7xl md:text-9xl lg:text-[10rem] font-black transition-all ease-in-out`}
+            className={`${isRTL ? 'font-arabic tracking-normal pb-6' : 'font-space tracking-wider'} text-7xl md:text-9xl lg:text-[10rem] font-black transition-all ease-in-out overflow-visible`}
             style={{
               transitionDuration: '1500ms',
-              clipPath: animStage < 2 ? (isRTL ? 'inset(0 0 0 100%)' : 'inset(0 100% 0 0)') : 'inset(0 0 0 0)',
-              WebkitClipPath: animStage < 2 ? (isRTL ? 'inset(0 0 0 100%)' : 'inset(0 100% 0 0)') : 'inset(0 0 0 0)'
+              clipPath: animStage < 2 ? (isRTL ? 'inset(0 0 0 100%)' : 'inset(0 100% 0 0)') : 'inset(-10% -10% -20% -10%)',
+              WebkitClipPath: animStage < 2 ? (isRTL ? 'inset(0 0 0 100%)' : 'inset(0 100% 0 0)') : 'inset(-10% -10% -20% -10%)'
             }}
           >
-            <span className="bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 bg-clip-text text-transparent drop-shadow-[0_0_40px_rgba(123,44,191,0.6)] animate-gradient-x py-2 whitespace-nowrap px-4 md:px-8">
+            <span className="bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 bg-clip-text text-transparent drop-shadow-[0_0_40px_rgba(123,44,191,0.6)] animate-gradient-x py-4 whitespace-nowrap px-4 md:px-8 inline-block leading-relaxed">
               {t.hero}
             </span>
           </h1>

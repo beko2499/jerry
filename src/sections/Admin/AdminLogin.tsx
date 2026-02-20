@@ -28,7 +28,14 @@ export default function AdminLogin({ onLogin }: AdminLoginProps) {
             if (res.ok) {
                 onLogin();
             } else {
-                setError(t.invalidCredentials);
+                const data = await res.json();
+                if (data.error === 'too_many_attempts') {
+                    setError(`تم حظر الدخول لمدة ${data.remainingHours} ساعة بسبب كثرة المحاولات الفاشلة`);
+                } else if (data.remainingAttempts !== undefined) {
+                    setError(`${t.invalidCredentials} — المحاولات المتبقية: ${data.remainingAttempts}`);
+                } else {
+                    setError(t.invalidCredentials);
+                }
             }
         } catch {
             setError('Connection error');

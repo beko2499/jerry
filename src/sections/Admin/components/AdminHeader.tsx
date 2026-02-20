@@ -83,12 +83,12 @@ export default function AdminHeader() {
                 <Button
                     variant="ghost"
                     size="icon"
-                    className="relative text-white/60 hover:text-white hover:bg-white/10"
+                    className="relative w-10 h-10 rounded-xl bg-white/5 border border-white/10 text-white/70 hover:text-white hover:bg-white/10 hover:border-cyan-500/30 transition-all duration-300 shadow-lg shadow-black/20"
                     onClick={() => setShowNotifs(!showNotifs)}
                 >
                     <Bell className="w-5 h-5" />
                     {notifications.length > 0 && (
-                        <span className="absolute top-1.5 right-1.5 w-5 h-5 bg-red-500 rounded-full text-[10px] font-bold text-white flex items-center justify-center animate-pulse">
+                        <span className="absolute -top-1.5 -right-1.5 min-w-5 h-5 px-1 bg-gradient-to-r from-red-500 to-pink-500 rounded-full text-[10px] font-bold text-white flex items-center justify-center shadow-lg shadow-red-500/40 animate-pulse">
                             {notifications.length}
                         </span>
                     )}

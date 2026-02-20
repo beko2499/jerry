@@ -15,8 +15,7 @@ export default function SupportView() {
         whatsapp: '',
         telegram: '',
         email: '',
-        supportMessage: '',
-        ticketAutoReply: ''
+        supportMessage: ''
     });
 
     const [emailConfig, setEmailConfig] = useState({
@@ -121,33 +120,11 @@ export default function SupportView() {
                             <label className="text-sm text-white/60 mb-1.5 block">{t.supportEmail}</label>
                             <Input value={supportConfig.email} onChange={e => handleChange('email', e.target.value)} className="bg-black/30 border-white/10 text-white" />
                         </div>
-                    </div>
-                </Card>
-
-                {/* Messages */}
-                <Card className="p-6 bg-white/5 border border-white/10 backdrop-blur-md space-y-6">
-                    <div className="flex items-center justify-between">
-                        <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                            <MessageCircle className="w-5 h-5 text-cyan-400" /> {t.messagesCliches}
-                        </h3>
-                        <Button onClick={handleSave} size="sm" className="bg-green-600 hover:bg-green-700 text-white gap-1.5">
-                            <Save className="w-3.5 h-3.5" /> {t.saveChanges}
-                        </Button>
-                    </div>
-                    <div className="space-y-4">
                         <div>
                             <label className="text-sm text-white/60 mb-1.5 block">{t.supportIntroMessage}</label>
                             <textarea
                                 value={supportConfig.supportMessage}
                                 onChange={e => handleChange('supportMessage', e.target.value)}
-                                className="w-full h-24 p-4 bg-black/30 border border-white/10 rounded-xl text-white outline-none focus:border-cyan-500/50 resize-none font-body"
-                            />
-                        </div>
-                        <div>
-                            <label className="text-sm text-white/60 mb-1.5 block">{t.ticketAutoReply}</label>
-                            <textarea
-                                value={supportConfig.ticketAutoReply}
-                                onChange={e => handleChange('ticketAutoReply', e.target.value)}
                                 className="w-full h-24 p-4 bg-black/30 border border-white/10 rounded-xl text-white outline-none focus:border-cyan-500/50 resize-none font-body"
                             />
                         </div>

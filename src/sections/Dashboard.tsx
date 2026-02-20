@@ -14,16 +14,7 @@ import {
   Clock,
   CheckCircle,
   XCircle,
-  CheckCircle,
-  XCircle,
-  Search,
-  Plus,
-  ChevronLeft,
-  ChevronRight,
-  MessageSquare,
-  Send,
-  User,
-  ShieldAlert
+  Search
 } from 'lucide-react';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
@@ -1482,34 +1473,43 @@ function AddFundsView() {
 
 // Support View Component
 function SupportView() {
-  const { t, lang, isRTL } = useLanguage();
-  const [activeTab, setActiveTab] = useState<'channels' | 'tickets'>('channels');
-  const [viewMode, setViewMode] = useState<'list' | 'create' | 'detail'>('list');
+  const { t, lang } = useLanguage();
+  const { user } = useAuth();
   const [config, setConfig] = useState<{ whatsapp?: string; telegram?: string; email?: string; supportMessage?: string }>({});
   const [loading, setLoading] = useState(true);
+  const [tickets, setTickets] = useState<any[]>([]);
+  const [ticketTopic, setTicketTopic] = useState('');
+  const [ticketMessage, setTicketMessage] = useState('');
+  const [sendingTicket, setSendingTicket] = useState(false);
+  const [ticketMsg, setTicketMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
-  // Mock Data for Preview
-  const mockTicket = {
-    id: 'T-12345',
-    subject: 'مشكلة في الرصيد',
-    status: 'closed',
-    date: '2025-02-20',
-    messages: [
-      { sender: 'user', text: 'قمت بشحن 50$ عن طريق زين كاش ولكن الرصيد لم يظهر في حسابي حتى الان. ارجو المساعدة.', time: '10:30 AM' },
-      { sender: 'admin', text: 'أهلاً بك عزيزي العميل.\nتم التحقق من العملية وإضافة الرصيد لحسابك بنجاح. نعتذر عن التأخير.', time: '10:45 AM' }
-    ]
-  };
+  const topics = ['مشكلة في طلب', 'مشكلة في الدفع', 'مشكلة في الحساب', 'استفسار عام', 'اقتراح أو ملاحظة'];
 
   useEffect(() => {
-    fetch(`${API_URL}/settings/support`)
-      .then(r => r.json())
-      .then(data => { if (data) setConfig(data); })
-      .catch(console.error)
-      .finally(() => setLoading(false));
+    fetch(`${API_URL}/settings/support`).then(r => r.json()).then(data => { if (data) setConfig(data); }).catch(console.error).finally(() => setLoading(false));
   }, []);
 
-  const renderChannels = () => (
-    <div className="space-y-6">
+  const fetchTickets = () => {
+    if (!user?._id) return;
+    fetch(`${API_URL}/tickets/user/${user._id}`).then(r => r.json()).then(data => { if (Array.isArray(data)) setTickets(data); }).catch(console.error);
+  };
+  useEffect(() => { fetchTickets(); }, [user?._id]);
+
+  const handleSubmitTicket = async () => {
+    if (!ticketTopic || !ticketMessage.trim()) { setTicketMsg({ type: 'error', text: 'يرجى اختيار الموضوع وكتابة الرسالة' }); return; }
+    setSendingTicket(true); setTicketMsg(null);
+    try {
+      const res = await fetch(`${API_URL}/tickets`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId: user?._id, topic: ticketTopic, message: ticketMessage }) });
+      if (res.ok) { setTicketMsg({ type: 'success', text: 'تم إرسال التذكرة بنجاح ✅' }); setTicketTopic(''); setTicketMessage(''); fetchTickets(); }
+      else { setTicketMsg({ type: 'error', text: 'فشل إرسال التذكرة' }); }
+    } catch { setTicketMsg({ type: 'error', text: 'خطأ في الاتصال' }); }
+    setSendingTicket(false);
+  };
+
+  return (
+    <div className="p-4 md:p-8 space-y-6 max-w-2xl">
+      <h2 className="font-space text-2xl md:text-3xl text-white tracking-wide">{t.support}</h2>
+
       {config.supportMessage && (
         <Card className="p-5 bg-white/5 border-white/10 backdrop-blur-sm">
           <p className="text-white/70 text-sm font-body leading-relaxed">{config.supportMessage}</p>
@@ -1518,194 +1518,86 @@ function SupportView() {
 
       <div className="space-y-3">
         {config.whatsapp && (
-          <button
-            onClick={() => window.open(`https://wa.me/${config.whatsapp!.replace(/[^0-9]/g, '')}`, '_blank')}
-            className="w-full flex items-center gap-4 p-4 rounded-2xl bg-green-500/10 border border-green-500/30 hover:bg-green-500/20 transition-all group"
-          >
+          <button onClick={() => window.open(`https://wa.me/${config.whatsapp!.replace(/[^0-9]/g, '')}`, '_blank')} className="w-full flex items-center gap-4 p-4 rounded-2xl bg-green-500/10 border border-green-500/30 hover:bg-green-500/20 transition-all">
             <div className="w-12 h-12 rounded-xl bg-green-500/20 flex items-center justify-center">
               <svg viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6 text-green-400"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" /><path d="M12 2C6.477 2 2 6.477 2 12c0 1.89.525 3.66 1.438 5.168L2 22l4.832-1.438A9.955 9.955 0 0012 22c5.523 0 10-4.477 10-10S17.523 2 12 2zm0 18c-1.66 0-3.203-.51-4.484-1.375l-.32-.191-2.872.855.855-2.872-.191-.32A7.963 7.963 0 014 12c0-4.411 3.589-8 8-8s8 3.589 8 8-3.589 8-8 8z" /></svg>
             </div>
-            <div className="flex-1 text-start">
-              <p className="text-white font-bold text-sm">{lang === 'ar' ? 'واتساب' : 'WhatsApp'}</p>
-              <p className="text-white/40 text-xs" dir="ltr">{config.whatsapp}</p>
-            </div>
+            <div className="flex-1 text-start"><p className="text-white font-bold text-sm">{lang === 'ar' ? 'واتساب' : 'WhatsApp'}</p><p className="text-white/40 text-xs" dir="ltr">{config.whatsapp}</p></div>
           </button>
         )}
-        {/* ... other channels ... */}
         {config.telegram && (
-          <button
-            onClick={() => window.open(`https://t.me/${config.telegram!.replace('@', '')}`, '_blank')}
-            className="w-full flex items-center gap-4 p-4 rounded-2xl bg-blue-500/10 border border-blue-500/30 hover:bg-blue-500/20 transition-all group"
-          >
+          <button onClick={() => window.open(`https://t.me/${config.telegram!.replace('@', '')}`, '_blank')} className="w-full flex items-center gap-4 p-4 rounded-2xl bg-blue-500/10 border border-blue-500/30 hover:bg-blue-500/20 transition-all">
             <div className="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center">
               <svg viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6 text-blue-400"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .24z" /></svg>
             </div>
-            <div className="flex-1 text-start">
-              <p className="text-white font-bold text-sm">{lang === 'ar' ? 'تلجرام' : 'Telegram'}</p>
-              <p className="text-white/40 text-xs">{config.telegram}</p>
-            </div>
+            <div className="flex-1 text-start"><p className="text-white font-bold text-sm">{lang === 'ar' ? 'تلجرام' : 'Telegram'}</p><p className="text-white/40 text-xs">{config.telegram}</p></div>
           </button>
         )}
         {config.email && (
-          <button
-            onClick={() => window.open(`mailto:${config.email}`, '_blank')}
-            className="w-full flex items-center gap-4 p-4 rounded-2xl bg-purple-500/10 border border-purple-500/30 hover:bg-purple-500/20 transition-all group"
-          >
-            <div className="w-12 h-12 rounded-xl bg-purple-500/20 flex items-center justify-center">
-              <span className="text-2xl">📧</span>
-            </div>
-            <div className="flex-1 text-start">
-              <p className="text-white font-bold text-sm">{lang === 'ar' ? 'البريد الإلكتروني' : 'Email'}</p>
-              <p className="text-white/40 text-xs">{config.email}</p>
-            </div>
+          <button onClick={() => window.open(`mailto:${config.email}`, '_blank')} className="w-full flex items-center gap-4 p-4 rounded-2xl bg-purple-500/10 border border-purple-500/30 hover:bg-purple-500/20 transition-all">
+            <div className="w-12 h-12 rounded-xl bg-purple-500/20 flex items-center justify-center"><span className="text-2xl">📧</span></div>
+            <div className="flex-1 text-start"><p className="text-white font-bold text-sm">{lang === 'ar' ? 'البريد الإلكتروني' : 'Email'}</p><p className="text-white/40 text-xs">{config.email}</p></div>
           </button>
         )}
+        {!loading && !config.whatsapp && !config.telegram && !config.email && (
+          <Card className="p-6 bg-white/5 border-white/10 text-center"><p className="text-white/40 text-sm">{lang === 'ar' ? 'لا توجد وسائل اتصال متاحة حالياً' : 'No contact channels available'}</p></Card>
+        )}
       </div>
-    </div>
-  );
 
-  const renderTickets = () => {
-    if (viewMode === 'detail') {
-      return (
-        <div className="space-y-4">
-          <Button variant="ghost" className="text-white/50 hover:text-white p-0 h-auto mb-2 gap-2" onClick={() => setViewMode('list')}>
-            {isRTL ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
-            {lang === 'ar' ? 'رجوع للتذاكر' : 'Back to Tickets'}
-          </Button>
-
-          <Card className="bg-[#0d0d1a] border-white/10 overflow-hidden flex flex-col h-[500px]">
-            {/* Ticket Header */}
-            <div className="p-4 border-b border-white/10 flex items-center justify-between bg-white/5">
-              <div>
-                <h3 className="text-white font-bold text-sm">{mockTicket.subject}</h3>
-                <span className="text-white/30 text-xs font-mono">#{mockTicket.id}</span>
-              </div>
-              <div className="px-2 py-1 rounded bg-red-500/20 text-red-400 text-xs font-bold border border-red-500/30">
-                {lang === 'ar' ? 'مغلقة' : 'Closed'}
-              </div>
-            </div>
-
-            {/* Messages Area */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
-              {mockTicket.messages.map((msg, i) => (
-                <div key={i} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`max-w-[85%] rounded-2xl p-4 ${msg.sender === 'user'
-                      ? 'bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-tr-sm shadow-lg shadow-blue-500/10'
-                      : 'bg-[#1a1a2e] border border-white/10 text-white/90 rounded-tl-sm'
-                    }`}>
-                    {msg.sender === 'admin' && (
-                      <div className="flex items-center gap-2 mb-2 pb-2 border-b border-white/5">
-                        <div className="px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300 text-[10px] font-bold border border-purple-500/30 flex items-center gap-1">
-                          <ShieldAlert className="w-3 h-3" /> الدعم الفني
-                        </div>
-                      </div>
-                    )}
-                    <p className="text-sm leading-relaxed whitespace-pre-line">{msg.text}</p>
-                    <p className={`text-[10px] mt-2 ${msg.sender === 'user' ? 'text-blue-200/70' : 'text-white/30'}`}>{msg.time}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Footer (Reply Box - Disabled if closed) */}
-            <div className="p-4 border-t border-white/10 bg-white/5">
-              <div className="flex items-center justify-center p-3 rounded-xl bg-white/5 border border-dashed border-white/10 text-white/40 text-sm gap-2">
-                <XCircle className="w-4 h-4" />
-                {lang === 'ar' ? 'هذه التذكرة مغلقة لا يمكن الرد عليها' : 'This ticket is closed'}
-              </div>
-            </div>
-          </Card>
-        </div>
-      );
-    }
-
-    if (viewMode === 'create') {
-      return (
-        <div className="space-y-4">
-          <Button variant="ghost" className="text-white/50 hover:text-white p-0 h-auto mb-2 gap-2" onClick={() => setViewMode('list')}>
-            {isRTL ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
-            {lang === 'ar' ? 'إلغاء' : 'Cancel'}
-          </Button>
-          <Card className="p-6 bg-white/5 border-white/10 space-y-4">
-            <h3 className="text-white font-bold mb-2">{lang === 'ar' ? 'تذكرة جديدة' : 'New Ticket'}</h3>
-            <div>
-              <label className="block text-white/60 text-sm mb-2">{lang === 'ar' ? 'الموضوع' : 'Subject'}</label>
-              <select className="w-full bg-[#0a0a1a] border border-white/10 rounded-xl p-3 text-white focus:border-cyan-500/50 outline-none">
-                <option>مشكلة في الطلب</option>
-                <option>مشكلة في الرصيد</option>
-                <option>استفسار عام</option>
-                <option>أخرى</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-white/60 text-sm mb-2">{lang === 'ar' ? 'الرسالة' : 'Message'}</label>
-              <textarea className="w-full h-32 bg-[#0a0a1a] border border-white/10 rounded-xl p-3 text-white focus:border-cyan-500/50 outline-none resize-none" placeholder="..." />
-            </div>
-            <Button className="w-full bg-cyan-500 hover:bg-cyan-600 text-white font-bold h-12">
-              {lang === 'ar' ? 'إرسال التذكرة' : 'Submit Ticket'}
-            </Button>
-          </Card>
-        </div>
-      );
-    }
-
-    // List View
-    return (
-      <div className="space-y-4">
-        <Button onClick={() => setViewMode('create')} className="w-full bg-white/5 hover:bg-white/10 border border-white/10 text-white h-12 flex items-center justify-center gap-2 group">
-          <div className="w-6 h-6 rounded-full bg-cyan-500/20 flex items-center justify-center group-hover:bg-cyan-500/30 transition-colors">
-            <Plus className="w-4 h-4 text-cyan-400" />
+      {/* Ticket Form */}
+      <Card className="p-5 bg-white/5 border-white/10 backdrop-blur-sm space-y-4">
+        <h3 className="text-white font-bold text-base flex items-center gap-2">🎫 إرسال تذكرة دعم</h3>
+        <div>
+          <label className="block text-white/60 text-sm mb-2">موضوع التذكرة</label>
+          <div className="grid grid-cols-1 gap-2">
+            {topics.map(tp => (
+              <button key={tp} onClick={() => setTicketTopic(tp)} className={`text-right px-4 py-2.5 rounded-xl border text-sm transition-all ${ticketTopic === tp ? 'bg-cyan-500/20 border-cyan-500/50 text-cyan-400' : 'bg-white/5 border-white/10 text-white/60 hover:bg-white/10'}`}>{tp}</button>
+            ))}
           </div>
-          {lang === 'ar' ? 'إنشاء تذكرة جديدة' : 'Create New Ticket'}
+        </div>
+        <div>
+          <label className="block text-white/60 text-sm mb-2">رسالة المساعدة</label>
+          <textarea value={ticketMessage} onChange={e => setTicketMessage(e.target.value)} placeholder="اكتب رسالتك هنا..." rows={4} className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-white/30 text-sm resize-none focus:outline-none focus:border-cyan-500/50" />
+        </div>
+        {ticketMsg && <div className={`p-3 rounded-xl text-sm ${ticketMsg.type === 'success' ? 'bg-green-500/10 text-green-400 border border-green-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'}`}>{ticketMsg.text}</div>}
+        <Button onClick={handleSubmitTicket} disabled={sendingTicket || !ticketTopic || !ticketMessage.trim()} className="w-full bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700 text-white h-11 disabled:opacity-50">
+          {sendingTicket ? '...' : '📨 إرسال التذكرة'}
         </Button>
+      </Card>
 
+      {/* Tickets List */}
+      {tickets.length > 0 && (
         <div className="space-y-3">
-          {/* Hardcoded Ticket Item */}
-          <Card onClick={() => setViewMode('detail')} className="p-4 bg-white/5 border-white/10 hover:border-white/20 hover:bg-white/10 transition-all cursor-pointer group">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <span className="text-white font-bold text-sm">{mockTicket.subject}</span>
-                <span className="px-1.5 py-0.5 rounded bg-red-500/10 text-red-400 text-[10px] border border-red-500/20">
-                  {lang === 'ar' ? 'مغلقة' : 'Closed'}
+          <h3 className="text-white font-bold text-base">📋 تذاكري</h3>
+          {tickets.map(ticket => (
+            <Card key={ticket._id} className="p-4 bg-white/5 border-white/10 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-white font-medium text-sm">{ticket.topic}</span>
+                <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium border ${ticket.status === 'closed' ? 'bg-green-500/10 text-green-400 border-green-500/30' : 'bg-yellow-500/10 text-yellow-400 border-yellow-500/30'}`}>
+                  {ticket.status === 'closed' ? 'تم الرد ✅' : 'قيد المراجعة ⏳'}
                 </span>
               </div>
-              <span className="text-white/30 text-xs font-mono">{mockTicket.date}</span>
-            </div>
-            <p className="text-white/60 text-xs line-clamp-1">{mockTicket.messages[1].text}</p>
-            <div className="mt-3 flex items-center gap-1 text-white/20 text-[10px]">
-              <ShieldAlert className="w-3 h-3" />
-              <span>تم الرد بواسطة: الدعم الفني</span>
-            </div>
-          </Card>
+              <div className="bg-white/5 rounded-xl p-3 border border-white/5">
+                <p className="text-white/40 text-[10px] mb-1">رسالتك:</p>
+                <p className="text-white/80 text-sm leading-relaxed">{ticket.message}</p>
+              </div>
+              {ticket.adminReply && (
+                <div className="bg-gradient-to-r from-cyan-500/10 to-purple-500/10 rounded-xl p-3 border border-cyan-500/20">
+                  <p className="text-cyan-400 text-[10px] mb-1 font-bold">رد الأدمن:</p>
+                  <p className="text-white text-sm leading-relaxed">{ticket.adminReply}</p>
+                  {ticket.repliedAt && <p className="text-white/25 text-[10px] mt-2">{new Date(ticket.repliedAt).toLocaleString('ar-IQ')}</p>}
+                </div>
+              )}
+              <p className="text-white/20 text-[10px]">{new Date(ticket.createdAt).toLocaleString('ar-IQ')}</p>
+            </Card>
+          ))}
         </div>
-      </div>
-    );
-  };
-
-  return (
-    <div className="p-4 md:p-8 space-y-6 max-w-2xl">
-      <h2 className="font-space text-2xl md:text-3xl text-white tracking-wide">{t.support}</h2>
-
-      {/* Tabs */}
-      <div className="flex p-1 bg-white/5 rounded-xl border border-white/10 w-full mb-6">
-        <button
-          onClick={() => setActiveTab('channels')}
-          className={`flex-1 py-2.5 text-sm font-bold rounded-lg transition-all ${activeTab === 'channels' ? 'bg-white/10 text-white shadow-lg' : 'text-white/40 hover:text-white/60'}`}
-        >
-          {lang === 'ar' ? 'قنوات التواصل' : 'Contact Channels'}
-        </button>
-        <button
-          onClick={() => setActiveTab('tickets')}
-          className={`flex-1 py-2.5 text-sm font-bold rounded-lg transition-all ${activeTab === 'tickets' ? 'bg-blue-500/20 text-blue-400 shadow-lg border border-blue-500/20' : 'text-white/40 hover:text-white/60'}`}
-        >
-          {lang === 'ar' ? 'التذاكر' : 'Tickets'}
-        </button>
-      </div>
-
-      {activeTab === 'channels' ? renderChannels() : renderTickets()}
+      )}
     </div>
   );
 }
+
+
 
 // Terms of Use View
 function TermsView() {

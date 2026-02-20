@@ -66,4 +66,43 @@ router.get('/commission', async (req, res) => {
     }
 });
 
+// Admin: get full referral statistics
+router.get('/admin-stats', async (req, res) => {
+    try {
+        // Total users who have referred someone
+        const referrers = await User.find({ referralEarnings: { $gt: 0 } }).select('username firstName lastName referralEarnings').sort({ referralEarnings: -1 }).limit(20);
+
+        // Total referred users
+        const totalReferred = await User.countDocuments({ referredBy: { $ne: null } });
+
+        // Total commissions paid
+        const totalCommissions = await User.aggregate([{ $group: { _id: null, total: { $sum: '$referralEarnings' } } }]);
+        const totalPaid = totalCommissions.length > 0 ? totalCommissions[0].total : 0;
+
+        // Top referrers with their referral counts
+        const topReferrers = [];
+        for (const ref of referrers) {
+            const count = await User.countDocuments({ referredBy: ref._id });
+            topReferrers.push({
+                username: ref.username,
+                name: `${ref.firstName} ${ref.lastName}`,
+                earnings: ref.referralEarnings,
+                referrals: count,
+            });
+        }
+
+        const commSetting = await Settings.findOne({ key: 'referralCommission' });
+        const commissionRate = commSetting ? commSetting.value : 5;
+
+        res.json({
+            totalReferred,
+            totalPaid: Math.round(totalPaid * 100) / 100,
+            commissionRate,
+            topReferrers,
+        });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 module.exports = router;

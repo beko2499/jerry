@@ -1,73 +1,231 @@
-# React + TypeScript + Vite
+# 🛒 Jerry Store — SMM Panel
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+متجر إلكتروني متكامل لبيع خدمات السوشيال ميديا (SMM) مبني بـ React و Node.js.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 📋 المميزات
 
-## React Compiler
+- 🔐 نظام تسجيل دخول وتحقق بالإيميل
+- 🛍️ عرض الخدمات بأقسام مع بحث ديناميكي
+- 📦 نظام طلبات تلقائي مرتبط بمزودي الخدمات
+- 💳 بوابات دفع متعددة (NowPayments، آسيا سيل)
+- 🎫 نظام تذاكر دعم فني
+- 🔔 إشعارات فورية ومجدولة
+- 👥 نظام إحالات (Referral)
+- 🏷️ كوبونات خصم
+- 🔌 API عام (SMM Panel API v2)
+- 🌐 دعم متعدد اللغات (عربي / إنجليزي)
+- 📱 تصميم متجاوب (Desktop + Mobile)
+- 🛡️ لوحة تحكم إدارية كاملة
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+---
 
-## Expanding the ESLint configuration
+## 🏗️ هيكل المشروع
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```
+jerry-store/
+│
+├── index.html                 # نقطة دخول التطبيق
+├── package.json               # اعتماديات الفرونت اند
+├── vite.config.ts             # إعدادات Vite
+├── tailwind.config.js         # إعدادات Tailwind CSS
+├── render.yaml                # إعدادات النشر على Render
+│
+├── src/                       # ===== الفرونت اند (React + TypeScript) =====
+│   ├── main.tsx               # نقطة بداية React
+│   ├── App.tsx                # المكون الرئيسي + التوجيه (Routing)
+│   ├── App.css                # أنماط التطبيق
+│   ├── index.css              # أنماط عامة
+│   │
+│   ├── contexts/              # سياقات React (State Management)
+│   │   ├── AuthContext.tsx     # إدارة تسجيل الدخول والمصادقة
+│   │   └── LanguageContext.tsx # إدارة اللغات والترجمة
+│   │
+│   ├── hooks/                 # React Hooks مخصصة
+│   │   ├── use-mobile.ts      # كشف شاشة الموبايل
+│   │   └── useDetectKeyboard.ts # كشف لوحة المفاتيح
+│   │
+│   ├── components/            # المكونات
+│   │   ├── ui/                # مكونات UI الأساسية (shadcn/ui)
+│   │   ├── custom/            # مكونات مخصصة للمشروع
+│   │   │   ├── Header.tsx     # الهيدر العلوي
+│   │   │   ├── Sidebar.tsx    # الشريط الجانبي
+│   │   │   ├── ServicesList.tsx    # قائمة الخدمات
+│   │   │   └── CategoryBrowser.tsx # تصفح الأقسام
+│   │   ├── Logo.tsx           # مكون اللوجو
+│   │   └── Starfield.tsx      # خلفية النجوم المتحركة
+│   │
+│   ├── sections/              # صفحات التطبيق
+│   │   ├── LandingPage.tsx    # الصفحة الرئيسية
+│   │   ├── AuthPage.tsx       # تسجيل الدخول / إنشاء حساب
+│   │   ├── Dashboard.tsx      # لوحة تحكم المستخدم (طلبات، إعدادات، API، دعم)
+│   │   │
+│   │   └── Admin/             # ===== لوحة تحكم الأدمن =====
+│   │       ├── AdminLogin.tsx      # تسجيل دخول الأدمن
+│   │       ├── AdminDashboard.tsx  # لوحة التحكم الرئيسية
+│   │       ├── components/         # مكونات الأدمن
+│   │       │   ├── AdminHeader.tsx # هيدر الأدمن
+│   │       │   └── AdminSidebar.tsx # الشريط الجانبي للأدمن
+│   │       └── views/              # صفحات الأدمن
+│   │           ├── StatsView.tsx          # الإحصائيات والرسوم البيانية
+│   │           ├── ServicesView.tsx       # إدارة الخدمات
+│   │           ├── ProvidersView.tsx      # إدارة المزودين
+│   │           ├── GatewaysView.tsx       # بوابات الدفع
+│   │           ├── CouponsView.tsx        # إدارة الكوبونات
+│   │           ├── NotificationsView.tsx  # إدارة الإشعارات
+│   │           ├── ContentView.tsx        # محتوى الصفحات (شروط، تحديثات)
+│   │           ├── SupportView.tsx        # إدارة المستخدمين
+│   │           ├── TicketsView.tsx        # إدارة تذاكر الدعم
+│   │           └── AdminSettingsView.tsx  # إعدادات النظام
+│   │
+│   └── lib/                   # مكتبات مساعدة
+│       └── utils.ts           # دوال مساعدة عامة
+│
+├── server/                    # ===== الباك اند (Node.js + Express) =====
+│   ├── index.js               # نقطة بداية السيرفر + المزامنة التلقائية
+│   ├── package.json           # اعتماديات الباك اند
+│   ├── seed.js                # بيانات أولية للقاعدة
+│   ├── .env                   # متغيرات البيئة (لا يُرفع على Git)
+│   │
+│   ├── models/                # نماذج قاعدة البيانات (Mongoose)
+│   │   ├── User.js            # المستخدمين
+│   │   ├── Service.js         # الخدمات
+│   │   ├── Category.js        # الأقسام
+│   │   ├── Order.js           # الطلبات
+│   │   ├── Provider.js        # مزودي الخدمات
+│   │   ├── Gateway.js         # بوابات الدفع
+│   │   ├── Coupon.js          # الكوبونات
+│   │   ├── Notification.js    # الإشعارات
+│   │   ├── Ticket.js          # تذاكر الدعم
+│   │   ├── Transaction.js     # المعاملات المالية
+│   │   └── Settings.js        # إعدادات النظام
+│   │
+│   ├── routes/                # مسارات API
+│   │   ├── auth.js            # تسجيل / دخول / تحقق إيميل
+│   │   ├── services.js        # CRUD الخدمات
+│   │   ├── categories.js      # CRUD الأقسام
+│   │   ├── orders.js          # إنشاء واسترجاع الطلبات
+│   │   ├── providers.js       # إدارة المزودين + استيراد خدمات
+│   │   ├── gateways.js        # بوابات الدفع
+│   │   ├── coupons.js         # كوبونات الخصم
+│   │   ├── notifications.js   # الإشعارات
+│   │   ├── tickets.js         # تذاكر الدعم
+│   │   ├── referrals.js       # نظام الإحالات
+│   │   ├── stats.js           # إحصائيات الأدمن
+│   │   ├── settings.js        # إعدادات النظام
+│   │   ├── upload.js          # رفع الملفات
+│   │   ├── nowpayments.js     # بوابة NowPayments
+│   │   ├── asiacell.js        # بوابة آسيا سيل
+│   │   └── apiv2.js           # API العام (SMM Panel v2)
+│   │
+│   └── utils/                 # أدوات مساعدة
+│       ├── smmApi.js          # عميل SMM API للتواصل مع المزودين
+│       ├── email.js           # إرسال الإيميلات (SMTP)
+│       └── referral.js        # حسابات مكافآت الإحالة
+│
+└── public/                    # ملفات ثابتة
+    └── vite.svg               # أيقونة
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+---
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## ⚙️ التقنيات المستخدمة
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+| الطبقة | التقنية |
+|--------|---------|
+| **Frontend** | React 19, TypeScript, Vite 7, Tailwind CSS 3 |
+| **UI Kit** | shadcn/ui (40+ مكون) |
+| **Backend** | Node.js 20, Express.js |
+| **Database** | MongoDB + Mongoose |
+| **Deployment** | Render / VPS (PM2) |
+
+---
+
+## 🚀 التشغيل المحلي
+
+### 1. الفرونت اند
+
+```bash
+# تثبيت الاعتماديات
+npm install
+
+# تشغيل بيئة التطوير
+npm run dev
 ```
+
+### 2. الباك اند
+
+```bash
+cd server
+
+# تثبيت الاعتماديات
+npm install
+
+# إنشاء ملف البيئة
+cp .env.example .env
+# عدّل الملف بإعدادات MongoDB والـ JWT وغيرها
+
+# تشغيل السيرفر
+node index.js
+```
+
+### 3. متغيرات البيئة (`server/.env`)
+
+```env
+MONGO_URI=mongodb://localhost:27017/jerry
+PORT=5000
+JWT_SECRET=your_jwt_secret_here
+```
+
+وفي الفرونت اند أنشئ ملف `.env`:
+
+```env
+VITE_API_URL=http://localhost:5000/api
+```
+
+---
+
+## 🌐 النشر (Deployment)
+
+### على VPS (Linux)
+
+```bash
+# بناء الفرونت اند
+npm run build
+
+# تشغيل الباك اند بـ PM2
+cd server
+pm2 start index.js --name jerry-api
+
+# الملفات المبنية في dist/ تُقدم عبر Nginx
+```
+
+### على Render
+
+الملف `render.yaml` يحتوي على إعدادات النشر الجاهزة.
+
+---
+
+## 🔌 API العام (SMM Panel v2)
+
+يدعم المتجر API عام متوافق مع معيار SMM Panel API v2:
+
+**Endpoint:** `https://yoursite.com/api/v2`
+
+| الأكشن | الوصف |
+|--------|-------|
+| `services` | عرض قائمة الخدمات |
+| `add` | إضافة طلب جديد |
+| `status` | حالة طلب واحد |
+| `balance` | رصيد الحساب |
+| `cancel` | إلغاء طلب |
+| `refill` | إعادة تعبئة طلب |
+
+التوثيق الكامل متوفر في صفحة API داخل إعدادات المستخدم.
+
+---
+
+## 📄 الرخصة
+
+هذا المشروع مملوك وغير مفتوح المصدر. جميع الحقوق محفوظة.

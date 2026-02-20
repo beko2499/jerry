@@ -11,11 +11,16 @@ interface LandingPageProps {
 
 export default function LandingPage({ onEnter }: LandingPageProps) {
   const [isLoaded, setIsLoaded] = useState(false);
+  const [animStage, setAnimStage] = useState(0);
   const { lang, t, isRTL, toggleLanguage } = useLanguage();
 
   useEffect(() => {
     setIsLoaded(true);
-  }, []);
+    setAnimStage(0);
+    const t1 = setTimeout(() => setAnimStage(1), 800);
+    const t2 = setTimeout(() => setAnimStage(2), 1500);
+    return () => { clearTimeout(t1); clearTimeout(t2); };
+  }, [lang]);
 
   return (
     <div className="relative min-h-screen w-full overflow-hidden bg-[#0a0a1a]">
@@ -64,10 +69,30 @@ export default function LandingPage({ onEnter }: LandingPageProps) {
 
       {/* Main Content */}
       <main className="relative z-10 flex flex-col items-center justify-center min-h-[calc(100vh-120px)] px-4">
-        {/* Hero Title */}
-        <div className={`text-center transition-all duration-1000 delay-300 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-          <h1 className={`${isRTL ? 'font-arabic tracking-normal pb-4' : 'font-space tracking-wider'} text-7xl md:text-9xl lg:text-[10rem] font-black mb-8`}>
-            <span className="bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 bg-clip-text text-transparent drop-shadow-[0_0_40px_rgba(123,44,191,0.6)] animate-gradient-x py-2">
+        {/* Animated Hero Title */}
+        <div className={`relative inline-block text-center mb-8 transition-all duration-1000 delay-300 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+          {/* The Helmet */}
+          <div
+            className="absolute top-1/2 z-20 pointer-events-none transition-all ease-in-out"
+            style={{
+              transitionDuration: animStage === 2 ? '1500ms' : '500ms',
+              [isRTL ? 'right' : 'left']: animStage < 2 ? '0%' : '100%',
+              transform: `translate(${isRTL ? '50%' : '-50%'}, -50%) scale(${animStage === 0 ? 0 : 1})`,
+              opacity: animStage === 0 ? 0 : 1
+            }}
+          >
+            <img src="/helmet.png" alt="Helmet" className="w-24 h-24 md:w-32 md:h-32 lg:w-48 lg:h-48 drop-shadow-[0_0_30px_rgba(255,255,255,0.4)] object-contain" />
+          </div>
+
+          <h1
+            className={`${isRTL ? 'font-arabic tracking-normal pb-4' : 'font-space tracking-wider'} text-7xl md:text-9xl lg:text-[10rem] font-black transition-all ease-in-out`}
+            style={{
+              transitionDuration: '1500ms',
+              clipPath: animStage < 2 ? (isRTL ? 'inset(0 0 0 100%)' : 'inset(0 100% 0 0)') : 'inset(0 0 0 0)',
+              WebkitClipPath: animStage < 2 ? (isRTL ? 'inset(0 0 0 100%)' : 'inset(0 100% 0 0)') : 'inset(0 0 0 0)'
+            }}
+          >
+            <span className="bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 bg-clip-text text-transparent drop-shadow-[0_0_40px_rgba(123,44,191,0.6)] animate-gradient-x py-2 whitespace-nowrap px-4 md:px-8">
               {t.hero}
             </span>
           </h1>

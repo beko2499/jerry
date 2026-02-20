@@ -1893,11 +1893,24 @@ function SupportView() {
       <Card className="p-5 bg-white/5 border-white/10 backdrop-blur-sm space-y-4">
         <h3 className="text-white font-bold text-base flex items-center gap-2">🎫 إرسال تذكرة دعم</h3>
         <div>
-          <label className="block text-white/60 text-sm mb-2">موضوع التذكرة</label>
-          <div className="grid grid-cols-1 gap-2">
-            {topics.map(tp => (
-              <button key={tp} onClick={() => setTicketTopic(tp)} className={`text-right px-4 py-2.5 rounded-xl border text-sm transition-all ${ticketTopic === tp ? 'bg-cyan-500/20 border-cyan-500/50 text-cyan-400' : 'bg-white/5 border-white/10 text-white/60 hover:bg-white/10'}`}>{tp}</button>
-            ))}
+          <label className="block text-white/60 text-sm mb-2">{t.ticketSubject || 'موضوع التذكرة'}</label>
+          <div className="relative">
+            <select
+              value={ticketTopic}
+              onChange={e => setTicketTopic(e.target.value)}
+              className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-cyan-500/50 appearance-none"
+              style={{ paddingInlineEnd: '2.5rem' }}
+            >
+              <option value="" disabled className="bg-[#0a0a1a] text-white/50">{lang === 'ar' ? 'اختر الموضوع...' : 'Select a topic...'}</option>
+              {topics.map(tp => (
+                <option key={tp} value={tp} className="bg-[#0a0a1a] text-white">
+                  {tp}
+                </option>
+              ))}
+            </select>
+            <div className={`absolute top-1/2 -translate-y-1/2 pointer-events-none text-white/50 ${lang === 'ar' ? 'left-4' : 'right-4'}`}>
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+            </div>
           </div>
         </div>
         <div>

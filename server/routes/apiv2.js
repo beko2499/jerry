@@ -53,11 +53,14 @@ router.all('/', async (req, res) => {
         if (!action) return res.json({ error: 'Action is required' });
         if (!key && action !== 'services') return res.json({ error: 'API key is required' });
 
-        // Authenticate
+        // Authenticate (skip for services action)
         let user = null;
-        if (key) {
+        if (key && action !== 'services') {
             user = await authByKey(key);
             if (!user) return res.json({ error: 'Invalid API key' });
+        } else if (key && action === 'services') {
+            // Services action: try to authenticate but don't fail if key is invalid
+            user = await authByKey(key);
         }
 
         // ========== SERVICES ==========

@@ -820,61 +820,248 @@ function SettingsView({ defaultTab = 'referral' }: { defaultTab?: 'settings' | '
         </div>
       )}
 
-      {tab === 'api' && (
-        <div className="max-w-lg space-y-4">
-          <Card className="p-5 bg-white/5 border-white/10 backdrop-blur-sm">
-            <div className="flex items-start gap-3 mb-4">
-              <div className="w-10 h-10 rounded-xl bg-cyan-500/20 flex items-center justify-center text-lg shrink-0">🔑</div>
-              <div>
-                <h3 className="text-white font-bold text-sm">API</h3>
-                <p className="text-white/50 text-xs mt-1">استخدم مفتاح API لربط خدماتنا مع موقعك</p>
-              </div>
-            </div>
-
-            {/* API Key */}
-            <div>
-              <label className="block text-white/40 text-xs mb-2">الرمز الخاص بك</label>
-              <div className="flex items-center gap-2">
-                <div className="flex-1 px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white/70 text-sm font-mono truncate" dir="ltr">
-                  {apiKey ? (showApiKey ? apiKey : apiKey.substring(0, 10) + '...' + apiKey.substring(apiKey.length - 6)) : '...'}
+      {tab === 'api' && (() => {
+        const apiBase = window.location.origin.replace(/:\d+$/, '').replace('http://', 'https://') + '/api/v2';
+        return (
+          <div className="max-w-2xl space-y-4">
+            {/* API Key Card */}
+            <Card className="p-5 bg-white/5 border-white/10 backdrop-blur-sm">
+              <div className="flex items-start gap-3 mb-4">
+                <div className="w-10 h-10 rounded-xl bg-cyan-500/20 flex items-center justify-center text-lg shrink-0">🔑</div>
+                <div>
+                  <h3 className="text-white font-bold text-sm">API</h3>
+                  <p className="text-white/50 text-xs mt-1">استخدم مفتاح API لربط خدماتنا مع موقعك</p>
                 </div>
-                <button onClick={() => setShowApiKey(!showApiKey)} className="px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all shrink-0">
-                  <span className="text-white/40 text-sm">{showApiKey ? '🙈' : '👁️'}</span>
-                </button>
-                <button onClick={() => { try { navigator.clipboard.writeText(apiKey); } catch { const ta = document.createElement('textarea'); ta.value = apiKey; ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); } setApiCopied(true); setTimeout(() => setApiCopied(false), 2000); }} className="px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all shrink-0">
-                  {apiCopied ? <span className="text-green-400 text-sm">✅</span> : <span className="text-white/40 text-sm">📋</span>}
-                </button>
               </div>
+              <div>
+                <label className="block text-white/40 text-xs mb-2">الرمز الخاص بك</label>
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white/70 text-sm font-mono truncate" dir="ltr">
+                    {apiKey ? (showApiKey ? apiKey : apiKey.substring(0, 10) + '...' + apiKey.substring(apiKey.length - 6)) : '...'}
+                  </div>
+                  <button onClick={() => setShowApiKey(!showApiKey)} className="px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all shrink-0">
+                    <span className="text-white/40 text-sm">{showApiKey ? '🙈' : '👁️'}</span>
+                  </button>
+                  <button onClick={() => { try { navigator.clipboard.writeText(apiKey); } catch { const ta = document.createElement('textarea'); ta.value = apiKey; ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); } setApiCopied(true); setTimeout(() => setApiCopied(false), 2000); }} className="px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all shrink-0">
+                    {apiCopied ? <span className="text-green-400 text-sm">✅</span> : <span className="text-white/40 text-sm">📋</span>}
+                  </button>
+                </div>
+              </div>
+              <button
+                onClick={async () => {
+                  setRegenerating(true);
+                  try {
+                    const res = await fetch(`${API_URL}/v2/generate-key`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId: user?._id }) });
+                    const data = await res.json();
+                    if (data.apiKey) setApiKey(data.apiKey);
+                  } catch (e) { console.error(e); }
+                  setRegenerating(false);
+                }}
+                disabled={regenerating}
+                className="mt-3 w-full py-2.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm font-medium hover:bg-red-500/20 transition-all"
+              >
+                {regenerating ? '...' : 'تغيير الرمز المميز'}
+              </button>
+            </Card>
+
+            {/* API Endpoint */}
+            <Card className="p-5 bg-white/5 border-white/10 backdrop-blur-sm">
+              <h3 className="text-white font-bold text-sm mb-3">📡 عنوان API</h3>
+              <div className="px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-cyan-400 text-sm font-mono" dir="ltr">
+                {apiBase}
+              </div>
+              <p className="text-white/30 text-xs mt-2">استخدم هذا العنوان مع المفتاح للوصول إلى خدماتنا عبر API</p>
+            </Card>
+
+            {/* ====== API DOCUMENTATION ====== */}
+            <div className="pt-2">
+              <h3 className="text-white font-bold text-lg mb-4 flex items-center gap-2">📖 توثيق API</h3>
             </div>
 
-            {/* Regenerate */}
-            <button
-              onClick={async () => {
-                setRegenerating(true);
-                try {
-                  const res = await fetch(`${API_URL}/v2/generate-key`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId: user?._id }) });
-                  const data = await res.json();
-                  if (data.apiKey) setApiKey(data.apiKey);
-                } catch (e) { console.error(e); }
-                setRegenerating(false);
-              }}
-              disabled={regenerating}
-              className="mt-3 w-full py-2.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm font-medium hover:bg-red-500/20 transition-all"
-            >
-              {regenerating ? '...' : 'تغيير الرمز المميز'}
-            </button>
-          </Card>
+            {/* Service List */}
+            <Card className="p-5 bg-white/5 border-white/10 backdrop-blur-sm">
+              <h4 className="text-cyan-400 font-bold text-sm mb-1 flex items-center gap-2">📋 قائمة الخدمات — Service list</h4>
+              <p className="text-white/40 text-xs mb-3">استخدم هذه الطريقة للحصول على قائمة الخدمات</p>
+              <div className="mb-3">
+                <p className="text-white/50 text-xs mb-1">طلب عينة:</p>
+                <div className="bg-black/40 rounded-lg px-3 py-2 text-xs font-mono text-green-400 break-all" dir="ltr">
+                  {apiBase}?action=services&key=yourKey
+                </div>
+              </div>
+              <div className="mb-3">
+                <p className="text-white/50 text-xs mb-1">عينة الاستجابة:</p>
+                <pre className="bg-black/40 rounded-lg px-3 py-2 text-xs font-mono text-yellow-300 overflow-x-auto" dir="ltr">{`[
+  {
+    "service": 1,
+    "name": "Followers",
+    "type": "default",
+    "category": "Instagram",
+    "rate": "100.00",
+    "min": 10,
+    "max": 15000,
+    "refill": false,
+    "cancel": false
+  }
+]`}</pre>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead><tr className="text-white/40 border-b border-white/10"><th className="text-right py-1.5 px-2">الحقل</th><th className="text-right py-1.5 px-2">النوع</th><th className="text-right py-1.5 px-2">الوصف</th></tr></thead>
+                  <tbody className="text-white/60">
+                    <tr className="border-b border-white/5"><td className="py-1.5 px-2 font-mono text-cyan-400">service</td><td className="py-1.5 px-2">Integer</td><td className="py-1.5 px-2">هوية الخدمة</td></tr>
+                    <tr className="border-b border-white/5"><td className="py-1.5 px-2 font-mono text-cyan-400">name</td><td className="py-1.5 px-2">String</td><td className="py-1.5 px-2">اسم الخدمة</td></tr>
+                    <tr className="border-b border-white/5"><td className="py-1.5 px-2 font-mono text-cyan-400">category</td><td className="py-1.5 px-2">String</td><td className="py-1.5 px-2">الصنف</td></tr>
+                    <tr className="border-b border-white/5"><td className="py-1.5 px-2 font-mono text-cyan-400">rate</td><td className="py-1.5 px-2">Double</td><td className="py-1.5 px-2">السعر لكل 1000</td></tr>
+                    <tr className="border-b border-white/5"><td className="py-1.5 px-2 font-mono text-cyan-400">min</td><td className="py-1.5 px-2">Integer</td><td className="py-1.5 px-2">أقل كمية</td></tr>
+                    <tr><td className="py-1.5 px-2 font-mono text-cyan-400">max</td><td className="py-1.5 px-2">Integer</td><td className="py-1.5 px-2">أقصى كمية</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </Card>
 
-          {/* API Endpoint Info */}
-          <Card className="p-5 bg-white/5 border-white/10 backdrop-blur-sm">
-            <h3 className="text-white font-bold text-sm mb-3">📡 عنوان API</h3>
-            <div className="px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-cyan-400 text-sm font-mono" dir="ltr">
-              {window.location.origin.replace(/:\d+$/, '').replace('http://', 'https://')}/api/v2
-            </div>
-            <p className="text-white/30 text-xs mt-2">استخدم هذا العنوان مع المفتاح للوصول إلى خدماتنا عبر API</p>
-          </Card>
-        </div>
-      )}
+            {/* Add Order */}
+            <Card className="p-5 bg-white/5 border-white/10 backdrop-blur-sm">
+              <h4 className="text-green-400 font-bold text-sm mb-1 flex items-center gap-2">🛒 إنشاء طلب — Add order</h4>
+              <p className="text-white/40 text-xs mb-3">استخدم هذه الطريقة لإنشاء طلب جديد</p>
+              <div className="mb-3">
+                <p className="text-white/50 text-xs mb-1">طلب عينة:</p>
+                <div className="bg-black/40 rounded-lg px-3 py-2 text-xs font-mono text-green-400 break-all" dir="ltr">
+                  {apiBase}?action=add&service=1&link=instagram.com/username&quantity=100&key=yourKey
+                </div>
+              </div>
+              <div className="mb-3">
+                <p className="text-white/50 text-xs mb-1">عينة الاستجابة:</p>
+                <pre className="bg-black/40 rounded-lg px-3 py-2 text-xs font-mono text-yellow-300" dir="ltr">{`{
+  "order": 10001
+}`}</pre>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead><tr className="text-white/40 border-b border-white/10"><th className="text-right py-1.5 px-2">المعامل</th><th className="text-right py-1.5 px-2">النوع</th><th className="text-right py-1.5 px-2">الوصف</th></tr></thead>
+                  <tbody className="text-white/60">
+                    <tr className="border-b border-white/5"><td className="py-1.5 px-2 font-mono text-green-400">service</td><td className="py-1.5 px-2">Integer</td><td className="py-1.5 px-2">هوية الخدمة</td></tr>
+                    <tr className="border-b border-white/5"><td className="py-1.5 px-2 font-mono text-green-400">link</td><td className="py-1.5 px-2">String</td><td className="py-1.5 px-2">رابط الحساب / المنشور</td></tr>
+                    <tr><td className="py-1.5 px-2 font-mono text-green-400">quantity</td><td className="py-1.5 px-2">Integer</td><td className="py-1.5 px-2">الكمية المطلوبة</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </Card>
+
+            {/* Order Status */}
+            <Card className="p-5 bg-white/5 border-white/10 backdrop-blur-sm">
+              <h4 className="text-purple-400 font-bold text-sm mb-1 flex items-center gap-2">📊 حالة الطلب — Order status</h4>
+              <p className="text-white/40 text-xs mb-3">استخدم هذه الطريقة للحصول على معلومات حول الطلب</p>
+              <div className="mb-3">
+                <p className="text-white/50 text-xs mb-1">طلب عينة:</p>
+                <div className="bg-black/40 rounded-lg px-3 py-2 text-xs font-mono text-green-400 break-all" dir="ltr">
+                  {apiBase}?action=status&order=10001&key=yourKey
+                </div>
+              </div>
+              <div className="mb-3">
+                <p className="text-white/50 text-xs mb-1">عينة الاستجابة:</p>
+                <pre className="bg-black/40 rounded-lg px-3 py-2 text-xs font-mono text-yellow-300" dir="ltr">{`{
+  "charge": "0.27819",
+  "start_count": "0",
+  "status": "In progress",
+  "remains": "0",
+  "currency": "USD"
+}`}</pre>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead><tr className="text-white/40 border-b border-white/10"><th className="text-right py-1.5 px-2">الحقل</th><th className="text-right py-1.5 px-2">النوع</th><th className="text-right py-1.5 px-2">الوصف</th></tr></thead>
+                  <tbody className="text-white/60">
+                    <tr className="border-b border-white/5"><td className="py-1.5 px-2 font-mono text-purple-400">charge</td><td className="py-1.5 px-2">Double</td><td className="py-1.5 px-2">المبلغ المصروف</td></tr>
+                    <tr className="border-b border-white/5"><td className="py-1.5 px-2 font-mono text-purple-400">status</td><td className="py-1.5 px-2">String</td><td className="py-1.5 px-2">In progress, Completed, Awaiting, Canceled, Partial</td></tr>
+                    <tr className="border-b border-white/5"><td className="py-1.5 px-2 font-mono text-purple-400">remains</td><td className="py-1.5 px-2">Integer</td><td className="py-1.5 px-2">الكمية المتبقية</td></tr>
+                    <tr><td className="py-1.5 px-2 font-mono text-purple-400">currency</td><td className="py-1.5 px-2">String</td><td className="py-1.5 px-2">العملة</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </Card>
+
+            {/* Multiple Status */}
+            <Card className="p-5 bg-white/5 border-white/10 backdrop-blur-sm">
+              <h4 className="text-purple-400 font-bold text-sm mb-1 flex items-center gap-2">📊 حالة طلبات متعددة — Multiple status</h4>
+              <p className="text-white/40 text-xs mb-3">استخدم هذه الطريقة للحصول على حالة عدة طلبات</p>
+              <div className="mb-3">
+                <p className="text-white/50 text-xs mb-1">طلب عينة:</p>
+                <div className="bg-black/40 rounded-lg px-3 py-2 text-xs font-mono text-green-400 break-all" dir="ltr">
+                  {apiBase}?action=status&orders=10001,10002,10003&key=yourKey
+                </div>
+              </div>
+              <div>
+                <p className="text-white/50 text-xs mb-1">عينة الاستجابة:</p>
+                <pre className="bg-black/40 rounded-lg px-3 py-2 text-xs font-mono text-yellow-300 overflow-x-auto" dir="ltr">{`{
+  "10001": {
+    "charge": "0.27",
+    "start_count": "0",
+    "status": "Completed",
+    "remains": "0",
+    "currency": "USD"
+  },
+  "10002": "Incorrect order ID"
+}`}</pre>
+              </div>
+            </Card>
+
+            {/* Balance */}
+            <Card className="p-5 bg-white/5 border-white/10 backdrop-blur-sm">
+              <h4 className="text-yellow-400 font-bold text-sm mb-1 flex items-center gap-2">💰 الرصيد — Balance</h4>
+              <p className="text-white/40 text-xs mb-3">استخدم هذه الطريقة لاسترداد رصيد حسابك</p>
+              <div className="mb-3">
+                <p className="text-white/50 text-xs mb-1">طلب عينة:</p>
+                <div className="bg-black/40 rounded-lg px-3 py-2 text-xs font-mono text-green-400 break-all" dir="ltr">
+                  {apiBase}?action=balance&key=yourKey
+                </div>
+              </div>
+              <div>
+                <p className="text-white/50 text-xs mb-1">عينة الاستجابة:</p>
+                <pre className="bg-black/40 rounded-lg px-3 py-2 text-xs font-mono text-yellow-300" dir="ltr">{`{
+  "balance": "99.80",
+  "currency": "USD"
+}`}</pre>
+              </div>
+            </Card>
+
+            {/* Refill */}
+            <Card className="p-5 bg-white/5 border-white/10 backdrop-blur-sm">
+              <h4 className="text-blue-400 font-bold text-sm mb-1 flex items-center gap-2">🔄 إعادة تعبئة — Refill</h4>
+              <p className="text-white/40 text-xs mb-3">استخدم هذه الطريقة لإنشاء إعادة تعبئة للطلب</p>
+              <div className="mb-3">
+                <p className="text-white/50 text-xs mb-1">طلب عينة:</p>
+                <div className="bg-black/40 rounded-lg px-3 py-2 text-xs font-mono text-green-400 break-all" dir="ltr">
+                  {apiBase}?action=refill&order=10001&key=yourKey
+                </div>
+              </div>
+              <div>
+                <p className="text-white/50 text-xs mb-1">عينة الاستجابة:</p>
+                <pre className="bg-black/40 rounded-lg px-3 py-2 text-xs font-mono text-yellow-300" dir="ltr">{`{
+  "refill": 1
+}`}</pre>
+              </div>
+            </Card>
+
+            {/* Cancel */}
+            <Card className="p-5 bg-white/5 border-white/10 backdrop-blur-sm">
+              <h4 className="text-red-400 font-bold text-sm mb-1 flex items-center gap-2">❌ إلغاء الطلب — Cancel</h4>
+              <p className="text-white/40 text-xs mb-3">استخدم هذه الطريقة لإلغاء طلب واسترداد المبلغ</p>
+              <div className="mb-3">
+                <p className="text-white/50 text-xs mb-1">طلب عينة:</p>
+                <div className="bg-black/40 rounded-lg px-3 py-2 text-xs font-mono text-green-400 break-all" dir="ltr">
+                  {apiBase}?action=cancel&order=10001&key=yourKey
+                </div>
+              </div>
+              <div>
+                <p className="text-white/50 text-xs mb-1">عينة الاستجابة:</p>
+                <pre className="bg-black/40 rounded-lg px-3 py-2 text-xs font-mono text-yellow-300" dir="ltr">{`{
+  "ok": true
+}`}</pre>
+              </div>
+            </Card>
+          </div>
+        );
+      })()}
     </div>
   );
 }

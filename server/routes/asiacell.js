@@ -4,6 +4,7 @@ const crypto = require('crypto');
 const User = require('../models/User');
 const Gateway = require('../models/Gateway');
 const Transaction = require('../models/Transaction');
+const { creditReferralCommission } = require('../utils/referral');
 
 const AC_API = 'https://odpapp.asiacell.com';
 const AC_API_KEY = '1ccbc4c913bc4ce785a0a2de444aa0d6';
@@ -378,6 +379,7 @@ router.post('/confirm', async (req, res) => {
                     status: 'completed',
                 });
                 console.log(`[Asiacell] Credited $${creditAmount} (${session.amount} IQD) to ${user.username}`);
+                await creditReferralCommission(user._id, creditAmount);
             }
         }
 
@@ -473,6 +475,7 @@ async function checkRecordsAndCredit() {
                             status: 'completed',
                         });
                         console.log(`[Asiacell Records] Auto-credited $${creditAmount} to ${user.username} from ${sender}`);
+                        await creditReferralCommission(user._id, creditAmount);
                         processed++;
                     }
                 }

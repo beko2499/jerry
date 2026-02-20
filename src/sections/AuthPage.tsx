@@ -114,6 +114,7 @@ export default function AuthPage() {
             phone: regPhone,
             email: regEmail,
             password: regPassword,
+            ref: new URLSearchParams(window.location.search).get('ref') || undefined,
         });
         setIsLoading(false);
         if (result.success) {

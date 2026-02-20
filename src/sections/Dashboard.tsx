@@ -651,52 +651,42 @@ function ServiceDetailsView({ serviceId, serviceData, onBack }: ServiceDetailsVi
 function SettingsView() {
   const { t } = useLanguage();
   const { user, refreshUser } = useAuth();
+  const [tab, setTab] = useState<'settings' | 'referral'>('referral');
   const [email, setEmail] = useState(user?.email || '');
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [saving, setSaving] = useState(false);
+  // Referral states
+  const [refStats, setRefStats] = useState<{ referralCode: string; totalReferrals: number; totalEarnings: number; commissionRate: number } | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    if (user?._id) {
+      fetch(`${API_URL}/referrals/stats/${user._id}`)
+        .then(r => r.json())
+        .then(data => { if (data.referralCode) setRefStats(data); })
+        .catch(console.error);
+    }
+  }, [user?._id]);
 
   const handleSave = async () => {
     setMessage(null);
-    if (newPassword && newPassword !== confirmPassword) {
-      setMessage({ type: 'error', text: 'كلمات المرور غير متطابقة' });
-      return;
-    }
-    if (newPassword && !currentPassword) {
-      setMessage({ type: 'error', text: 'يرجى إدخال كلمة المرور الحالية' });
-      return;
-    }
-    if (!email && !newPassword) {
-      setMessage({ type: 'error', text: 'لا توجد تغييرات لحفظها' });
-      return;
-    }
+    if (newPassword && newPassword !== confirmPassword) { setMessage({ type: 'error', text: 'كلمات المرور غير متطابقة' }); return; }
+    if (newPassword && !currentPassword) { setMessage({ type: 'error', text: 'يرجى إدخال كلمة المرور الحالية' }); return; }
+    if (!email && !newPassword) { setMessage({ type: 'error', text: 'لا توجد تغييرات لحفظها' }); return; }
     setSaving(true);
     try {
       const body: any = {};
       if (email !== user?.email) body.email = email;
       if (newPassword) { body.newPassword = newPassword; body.currentPassword = currentPassword; }
       else if (currentPassword) body.currentPassword = currentPassword;
-
-      if (Object.keys(body).length === 0) {
-        setMessage({ type: 'error', text: 'لا توجد تغييرات لحفظها' });
-        setSaving(false);
-        return;
-      }
-
-      const res = await fetch(`${API_URL}/auth/profile/${user?._id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      });
+      if (Object.keys(body).length === 0) { setMessage({ type: 'error', text: 'لا توجد تغييرات لحفظها' }); setSaving(false); return; }
+      const res = await fetch(`${API_URL}/auth/profile/${user?._id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
       const data = await res.json();
       if (!res.ok) {
-        const errMap: Record<string, string> = {
-          wrong_password: 'كلمة المرور الحالية غير صحيحة',
-          email_exists: 'البريد الإلكتروني مستخدم بالفعل',
-          current_password_required: 'يرجى إدخال كلمة المرور الحالية',
-        };
+        const errMap: Record<string, string> = { wrong_password: 'كلمة المرور الحالية غير صحيحة', email_exists: 'البريد الإلكتروني مستخدم بالفعل', current_password_required: 'يرجى إدخال كلمة المرور الحالية' };
         setMessage({ type: 'error', text: errMap[data.error] || data.error });
       } else {
         setMessage({ type: 'success', text: 'تم حفظ التغييرات بنجاح ✅' });
@@ -707,59 +697,112 @@ function SettingsView() {
     setSaving(false);
   };
 
+  const siteUrl = window.location.origin;
+  const refLink = refStats ? `${siteUrl}/?ref=${refStats.referralCode}` : '';
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(refLink);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
   return (
     <div className="p-4 md:p-8">
-      <h2 className="font-space text-xl md:text-2xl text-white mb-6 tracking-wide">{t.settings}</h2>
-      <Card className="p-5 md:p-8 bg-white/5 border-white/10 max-w-lg backdrop-blur-sm">
-        <div className="space-y-5">
-          {/* Username (read-only) */}
-          <div>
-            <label className="block font-body text-white/50 text-sm mb-1.5">{t.username}</label>
-            <div className="px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white/40 text-sm font-mono">
-              @{user?.username}
+      <h2 className="font-space text-xl md:text-2xl text-white mb-4 tracking-wide">{t.settings}</h2>
+
+      {/* Tabs */}
+      <div className="flex gap-2 mb-6">
+        <button onClick={() => setTab('referral')} className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${tab === 'referral' ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30' : 'bg-white/5 text-white/50 border border-white/10 hover:bg-white/10'}`}>
+          نظام الاحالة
+        </button>
+        <button onClick={() => setTab('settings')} className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${tab === 'settings' ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30' : 'bg-white/5 text-white/50 border border-white/10 hover:bg-white/10'}`}>
+          الاعدادات
+        </button>
+      </div>
+
+      {tab === 'settings' && (
+        <Card className="p-5 md:p-8 bg-white/5 border-white/10 max-w-lg backdrop-blur-sm">
+          <div className="space-y-5">
+            <div>
+              <label className="block font-body text-white/50 text-sm mb-1.5">{t.username}</label>
+              <div className="px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white/40 text-sm font-mono">@{user?.username}</div>
             </div>
-          </div>
-
-          {/* Email */}
-          <div>
-            <label className="block font-body text-white/80 text-sm mb-1.5">{t.email}</label>
-            <Input value={email} onChange={e => setEmail(e.target.value)} className="bg-white/5 border-white/10 text-white focus:border-cyan-500/50 h-10" dir="ltr" />
-          </div>
-
-          <div className="border-t border-white/10 pt-4">
-            <p className="text-white/50 text-xs mb-3">لتغيير كلمة المرور أو البريد، أدخل كلمة المرور الحالية</p>
-          </div>
-
-          {/* Current Password */}
-          <div>
-            <label className="block font-body text-white/80 text-sm mb-1.5">{t.currentPassword}</label>
-            <Input type="password" value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} className="bg-white/5 border-white/10 text-white focus:border-cyan-500/50 h-10" placeholder="••••••••" />
-          </div>
-
-          {/* New Password */}
-          <div>
-            <label className="block font-body text-white/80 text-sm mb-1.5">{t.newPassword}</label>
-            <Input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} className="bg-white/5 border-white/10 text-white focus:border-cyan-500/50 h-10" placeholder="••••••••" />
-          </div>
-
-          {/* Confirm Password */}
-          <div>
-            <label className="block font-body text-white/80 text-sm mb-1.5">تأكيد كلمة المرور الجديدة</label>
-            <Input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} className="bg-white/5 border-white/10 text-white focus:border-cyan-500/50 h-10" placeholder="••••••••" />
-          </div>
-
-          {/* Message */}
-          {message && (
-            <div className={`p-3 rounded-xl text-sm ${message.type === 'success' ? 'bg-green-500/10 text-green-400 border border-green-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'}`}>
-              {message.text}
+            <div>
+              <label className="block font-body text-white/80 text-sm mb-1.5">{t.email}</label>
+              <Input value={email} onChange={e => setEmail(e.target.value)} className="bg-white/5 border-white/10 text-white focus:border-cyan-500/50 h-10" dir="ltr" />
             </div>
-          )}
+            <div className="border-t border-white/10 pt-4">
+              <p className="text-white/50 text-xs mb-3">لتغيير كلمة المرور أو البريد، أدخل كلمة المرور الحالية</p>
+            </div>
+            <div>
+              <label className="block font-body text-white/80 text-sm mb-1.5">{t.currentPassword}</label>
+              <Input type="password" value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} className="bg-white/5 border-white/10 text-white focus:border-cyan-500/50 h-10" placeholder="••••••••" />
+            </div>
+            <div>
+              <label className="block font-body text-white/80 text-sm mb-1.5">{t.newPassword}</label>
+              <Input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} className="bg-white/5 border-white/10 text-white focus:border-cyan-500/50 h-10" placeholder="••••••••" />
+            </div>
+            <div>
+              <label className="block font-body text-white/80 text-sm mb-1.5">تأكيد كلمة المرور الجديدة</label>
+              <Input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} className="bg-white/5 border-white/10 text-white focus:border-cyan-500/50 h-10" placeholder="••••••••" />
+            </div>
+            {message && <div className={`p-3 rounded-xl text-sm ${message.type === 'success' ? 'bg-green-500/10 text-green-400 border border-green-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'}`}>{message.text}</div>}
+            <Button onClick={handleSave} disabled={saving} className="w-full bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700 text-white shadow-lg shadow-cyan-500/20 h-11">
+              {saving ? '...' : t.saveChanges}
+            </Button>
+          </div>
+        </Card>
+      )}
 
-          <Button onClick={handleSave} disabled={saving} className="w-full bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700 text-white shadow-lg shadow-cyan-500/20 h-11">
-            {saving ? '...' : t.saveChanges}
-          </Button>
+      {tab === 'referral' && (
+        <div className="max-w-lg space-y-4">
+          {/* Referral Info */}
+          <Card className="p-5 bg-white/5 border-white/10 backdrop-blur-sm">
+            <div className="flex items-start gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-cyan-500/20 flex items-center justify-center text-lg shrink-0">🔗</div>
+              <div>
+                <h3 className="text-white font-bold text-sm">نظام الانتساب</h3>
+                <p className="text-white/50 text-xs mt-1">سيتم إضافة الرصيد لحسابك تلقائياً عند شحن المدعوين</p>
+              </div>
+            </div>
+
+            {/* Referral Link */}
+            <div>
+              <label className="block text-white/40 text-xs mb-2">الرابط الخاص بك</label>
+              <div className="flex items-center gap-2">
+                <div className="flex-1 px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white/70 text-sm font-mono truncate" dir="ltr">
+                  {refLink || '...'}
+                </div>
+                <button onClick={handleCopy} className="px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all shrink-0">
+                  {copied ? <span className="text-green-400 text-sm">✅</span> : <span className="text-white/40 text-sm">📋</span>}
+                </button>
+              </div>
+            </div>
+          </Card>
+
+          {/* Balance */}
+          <Card className="p-5 bg-white/5 border-white/10 backdrop-blur-sm">
+            <div className="flex items-center justify-between">
+              <span className="text-white/50 text-sm">الرصيد من الإحالات</span>
+              <span className="text-green-400 font-bold text-lg" dir="ltr">${(refStats?.totalEarnings || 0).toFixed(2)}</span>
+            </div>
+            <p className="text-white/30 text-xs mt-1">نسبة العمولة: {refStats?.commissionRate || 5}% من كل شحنة</p>
+          </Card>
+
+          {/* Statistics */}
+          <h3 className="text-white font-bold text-sm pt-2">الإحصائيات</h3>
+          <div className="grid grid-cols-2 gap-3">
+            <Card className="p-4 bg-white/5 border-white/10 text-center">
+              <p className="text-white/40 text-xs mb-1">الأشخاص المدعوين</p>
+              <p className="text-white font-bold text-2xl">{refStats?.totalReferrals || 0}</p>
+            </Card>
+            <Card className="p-4 bg-white/5 border-white/10 text-center">
+              <p className="text-white/40 text-xs mb-1">إجمالي الدخل</p>
+              <p className="text-green-400 font-bold text-2xl" dir="ltr">${(refStats?.totalEarnings || 0).toFixed(2)}</p>
+            </Card>
+          </div>
         </div>
-      </Card>
+      )}
     </div>
   );
 }

@@ -14,6 +14,9 @@ const userSchema = new mongoose.Schema({
     isVerified: { type: Boolean, default: false },
     verificationCode: { type: String, default: null },
     verificationCodeExpires: { type: Date, default: null },
+    referralCode: { type: String, unique: true, sparse: true },
+    referredBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+    referralEarnings: { type: Number, default: 0 },
 }, { timestamps: true });
 
 userSchema.pre('save', async function (next) {

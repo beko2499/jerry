@@ -3,6 +3,7 @@ const router = express.Router();
 const User = require('../models/User');
 const Gateway = require('../models/Gateway');
 const Transaction = require('../models/Transaction');
+const { creditReferralCommission } = require('../utils/referral');
 
 const NP_API = 'https://api.nowpayments.io/v1';
 
@@ -145,6 +146,7 @@ router.get('/status/:paymentId', async (req, res) => {
                     user.balance = (user.balance || 0) + creditAmount;
                     await user.save();
                     await Transaction.create({ userId: user._id, type: 'recharge', amount: creditAmount, method: 'crypto', paymentId: String(data.payment_id), status: 'completed' });
+                    await creditReferralCommission(user._id, creditAmount);
                     console.log(`[NOWPayments Status] Credited $${creditAmount} to ${user.username} (payment ${data.payment_id})`);
                 }
             }
@@ -186,6 +188,7 @@ router.post('/ipn', async (req, res) => {
                     user.balance = (user.balance || 0) + creditAmount;
                     await user.save();
                     await Transaction.create({ userId: user._id, type: 'recharge', amount: creditAmount, method: 'crypto', paymentId: String(payment_id), status: 'completed' });
+                    await creditReferralCommission(user._id, creditAmount);
                     console.log(`[NOWPayments] Added $${creditAmount} to user ${user.username} (${userId}) [${payment_status}]`);
                 }
             }

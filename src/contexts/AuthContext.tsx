@@ -47,6 +47,7 @@ interface RegisterData {
     phone: string;
     email: string;
     password: string;
+    ref?: string;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);

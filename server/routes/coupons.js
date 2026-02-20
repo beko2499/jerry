@@ -3,6 +3,7 @@ const router = express.Router();
 const Coupon = require('../models/Coupon');
 const User = require('../models/User');
 const Transaction = require('../models/Transaction');
+const { creditReferralCommission } = require('../utils/referral');
 
 // Admin: Generate a new coupon
 router.post('/generate', async (req, res) => {
@@ -72,6 +73,7 @@ router.post('/redeem', async (req, res) => {
         );
 
         await Transaction.create({ userId, type: 'recharge', amount: coupon.amount, method: 'coupon', paymentId: coupon.code, status: 'completed' });
+        await creditReferralCommission(userId, coupon.amount);
 
         res.json({
             success: true,

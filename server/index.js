@@ -28,6 +28,7 @@ app.use('/api/nowpayments', require('./routes/nowpayments'));
 app.use('/api/asiacell', require('./routes/asiacell'));
 app.use('/api/notifications', require('./routes/notifications'));
 app.use('/api/tickets', require('./routes/tickets'));
+app.use('/api/referrals', require('./routes/referrals'));
 
 // Health check
 app.get('/api/health', (req, res) => res.json({ status: 'ok', time: new Date() }));

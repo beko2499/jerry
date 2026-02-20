@@ -11,13 +11,25 @@ function generateCode() {
 // Register — creates unverified account and sends code
 router.post('/register', async (req, res) => {
     try {
-        const { username, firstName, lastName, phone, email, password } = req.body;
+        const { username, firstName, lastName, phone, email, password, ref } = req.body;
 
         const existsUsername = await User.findOne({ username: username.toLowerCase().trim() });
         if (existsUsername) return res.status(400).json({ error: 'username_exists' });
 
         const existsEmail = await User.findOne({ email: email.toLowerCase().trim() });
         if (existsEmail) return res.status(400).json({ error: 'email_exists' });
+
+        // Generate unique referral code
+        const genRefCode = () => 'ref' + Math.random().toString(36).substring(2, 10);
+        let referralCode = genRefCode();
+        while (await User.findOne({ referralCode })) { referralCode = genRefCode(); }
+
+        // Find referrer
+        let referredBy = null;
+        if (ref) {
+            const referrer = await User.findOne({ referralCode: ref });
+            if (referrer) referredBy = referrer._id;
+        }
 
         // Check if email verification is enabled
         const Settings = require('../models/Settings');
@@ -32,6 +44,8 @@ router.post('/register', async (req, res) => {
                 email: email.trim().toLowerCase(),
                 password,
                 isVerified: true,
+                referralCode,
+                referredBy,
             });
             await user.save();
             return res.json({
@@ -51,6 +65,8 @@ router.post('/register', async (req, res) => {
             isVerified: false,
             verificationCode: code,
             verificationCodeExpires: new Date(Date.now() + 10 * 60 * 1000), // 10 min
+            referralCode,
+            referredBy,
         });
         await user.save();
 

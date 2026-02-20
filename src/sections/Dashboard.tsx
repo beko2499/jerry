@@ -14,7 +14,16 @@ import {
   Clock,
   CheckCircle,
   XCircle,
-  Search
+  CheckCircle,
+  XCircle,
+  Search,
+  Plus,
+  ChevronLeft,
+  ChevronRight,
+  MessageSquare,
+  Send,
+  User,
+  ShieldAlert
 } from 'lucide-react';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
@@ -1473,9 +1482,23 @@ function AddFundsView() {
 
 // Support View Component
 function SupportView() {
-  const { t, lang } = useLanguage();
+  const { t, lang, isRTL } = useLanguage();
+  const [activeTab, setActiveTab] = useState<'channels' | 'tickets'>('channels');
+  const [viewMode, setViewMode] = useState<'list' | 'create' | 'detail'>('list');
   const [config, setConfig] = useState<{ whatsapp?: string; telegram?: string; email?: string; supportMessage?: string }>({});
   const [loading, setLoading] = useState(true);
+
+  // Mock Data for Preview
+  const mockTicket = {
+    id: 'T-12345',
+    subject: 'مشكلة في الرصيد',
+    status: 'closed',
+    date: '2025-02-20',
+    messages: [
+      { sender: 'user', text: 'قمت بشحن 50$ عن طريق زين كاش ولكن الرصيد لم يظهر في حسابي حتى الان. ارجو المساعدة.', time: '10:30 AM' },
+      { sender: 'admin', text: 'أهلاً بك عزيزي العميل.\nتم التحقق من العملية وإضافة الرصيد لحسابك بنجاح. نعتذر عن التأخير.', time: '10:45 AM' }
+    ]
+  };
 
   useEffect(() => {
     fetch(`${API_URL}/settings/support`)
@@ -1485,10 +1508,8 @@ function SupportView() {
       .finally(() => setLoading(false));
   }, []);
 
-  return (
-    <div className="p-4 md:p-8 space-y-6 max-w-2xl">
-      <h2 className="font-space text-2xl md:text-3xl text-white tracking-wide">{t.support}</h2>
-
+  const renderChannels = () => (
+    <div className="space-y-6">
       {config.supportMessage && (
         <Card className="p-5 bg-white/5 border-white/10 backdrop-blur-sm">
           <p className="text-white/70 text-sm font-body leading-relaxed">{config.supportMessage}</p>
@@ -1510,7 +1531,7 @@ function SupportView() {
             </div>
           </button>
         )}
-
+        {/* ... other channels ... */}
         {config.telegram && (
           <button
             onClick={() => window.open(`https://t.me/${config.telegram!.replace('@', '')}`, '_blank')}
@@ -1525,7 +1546,6 @@ function SupportView() {
             </div>
           </button>
         )}
-
         {config.email && (
           <button
             onClick={() => window.open(`mailto:${config.email}`, '_blank')}
@@ -1540,13 +1560,149 @@ function SupportView() {
             </div>
           </button>
         )}
-
-        {!loading && !config.whatsapp && !config.telegram && !config.email && (
-          <Card className="p-6 bg-white/5 border-white/10 text-center">
-            <p className="text-white/40 text-sm">{lang === 'ar' ? 'لا توجد وسائل اتصال متاحة حالياً' : 'No contact channels available'}</p>
-          </Card>
-        )}
       </div>
+    </div>
+  );
+
+  const renderTickets = () => {
+    if (viewMode === 'detail') {
+      return (
+        <div className="space-y-4">
+          <Button variant="ghost" className="text-white/50 hover:text-white p-0 h-auto mb-2 gap-2" onClick={() => setViewMode('list')}>
+            {isRTL ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+            {lang === 'ar' ? 'رجوع للتذاكر' : 'Back to Tickets'}
+          </Button>
+
+          <Card className="bg-[#0d0d1a] border-white/10 overflow-hidden flex flex-col h-[500px]">
+            {/* Ticket Header */}
+            <div className="p-4 border-b border-white/10 flex items-center justify-between bg-white/5">
+              <div>
+                <h3 className="text-white font-bold text-sm">{mockTicket.subject}</h3>
+                <span className="text-white/30 text-xs font-mono">#{mockTicket.id}</span>
+              </div>
+              <div className="px-2 py-1 rounded bg-red-500/20 text-red-400 text-xs font-bold border border-red-500/30">
+                {lang === 'ar' ? 'مغلقة' : 'Closed'}
+              </div>
+            </div>
+
+            {/* Messages Area */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+              {mockTicket.messages.map((msg, i) => (
+                <div key={i} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
+                  <div className={`max-w-[85%] rounded-2xl p-4 ${msg.sender === 'user'
+                      ? 'bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-tr-sm shadow-lg shadow-blue-500/10'
+                      : 'bg-[#1a1a2e] border border-white/10 text-white/90 rounded-tl-sm'
+                    }`}>
+                    {msg.sender === 'admin' && (
+                      <div className="flex items-center gap-2 mb-2 pb-2 border-b border-white/5">
+                        <div className="px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300 text-[10px] font-bold border border-purple-500/30 flex items-center gap-1">
+                          <ShieldAlert className="w-3 h-3" /> الدعم الفني
+                        </div>
+                      </div>
+                    )}
+                    <p className="text-sm leading-relaxed whitespace-pre-line">{msg.text}</p>
+                    <p className={`text-[10px] mt-2 ${msg.sender === 'user' ? 'text-blue-200/70' : 'text-white/30'}`}>{msg.time}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Footer (Reply Box - Disabled if closed) */}
+            <div className="p-4 border-t border-white/10 bg-white/5">
+              <div className="flex items-center justify-center p-3 rounded-xl bg-white/5 border border-dashed border-white/10 text-white/40 text-sm gap-2">
+                <XCircle className="w-4 h-4" />
+                {lang === 'ar' ? 'هذه التذكرة مغلقة لا يمكن الرد عليها' : 'This ticket is closed'}
+              </div>
+            </div>
+          </Card>
+        </div>
+      );
+    }
+
+    if (viewMode === 'create') {
+      return (
+        <div className="space-y-4">
+          <Button variant="ghost" className="text-white/50 hover:text-white p-0 h-auto mb-2 gap-2" onClick={() => setViewMode('list')}>
+            {isRTL ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+            {lang === 'ar' ? 'إلغاء' : 'Cancel'}
+          </Button>
+          <Card className="p-6 bg-white/5 border-white/10 space-y-4">
+            <h3 className="text-white font-bold mb-2">{lang === 'ar' ? 'تذكرة جديدة' : 'New Ticket'}</h3>
+            <div>
+              <label className="block text-white/60 text-sm mb-2">{lang === 'ar' ? 'الموضوع' : 'Subject'}</label>
+              <select className="w-full bg-[#0a0a1a] border border-white/10 rounded-xl p-3 text-white focus:border-cyan-500/50 outline-none">
+                <option>مشكلة في الطلب</option>
+                <option>مشكلة في الرصيد</option>
+                <option>استفسار عام</option>
+                <option>أخرى</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-white/60 text-sm mb-2">{lang === 'ar' ? 'الرسالة' : 'Message'}</label>
+              <textarea className="w-full h-32 bg-[#0a0a1a] border border-white/10 rounded-xl p-3 text-white focus:border-cyan-500/50 outline-none resize-none" placeholder="..." />
+            </div>
+            <Button className="w-full bg-cyan-500 hover:bg-cyan-600 text-white font-bold h-12">
+              {lang === 'ar' ? 'إرسال التذكرة' : 'Submit Ticket'}
+            </Button>
+          </Card>
+        </div>
+      );
+    }
+
+    // List View
+    return (
+      <div className="space-y-4">
+        <Button onClick={() => setViewMode('create')} className="w-full bg-white/5 hover:bg-white/10 border border-white/10 text-white h-12 flex items-center justify-center gap-2 group">
+          <div className="w-6 h-6 rounded-full bg-cyan-500/20 flex items-center justify-center group-hover:bg-cyan-500/30 transition-colors">
+            <Plus className="w-4 h-4 text-cyan-400" />
+          </div>
+          {lang === 'ar' ? 'إنشاء تذكرة جديدة' : 'Create New Ticket'}
+        </Button>
+
+        <div className="space-y-3">
+          {/* Hardcoded Ticket Item */}
+          <Card onClick={() => setViewMode('detail')} className="p-4 bg-white/5 border-white/10 hover:border-white/20 hover:bg-white/10 transition-all cursor-pointer group">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <span className="text-white font-bold text-sm">{mockTicket.subject}</span>
+                <span className="px-1.5 py-0.5 rounded bg-red-500/10 text-red-400 text-[10px] border border-red-500/20">
+                  {lang === 'ar' ? 'مغلقة' : 'Closed'}
+                </span>
+              </div>
+              <span className="text-white/30 text-xs font-mono">{mockTicket.date}</span>
+            </div>
+            <p className="text-white/60 text-xs line-clamp-1">{mockTicket.messages[1].text}</p>
+            <div className="mt-3 flex items-center gap-1 text-white/20 text-[10px]">
+              <ShieldAlert className="w-3 h-3" />
+              <span>تم الرد بواسطة: الدعم الفني</span>
+            </div>
+          </Card>
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div className="p-4 md:p-8 space-y-6 max-w-2xl">
+      <h2 className="font-space text-2xl md:text-3xl text-white tracking-wide">{t.support}</h2>
+
+      {/* Tabs */}
+      <div className="flex p-1 bg-white/5 rounded-xl border border-white/10 w-full mb-6">
+        <button
+          onClick={() => setActiveTab('channels')}
+          className={`flex-1 py-2.5 text-sm font-bold rounded-lg transition-all ${activeTab === 'channels' ? 'bg-white/10 text-white shadow-lg' : 'text-white/40 hover:text-white/60'}`}
+        >
+          {lang === 'ar' ? 'قنوات التواصل' : 'Contact Channels'}
+        </button>
+        <button
+          onClick={() => setActiveTab('tickets')}
+          className={`flex-1 py-2.5 text-sm font-bold rounded-lg transition-all ${activeTab === 'tickets' ? 'bg-blue-500/20 text-blue-400 shadow-lg border border-blue-500/20' : 'text-white/40 hover:text-white/60'}`}
+        >
+          {lang === 'ar' ? 'التذاكر' : 'Tickets'}
+        </button>
+      </div>
+
+      {activeTab === 'channels' ? renderChannels() : renderTickets()}
     </div>
   );
 }

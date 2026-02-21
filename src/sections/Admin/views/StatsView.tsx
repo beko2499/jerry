@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+import { adminFetch, API_URL } from '@/lib/api';
 
 type DetailView = null | 'users' | 'orders' | 'revenue' | 'rechargeRevenue' | 'active';
 
@@ -31,17 +31,17 @@ export default function StatsView() {
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
     useEffect(() => {
-        fetch(`${API_URL}/stats`).then(r => r.json()).then(setData).catch(console.error);
+        adminFetch(`/stats`).then(r => r.json()).then(setData).catch(console.error);
     }, []);
 
     const fetchUsers = async () => {
-        const res = await fetch(`${API_URL}/auth/users`);
+        const res = await adminFetch(`/auth/users`);
         const data = await res.json();
         setUsers(data);
     };
 
     const fetchOrders = async () => {
-        const res = await fetch(`${API_URL}/orders`);
+        const res = await adminFetch(`/orders`);
         const data = await res.json();
         setOrders(data);
     };
@@ -123,7 +123,7 @@ export default function StatsView() {
     const handleSaveUser = async () => {
         if (!selectedUser) return;
         try {
-            const res = await fetch(`${API_URL}/auth/users/${selectedUser._id}`, {
+            const res = await adminFetch(`/auth/users/${selectedUser._id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(editForm),
@@ -140,7 +140,7 @@ export default function StatsView() {
     const handleDeleteUser = async () => {
         if (!selectedUser) return;
         try {
-            await fetch(`${API_URL}/auth/users/${selectedUser._id}`, { method: 'DELETE' });
+            await adminFetch(`/auth/users/${selectedUser._id}`, { method: 'DELETE' });
             setUsers(prev => prev.filter(u => u._id !== selectedUser._id));
             closeUserModal();
         } catch (err) { console.error(err); }
@@ -149,7 +149,7 @@ export default function StatsView() {
     const handleToggleBan = async () => {
         if (!selectedUser) return;
         try {
-            const res = await fetch(`${API_URL}/auth/users/${selectedUser._id}/ban`, { method: 'PATCH' });
+            const res = await adminFetch(`/auth/users/${selectedUser._id}/ban`, { method: 'PATCH' });
             if (res.ok) {
                 const { banned } = await res.json();
                 const updated = { ...selectedUser, banned };

@@ -3,9 +3,10 @@ const router = express.Router();
 const User = require('../models/User');
 const Order = require('../models/Order');
 const Transaction = require('../models/Transaction');
+const { requireAdmin } = require('../middleware/authMiddleware');
 
 // Get dashboard stats
-router.get('/', async (req, res) => {
+router.get('/', requireAdmin, async (req, res) => {
     try {
         const totalUsers = await User.countDocuments({ role: 'user' });
         const totalOrders = await Order.countDocuments();

@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useLanguage } from '@/contexts/LanguageContext';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+import { adminFetch, API_URL } from '@/lib/api';
 
 const playNotifSound = () => {
     try {
@@ -38,7 +38,7 @@ export default function AdminHeader() {
 
     useEffect(() => {
         const fetchAdminNotifs = () => {
-            fetch(`${API_URL}/notifications/admin`)
+            adminFetch(`/notifications/admin`)
                 .then(r => r.json())
                 .then(data => {
                     if (Array.isArray(data)) {
@@ -57,7 +57,7 @@ export default function AdminHeader() {
     }, []);
 
     const handleDismiss = async (id: string) => {
-        await fetch(`${API_URL}/notifications/${id}`, { method: 'DELETE' });
+        await adminFetch(`/notifications/${id}`, { method: 'DELETE' });
         setNotifications(prev => prev.filter(n => n._id !== id));
     };
 

@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { useLanguage } from '@/contexts/LanguageContext';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+import { adminFetch, API_URL } from '@/lib/api';
 
 interface Gateway {
     _id: string;
@@ -69,14 +69,14 @@ export default function GatewaysView() {
     const [acExchangeRate, setAcExchangeRate] = useState('1000');
 
     useEffect(() => {
-        fetch(`${API_URL}/gateways`).then(r => r.json()).then(setGateways).catch(console.error);
+        adminFetch(`/gateways`).then(r => r.json()).then(setGateways).catch(console.error);
         // Check Asiacell admin status
-        fetch(`${API_URL}/asiacell/admin/status`).then(r => r.json()).then(data => {
+        adminFetch(`/asiacell/admin/status`).then(r => r.json()).then(data => {
             setAcAdminStatus(data);
             if (data.authenticated) setAcAdminStep('connected');
         }).catch(console.error);
         // Load current exchange rate from the Asiacell gateway
-        fetch(`${API_URL}/gateways`).then(r => r.json()).then((gws: Gateway[]) => {
+        adminFetch(`/gateways`).then(r => r.json()).then((gws: Gateway[]) => {
             const acGw = gws.find(g => g.type === 'auto' && /^07/.test(g.destination || ''));
             if (acGw?.exchangeRate) setAcExchangeRate(String(acGw.exchangeRate));
         }).catch(console.error);
@@ -90,7 +90,7 @@ export default function GatewaysView() {
         setAcAdminLoading(true);
         setAcAdminMsg('');
         try {
-            const res = await fetch(`${API_URL}/asiacell/admin/login`, {
+            const res = await adminFetch(`/asiacell/admin/login`, {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ phone: acAdminPhone }),
             });
@@ -109,7 +109,7 @@ export default function GatewaysView() {
         setAcAdminLoading(true);
         setAcAdminMsg('');
         try {
-            const res = await fetch(`${API_URL}/asiacell/admin/verify`, {
+            const res = await adminFetch(`/asiacell/admin/verify`, {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ otp: acAdminOtp }),
             });
@@ -127,7 +127,7 @@ export default function GatewaysView() {
     };
 
     const acAdminLogout = async () => {
-        await fetch(`${API_URL}/asiacell/admin/logout`, { method: 'POST' });
+        await adminFetch(`/asiacell/admin/logout`, { method: 'POST' });
         setAcAdminStep('idle');
         setAcAdminStatus({ authenticated: false, phone: '' });
         setAcAdminPhone('');
@@ -137,7 +137,7 @@ export default function GatewaysView() {
     const acAdminCheckRecords = async () => {
         setAcAdminLoading(true);
         try {
-            const res = await fetch(`${API_URL}/asiacell/admin/check-records`, { method: 'POST' });
+            const res = await adminFetch(`/asiacell/admin/check-records`, { method: 'POST' });
             const data = await res.json();
             setAcAdminMsg(lang === 'ar' ? `تم فحص ${data.total || 0} سجل — ${data.processed || 0} عملية جديدة` : `Checked ${data.total || 0} records — ${data.processed || 0} new`);
         } catch { setAcAdminMsg('Error'); }
@@ -147,7 +147,7 @@ export default function GatewaysView() {
     const uploadImage = async (file: File): Promise<string> => {
         const formData = new FormData();
         formData.append('image', file);
-        const res = await fetch(`${API_URL}/upload`, { method: 'POST', body: formData });
+        const res = await adminFetch(`/upload`, { method: 'POST', body: formData });
         const data = await res.json();
         return data.url;
     };
@@ -155,7 +155,7 @@ export default function GatewaysView() {
     const toggleGateway = async (id: string) => {
         const gw = gateways.find(g => g._id === id);
         if (!gw) return;
-        const res = await fetch(`${API_URL}/gateways/${id}`, {
+        const res = await adminFetch(`/gateways/${id}`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ isEnabled: !gw.isEnabled })
@@ -168,7 +168,7 @@ export default function GatewaysView() {
         const gw = gateways.find(g => g._id === id);
         if (!gw) return;
         const newMode = gw.mode === 'auto' ? 'manual' : 'auto';
-        const res = await fetch(`${API_URL}/gateways/${id}`, {
+        const res = await adminFetch(`/gateways/${id}`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ mode: newMode })
@@ -189,7 +189,7 @@ export default function GatewaysView() {
             imageUrl = await uploadImage(imageFile);
             setImageFile(null);
         }
-        const res = await fetch(`${API_URL}/gateways/${editingId}`, {
+        const res = await adminFetch(`/gateways/${editingId}`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ ...editForm, image: imageUrl })
@@ -207,7 +207,7 @@ export default function GatewaysView() {
         }
         const payload = { ...newGateway, type: activeTab, image: imageUrl };
         if (activeTab === 'auto') payload.mode = 'auto';
-        const res = await fetch(`${API_URL}/gateways`, {
+        const res = await adminFetch(`/gateways`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
@@ -219,7 +219,7 @@ export default function GatewaysView() {
     };
 
     const handleDelete = async (id: string) => {
-        await fetch(`${API_URL}/gateways/${id}`, { method: 'DELETE' });
+        await adminFetch(`/gateways/${id}`, { method: 'DELETE' });
         setGateways(prev => prev.filter(g => g._id !== id));
     };
 
@@ -325,7 +325,7 @@ export default function GatewaysView() {
                                     onClick={async () => {
                                         const acGw = gateways.find(g => g.type === 'auto' && /^07/.test(g.destination || ''));
                                         if (!acGw) { setAcAdminMsg(lang === 'ar' ? 'لم يتم العثور على بوابة آسياسيل' : 'Asiacell gateway not found'); return; }
-                                        const res = await fetch(`${API_URL}/gateways/${acGw._id}`, {
+                                        const res = await adminFetch(`/gateways/${acGw._id}`, {
                                             method: 'PUT',
                                             headers: { 'Content-Type': 'application/json' },
                                             body: JSON.stringify({ exchangeRate: parseInt(acExchangeRate) || 1000 }),

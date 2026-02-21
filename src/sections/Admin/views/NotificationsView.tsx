@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useLanguage } from '@/contexts/LanguageContext';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+import { adminFetch, API_URL } from '@/lib/api';
 
 interface Notification {
     _id: string;
@@ -26,7 +26,7 @@ export default function NotificationsView() {
     const [sending, setSending] = useState(false);
 
     const fetchNotifications = () => {
-        fetch(`${API_URL}/notifications`)
+        adminFetch(`/notifications`)
             .then(r => r.json())
             .then(setNotifications)
             .catch(console.error);
@@ -40,7 +40,7 @@ export default function NotificationsView() {
 
         setSending(true);
         try {
-            await fetch(`${API_URL}/notifications`, {
+            await adminFetch(`/notifications`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(form)
@@ -56,7 +56,7 @@ export default function NotificationsView() {
 
     const handleDelete = async (id: string) => {
         if (!confirm('حذف هذا الإشعار؟')) return;
-        await fetch(`${API_URL}/notifications/${id}`, { method: 'DELETE' });
+        await adminFetch(`/notifications/${id}`, { method: 'DELETE' });
         fetchNotifications();
     };
 

@@ -1,5 +1,6 @@
 import { createContext, useContext, useState } from 'react';
 import type { ReactNode } from 'react';
+import { setToken, clearToken, getToken } from '@/lib/api';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
@@ -70,6 +71,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 return { success: false, error: 'not_verified', userId: data.userId, email: data.email };
             }
             if (!res.ok) return { success: false, error: 'invalid_credentials' };
+            if (data.token) setToken(data.token);
             setUser(data.user);
             localStorage.setItem('jerry_user', JSON.stringify(data.user));
             return { success: true };
@@ -124,12 +126,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const logout = () => {
         setUser(null);
         localStorage.removeItem('jerry_user');
+        clearToken();
     };
 
     const refreshUser = async () => {
         if (!user?._id) return;
         try {
-            const res = await fetch(`${API_URL}/auth/me/${user._id}`);
+            const token = getToken();
+            const res = await fetch(`${API_URL}/auth/me/${user._id}`, {
+                headers: token ? { Authorization: `Bearer ${token}` } : {},
+            });
             if (res.ok) {
                 const data = await res.json();
                 setUser(data);

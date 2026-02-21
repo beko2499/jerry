@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
 const { sendVerificationEmail } = require('../utils/email');
+const { generateToken, requireAuth, requireAdmin } = require('../middleware/authMiddleware');
 
 // Generate 6-digit code
 function generateCode() {
@@ -163,7 +164,8 @@ router.post('/login', async (req, res) => {
             }
         }
 
-        res.json({ user: { _id: user._id, username: user.username, firstName: user.firstName, lastName: user.lastName, phone: user.phone, email: user.email, balance: user.balance, role: user.role } });
+        const token = generateToken(user);
+        res.json({ token, user: { _id: user._id, username: user.username, firstName: user.firstName, lastName: user.lastName, phone: user.phone, email: user.email, balance: user.balance, role: user.role } });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -225,14 +227,15 @@ router.post('/admin-login', async (req, res) => {
         // Success — clear attempts
         adminLoginAttempts.delete(ip);
 
-        res.json({ user: { _id: user._id, username: user.username, firstName: user.firstName, lastName: user.lastName, role: user.role } });
+        const token = generateToken(user);
+        res.json({ token, user: { _id: user._id, username: user.username, firstName: user.firstName, lastName: user.lastName, role: user.role } });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 });
 
 // Get all users (admin)
-router.get('/users', async (req, res) => {
+router.get('/users', requireAdmin, async (req, res) => {
     try {
         const users = await User.find({}, '-password -verificationCode').sort({ createdAt: -1 });
         res.json(users);
@@ -242,7 +245,7 @@ router.get('/users', async (req, res) => {
 });
 
 // Get current user data (for refresh)
-router.get('/me/:id', async (req, res) => {
+router.get('/me/:id', requireAuth, async (req, res) => {
     try {
         const user = await User.findById(req.params.id).select('-password -verificationCode -verificationCodeExpires');
         if (!user) return res.status(404).json({ error: 'User not found' });
@@ -253,7 +256,7 @@ router.get('/me/:id', async (req, res) => {
 });
 
 // Update own profile (user)
-router.put('/profile/:id', async (req, res) => {
+router.put('/profile/:id', requireAuth, async (req, res) => {
     try {
         const { email, currentPassword, newPassword, firstName, lastName, username } = req.body;
         const user = await User.findById(req.params.id);
@@ -296,7 +299,7 @@ router.put('/profile/:id', async (req, res) => {
 });
 
 // Update user (admin)
-router.put('/users/:id', async (req, res) => {
+router.put('/users/:id', requireAdmin, async (req, res) => {
     try {
         const { firstName, lastName, phone, email, balance } = req.body;
         const updates = {};
@@ -315,7 +318,7 @@ router.put('/users/:id', async (req, res) => {
 });
 
 // Delete user (admin)
-router.delete('/users/:id', async (req, res) => {
+router.delete('/users/:id', requireAdmin, async (req, res) => {
     try {
         const user = await User.findByIdAndDelete(req.params.id);
         if (!user) return res.status(404).json({ error: 'User not found' });
@@ -326,7 +329,7 @@ router.delete('/users/:id', async (req, res) => {
 });
 
 // Ban/Unban user (admin)
-router.patch('/users/:id/ban', async (req, res) => {
+router.patch('/users/:id/ban', requireAdmin, async (req, res) => {
     try {
         const user = await User.findById(req.params.id);
         if (!user) return res.status(404).json({ error: 'User not found' });

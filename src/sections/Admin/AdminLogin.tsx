@@ -6,6 +6,7 @@ import { Lock, AlertCircle, Globe } from 'lucide-react';
 import Starfield from '@/components/Starfield';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Logo } from '@/components/Logo';
+import { setAdminToken } from '@/lib/api';
 
 interface AdminLoginProps {
     onLogin: () => void;
@@ -26,6 +27,8 @@ export default function AdminLogin({ onLogin }: AdminLoginProps) {
                 body: JSON.stringify({ username, password }),
             });
             if (res.ok) {
+                const data = await res.json();
+                if (data.token) setAdminToken(data.token);
                 onLogin();
             } else {
                 const data = await res.json();

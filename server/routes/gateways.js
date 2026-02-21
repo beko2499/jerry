@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Gateway = require('../models/Gateway');
+const { requireAdmin } = require('../middleware/authMiddleware');
 
 // Public: Get enabled gateways (no sensitive fields)
 router.get('/public', async (req, res) => {
@@ -14,7 +15,7 @@ router.get('/public', async (req, res) => {
 });
 
 // Admin: Get all gateways
-router.get('/', async (req, res) => {
+router.get('/', requireAdmin, async (req, res) => {
     try {
         const gateways = await Gateway.find().sort({ sortOrder: 1, createdAt: 1 });
         res.json(gateways);
@@ -24,7 +25,7 @@ router.get('/', async (req, res) => {
 });
 
 // Create gateway
-router.post('/', async (req, res) => {
+router.post('/', requireAdmin, async (req, res) => {
     try {
         const gateway = new Gateway(req.body);
         await gateway.save();
@@ -35,7 +36,7 @@ router.post('/', async (req, res) => {
 });
 
 // Update gateway
-router.patch('/:id', async (req, res) => {
+router.patch('/:id', requireAdmin, async (req, res) => {
     try {
         const gateway = await Gateway.findByIdAndUpdate(req.params.id, req.body, { new: true });
         res.json(gateway);
@@ -45,7 +46,7 @@ router.patch('/:id', async (req, res) => {
 });
 
 // Delete gateway
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', requireAdmin, async (req, res) => {
     try {
         await Gateway.findByIdAndDelete(req.params.id);
         res.json({ success: true });

@@ -5,9 +5,10 @@ const Service = require('../models/Service');
 const Provider = require('../models/Provider');
 const User = require('../models/User');
 const SmmApi = require('../utils/smmApi');
+const { requireAuth, requireAdmin } = require('../middleware/authMiddleware');
 
 // Get orders (optionally filter by userId)
-router.get('/', async (req, res) => {
+router.get('/', requireAuth, async (req, res) => {
     try {
         const filter = {};
         if (req.query.userId) filter.userId = req.query.userId;
@@ -20,7 +21,7 @@ router.get('/', async (req, res) => {
 });
 
 // Create order — with auto-fulfillment to provider
-router.post('/', async (req, res) => {
+router.post('/', requireAuth, async (req, res) => {
     try {
         const { userId, serviceId, serviceName, quantity, price, link } = req.body;
 
@@ -218,7 +219,7 @@ router.post('/bulk-check-status', async (req, res) => {
 });
 
 // Update order status
-router.patch('/:id', async (req, res) => {
+router.patch('/:id', requireAdmin, async (req, res) => {
     try {
         const order = await Order.findByIdAndUpdate(req.params.id, req.body, { new: true });
         res.json(order);
@@ -228,7 +229,7 @@ router.patch('/:id', async (req, res) => {
 });
 
 // Delete order
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', requireAdmin, async (req, res) => {
     try {
         await Order.findByIdAndDelete(req.params.id);
         res.json({ success: true });

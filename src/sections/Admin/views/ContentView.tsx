@@ -4,7 +4,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+import { adminFetch, API_URL } from '@/lib/api';
 
 interface TermSection {
     title: string;
@@ -35,12 +35,12 @@ export default function ContentView() {
     const [saving, setSaving] = useState(false);
 
     useEffect(() => {
-        fetch(`${API_URL}/settings/terms`)
+        adminFetch(`/settings/terms`)
             .then(r => r.json())
             .then(data => { if (data && Array.isArray(data)) setTermsSections(data); })
             .catch(console.error);
 
-        fetch(`${API_URL}/settings/updates`)
+        adminFetch(`/settings/updates`)
             .then(r => r.json())
             .then(data => { if (data && Array.isArray(data)) setUpdates(data); })
             .catch(console.error);
@@ -49,7 +49,7 @@ export default function ContentView() {
     // --- Terms ---
     const saveTermsToDB = async (sections: TermSection[]) => {
         setSaving(true);
-        await fetch(`${API_URL}/settings/terms`, {
+        await adminFetch(`/settings/terms`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ value: sections })
@@ -93,7 +93,7 @@ export default function ContentView() {
     // --- Updates ---
     const saveUpdatesToDB = async (entries: UpdateEntry[]) => {
         setSaving(true);
-        await fetch(`${API_URL}/settings/updates`, {
+        await adminFetch(`/settings/updates`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ value: entries })

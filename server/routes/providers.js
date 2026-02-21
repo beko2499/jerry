@@ -3,9 +3,10 @@ const router = express.Router();
 const Provider = require('../models/Provider');
 const Service = require('../models/Service');
 const SmmApi = require('../utils/smmApi');
+const { requireAdmin } = require('../middleware/authMiddleware');
 
 // Get all providers
-router.get('/', async (req, res) => {
+router.get('/', requireAdmin, async (req, res) => {
     try {
         const providers = await Provider.find().sort({ createdAt: -1 });
         res.json(providers);
@@ -15,7 +16,7 @@ router.get('/', async (req, res) => {
 });
 
 // Create provider
-router.post('/', async (req, res) => {
+router.post('/', requireAdmin, async (req, res) => {
     try {
         const provider = new Provider(req.body);
         await provider.save();
@@ -26,7 +27,7 @@ router.post('/', async (req, res) => {
 });
 
 // Update provider
-router.patch('/:id', async (req, res) => {
+router.patch('/:id', requireAdmin, async (req, res) => {
     try {
         const provider = await Provider.findByIdAndUpdate(req.params.id, req.body, { new: true });
         res.json(provider);
@@ -36,7 +37,7 @@ router.patch('/:id', async (req, res) => {
 });
 
 // Delete provider
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', requireAdmin, async (req, res) => {
     try {
         await Provider.findByIdAndDelete(req.params.id);
         res.json({ success: true });
@@ -48,7 +49,7 @@ router.delete('/:id', async (req, res) => {
 // ========== SMM API Integration ==========
 
 // Get provider balance from API
-router.get('/:id/balance', async (req, res) => {
+router.get('/:id/balance', requireAdmin, async (req, res) => {
     try {
         const provider = await Provider.findById(req.params.id);
         if (!provider) return res.status(404).json({ error: 'Provider not found' });
@@ -67,7 +68,7 @@ router.get('/:id/balance', async (req, res) => {
 });
 
 // Get services list from provider API
-router.get('/:id/services', async (req, res) => {
+router.get('/:id/services', requireAdmin, async (req, res) => {
     try {
         const provider = await Provider.findById(req.params.id);
         if (!provider) return res.status(404).json({ error: 'Provider not found' });
@@ -82,7 +83,7 @@ router.get('/:id/services', async (req, res) => {
 });
 
 // Import selected services from provider into our DB
-router.post('/:id/import-services', async (req, res) => {
+router.post('/:id/import-services', requireAdmin, async (req, res) => {
     try {
         const provider = await Provider.findById(req.params.id);
         if (!provider) return res.status(404).json({ error: 'Provider not found' });

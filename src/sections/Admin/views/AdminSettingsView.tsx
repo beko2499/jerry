@@ -5,7 +5,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+import { adminFetch, API_URL } from '@/lib/api';
 
 interface TopReferrer {
     username: string;
@@ -42,7 +42,7 @@ export default function AdminSettingsView() {
 
     useEffect(() => {
         if (tab === 'referral') {
-            fetch(`${API_URL}/referrals/admin-stats`)
+            adminFetch(`/referrals/admin-stats`)
                 .then(r => r.json())
                 .then(data => {
                     if (data.totalReferred !== undefined) {
@@ -65,7 +65,7 @@ export default function AdminSettingsView() {
             if (newPassword) { body.newPassword = newPassword; body.currentPassword = currentPassword; }
             else if (currentPassword) body.currentPassword = currentPassword;
             if (Object.keys(body).length === 0) { setMessage({ type: 'error', text: 'لا توجد تغييرات لحفظها' }); setSaving(false); return; }
-            const res = await fetch(`${API_URL}/auth/profile/${user?._id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+            const res = await adminFetch(`/auth/profile/${user?._id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
             const data = await res.json();
             if (!res.ok) {
                 const errMap: Record<string, string> = { wrong_password: 'كلمة المرور الحالية غير صحيحة', username_exists: 'اسم المستخدم مستخدم بالفعل', current_password_required: 'يرجى إدخال كلمة المرور الحالية' };
@@ -85,7 +85,7 @@ export default function AdminSettingsView() {
         setSavingRate(true);
         setRateMsg(null);
         try {
-            const res = await fetch(`${API_URL}/referrals/commission`, {
+            const res = await adminFetch(`/referrals/commission`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ rate }),

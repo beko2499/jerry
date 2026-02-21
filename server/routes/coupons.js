@@ -4,9 +4,10 @@ const Coupon = require('../models/Coupon');
 const User = require('../models/User');
 const Transaction = require('../models/Transaction');
 const { creditReferralCommission } = require('../utils/referral');
+const { requireAuth, requireAdmin } = require('../middleware/authMiddleware');
 
 // Admin: Generate a new coupon
-router.post('/generate', async (req, res) => {
+router.post('/generate', requireAdmin, async (req, res) => {
     try {
         const { amount, note } = req.body;
         if (!amount || amount <= 0) {
@@ -21,7 +22,7 @@ router.post('/generate', async (req, res) => {
 });
 
 // Admin: Get all coupons
-router.get('/', async (req, res) => {
+router.get('/', requireAdmin, async (req, res) => {
     try {
         const coupons = await Coupon.find().sort({ createdAt: -1 }).populate('usedBy', 'username email');
         res.json(coupons);
@@ -31,7 +32,7 @@ router.get('/', async (req, res) => {
 });
 
 // Admin: Delete unused coupon
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', requireAdmin, async (req, res) => {
     try {
         const coupon = await Coupon.findById(req.params.id);
         if (!coupon) return res.status(404).json({ error: 'Not found' });
@@ -44,7 +45,7 @@ router.delete('/:id', async (req, res) => {
 });
 
 // User: Redeem a coupon
-router.post('/redeem', async (req, res) => {
+router.post('/redeem', requireAuth, async (req, res) => {
     try {
         const { code, userId } = req.body;
         if (!code || !userId) {

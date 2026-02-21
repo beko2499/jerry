@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { useLanguage } from '@/contexts/LanguageContext';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+import { adminFetch, API_URL } from '@/lib/api';
 
 export default function SupportView() {
     const { t } = useLanguage();
@@ -29,17 +29,17 @@ export default function SupportView() {
     const [emailVerificationEnabled, setEmailVerificationEnabled] = useState(true);
 
     useEffect(() => {
-        fetch(`${API_URL}/settings/support`)
+        adminFetch(`/settings/support`)
             .then(r => r.json())
             .then(data => { if (data) setSupportConfig(data); })
             .catch(console.error);
 
-        fetch(`${API_URL}/settings/email`)
+        adminFetch(`/settings/email`)
             .then(r => r.json())
             .then(data => { if (data) setEmailConfig(data); })
             .catch(console.error);
 
-        fetch(`${API_URL}/settings/emailVerification`)
+        adminFetch(`/settings/emailVerification`)
             .then(r => r.json())
             .then(data => { if (data !== null) setEmailVerificationEnabled(data); })
             .catch(console.error);
@@ -54,7 +54,7 @@ export default function SupportView() {
     };
 
     const handleSave = async () => {
-        await fetch(`${API_URL}/settings/support`, {
+        await adminFetch(`/settings/support`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ value: supportConfig })
@@ -63,7 +63,7 @@ export default function SupportView() {
     };
 
     const handleSaveEmail = async () => {
-        await fetch(`${API_URL}/settings/email`, {
+        await adminFetch(`/settings/email`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ value: emailConfig })
@@ -73,7 +73,7 @@ export default function SupportView() {
 
     const toggleEmailVerification = async (enabled: boolean) => {
         setEmailVerificationEnabled(enabled);
-        await fetch(`${API_URL}/settings/emailVerification`, {
+        await adminFetch(`/settings/emailVerification`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ value: enabled })

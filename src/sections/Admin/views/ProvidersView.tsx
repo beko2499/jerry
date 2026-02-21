@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useLanguage } from '@/contexts/LanguageContext';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+import { adminFetch, API_URL } from '@/lib/api';
 
 interface Provider {
     _id: string;
@@ -58,13 +58,13 @@ export default function ProvidersView({ onModalChange }: { onModalChange?: (open
     const [balanceLoading, setBalanceLoading] = useState<string | null>(null);
 
     useEffect(() => {
-        fetch(`${API_URL}/providers`).then(r => r.json()).then(setProviders).catch(console.error);
-        fetch(`${API_URL}/categories`).then(r => r.json()).then(setCategories).catch(console.error);
+        adminFetch(`/providers`).then(r => r.json()).then(setProviders).catch(console.error);
+        adminFetch(`/categories`).then(r => r.json()).then(setCategories).catch(console.error);
     }, []);
 
     const handleAdd = async () => {
         if (!newProvider.name || !newProvider.url || !newProvider.apiKey) return;
-        const res = await fetch(`${API_URL}/providers`, {
+        const res = await adminFetch(`/providers`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(newProvider)
@@ -77,12 +77,12 @@ export default function ProvidersView({ onModalChange }: { onModalChange?: (open
 
     const handleDelete = async (id: string) => {
         if (!confirm(t.confirmDelete)) return;
-        await fetch(`${API_URL}/providers/${id}`, { method: 'DELETE' });
+        await adminFetch(`/providers/${id}`, { method: 'DELETE' });
         setProviders(prev => prev.filter(p => p._id !== id));
     };
 
     const handleSaveEdit = async (id: string) => {
-        const res = await fetch(`${API_URL}/providers/${id}`, {
+        const res = await adminFetch(`/providers/${id}`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(editForm)
@@ -96,7 +96,7 @@ export default function ProvidersView({ onModalChange }: { onModalChange?: (open
     const handleCheckBalance = async (id: string) => {
         setBalanceLoading(id);
         try {
-            const res = await fetch(`${API_URL}/providers/${id}/balance`);
+            const res = await adminFetch(`/providers/${id}/balance`);
             const data = await res.json();
             if (data.balance) {
                 setProviders(prev => prev.map(p => p._id === id ? { ...p, balance: `$${parseFloat(data.balance).toFixed(2)}` } : p));
@@ -116,7 +116,7 @@ export default function ProvidersView({ onModalChange }: { onModalChange?: (open
         setSearchFilter('');
         setCategoryFilter('');
         try {
-            const res = await fetch(`${API_URL}/providers/${id}/services`);
+            const res = await adminFetch(`/providers/${id}/services`);
             const data = await res.json();
             if (Array.isArray(data)) {
                 setSmmServices(data);
@@ -135,7 +135,7 @@ export default function ProvidersView({ onModalChange }: { onModalChange?: (open
 
         const toImport = smmServices.filter(s => selectedServices.has(s.service));
         try {
-            const res = await fetch(`${API_URL}/providers/${importingProviderId}/import-services`, {
+            const res = await adminFetch(`/providers/${importingProviderId}/import-services`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

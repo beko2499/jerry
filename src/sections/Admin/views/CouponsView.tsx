@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useLanguage } from '@/contexts/LanguageContext';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+import { adminFetch, API_URL } from '@/lib/api';
 
 interface Coupon {
     _id: string;
@@ -32,7 +32,7 @@ export default function CouponsView() {
 
     const fetchCoupons = async () => {
         try {
-            const res = await fetch(`${API_URL}/coupons`);
+            const res = await adminFetch(`/coupons`);
             const data = await res.json();
             setCoupons(data);
         } catch (err) {
@@ -44,7 +44,7 @@ export default function CouponsView() {
         if (!amount || parseFloat(amount) <= 0) return;
         setIsGenerating(true);
         try {
-            const res = await fetch(`${API_URL}/coupons/generate`, {
+            const res = await adminFetch(`/coupons/generate`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ amount: parseFloat(amount), note }),
@@ -61,7 +61,7 @@ export default function CouponsView() {
 
     const deleteCoupon = async (id: string) => {
         try {
-            await fetch(`${API_URL}/coupons/${id}`, { method: 'DELETE' });
+            await adminFetch(`/coupons/${id}`, { method: 'DELETE' });
             setCoupons(prev => prev.filter(c => c._id !== id));
         } catch (err) {
             console.error(err);

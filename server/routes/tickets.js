@@ -2,9 +2,10 @@ const express = require('express');
 const router = express.Router();
 const Ticket = require('../models/Ticket');
 const Notification = require('../models/Notification');
+const { requireAuth, requireAdmin } = require('../middleware/authMiddleware');
 
 // Create ticket (user)
-router.post('/', async (req, res) => {
+router.post('/', requireAuth, async (req, res) => {
     try {
         const { userId, topic, message } = req.body;
         if (!userId || !topic || !message) {
@@ -20,7 +21,7 @@ router.post('/', async (req, res) => {
 });
 
 // Get tickets by user
-router.get('/user/:userId', async (req, res) => {
+router.get('/user/:userId', requireAuth, async (req, res) => {
     try {
         const tickets = await Ticket.find({ userId: req.params.userId }).sort({ createdAt: -1 });
         res.json(tickets);
@@ -30,7 +31,7 @@ router.get('/user/:userId', async (req, res) => {
 });
 
 // Get all tickets (admin)
-router.get('/', async (req, res) => {
+router.get('/', requireAdmin, async (req, res) => {
     try {
         const filter = {};
         if (req.query.status && req.query.status !== 'all') filter.status = req.query.status;
@@ -44,7 +45,7 @@ router.get('/', async (req, res) => {
 });
 
 // Admin reply to ticket
-router.put('/:id/reply', async (req, res) => {
+router.put('/:id/reply', requireAdmin, async (req, res) => {
     try {
         const { reply } = req.body;
         const ticket = await Ticket.findByIdAndUpdate(
@@ -64,7 +65,7 @@ router.put('/:id/reply', async (req, res) => {
 });
 
 // Delete ticket (admin)
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', requireAdmin, async (req, res) => {
     try {
         await Ticket.findByIdAndDelete(req.params.id);
         res.json({ success: true });

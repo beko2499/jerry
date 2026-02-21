@@ -1,9 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const Notification = require('../models/Notification');
+const { requireAuth, requireAdmin } = require('../middleware/authMiddleware');
 
 // Get all notifications (admin)
-router.get('/', async (req, res) => {
+router.get('/', requireAdmin, async (req, res) => {
     try {
         const notifications = await Notification.find().sort({ createdAt: -1 });
         res.json(notifications);
@@ -13,7 +14,7 @@ router.get('/', async (req, res) => {
 });
 
 // Get sent notifications (user-facing)
-router.get('/user', async (req, res) => {
+router.get('/user', requireAuth, async (req, res) => {
     try {
         const filter = { status: 'sent', audience: { $ne: 'admin' } };
         if (req.query.userId) {
@@ -28,7 +29,7 @@ router.get('/user', async (req, res) => {
 });
 
 // Get admin notifications
-router.get('/admin', async (req, res) => {
+router.get('/admin', requireAdmin, async (req, res) => {
     try {
         const notifications = await Notification.find({ audience: 'admin' }).sort({ createdAt: -1 }).limit(50);
         res.json(notifications);
@@ -38,7 +39,7 @@ router.get('/admin', async (req, res) => {
 });
 
 // Create notification (admin)
-router.post('/', async (req, res) => {
+router.post('/', requireAdmin, async (req, res) => {
     try {
         const { title, body, type, scheduledAt } = req.body;
         const notif = new Notification({
@@ -57,7 +58,7 @@ router.post('/', async (req, res) => {
 });
 
 // Delete notification (admin)
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', requireAdmin, async (req, res) => {
     try {
         await Notification.findByIdAndDelete(req.params.id);
         res.json({ success: true });

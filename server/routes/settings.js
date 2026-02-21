@@ -1,9 +1,26 @@
 const express = require('express');
 const router = express.Router();
 const Settings = require('../models/Settings');
+const { requireAdmin } = require('../middleware/authMiddleware');
 
-// Get setting by key
-router.get('/:key', async (req, res) => {
+// Public settings (non-sensitive keys only)
+const PUBLIC_SETTINGS = ['support', 'terms', 'updates', 'referral', 'emailVerification', 'ticketSubjects'];
+
+router.get('/public/:key', async (req, res) => {
+    try {
+        if (!PUBLIC_SETTINGS.includes(req.params.key)) {
+            return res.status(403).json({ error: 'forbidden' });
+        }
+        const setting = await Settings.findOne({ key: req.params.key });
+        if (setting) return res.json(setting.value);
+        res.json(null);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Get setting by key (admin only)
+router.get('/:key', requireAdmin, async (req, res) => {
     try {
         const setting = await Settings.findOne({ key: req.params.key });
         if (setting) return res.json(setting.value);
@@ -24,7 +41,7 @@ router.get('/:key', async (req, res) => {
 });
 
 // Upsert setting
-router.put('/:key', async (req, res) => {
+router.put('/:key', requireAdmin, async (req, res) => {
     try {
         const setting = await Settings.findOneAndUpdate(
             { key: req.params.key },

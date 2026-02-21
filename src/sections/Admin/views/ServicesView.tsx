@@ -23,7 +23,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 
 const BACKEND_URL = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace('/api', '');
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+import { adminFetch, API_URL } from '@/lib/api';
 
 interface Category {
     _id: string;
@@ -81,7 +81,7 @@ export default function ServicesView() {
         const formData = new FormData();
         formData.append('image', file);
         try {
-            const res = await fetch(`${API_URL}/upload`, { method: 'POST', body: formData });
+            const res = await adminFetch(`/upload`, { method: 'POST', body: formData });
             const data = await res.json();
             if (data.url) onUrl(data.url);
         } catch (err) { console.error(err); }
@@ -105,7 +105,7 @@ export default function ServicesView() {
                 setSubCategories(cats);
 
                 if (currentParentId) {
-                    const svcs = await fetch(`${API_URL}/services?categoryId=${currentParentId}`).then(r => r.json());
+                    const svcs = await adminFetch(`/services?categoryId=${currentParentId}`).then(r => r.json());
                     setServices(svcs);
                 } else {
                     setServices([]);
@@ -138,7 +138,7 @@ export default function ServicesView() {
         if (!newFolderName) return;
 
         if (editingFolderId) {
-            const res = await fetch(`${API_URL}/categories/${editingFolderId}`, {
+            const res = await adminFetch(`/categories/${editingFolderId}`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ name: newFolderName, nameKey: newFolderName, image: newFolderImage })
@@ -147,7 +147,7 @@ export default function ServicesView() {
             setSubCategories(prev => prev.map(c => c._id === editingFolderId ? updated : c));
             setEditingFolderId(null);
         } else {
-            const res = await fetch(`${API_URL}/categories`, {
+            const res = await adminFetch(`/categories`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -167,7 +167,7 @@ export default function ServicesView() {
     const handleDeleteFolder = async (e: React.MouseEvent, folderId: string) => {
         e.stopPropagation();
         if (!window.confirm(t.confirmDelete)) return;
-        await fetch(`${API_URL}/categories/${folderId}`, { method: 'DELETE' });
+        await adminFetch(`/categories/${folderId}`, { method: 'DELETE' });
         setSubCategories(prev => prev.filter(c => c._id !== folderId));
     };
 
@@ -184,7 +184,7 @@ export default function ServicesView() {
         if (!newService.name || !currentParentId) return;
 
         if (editingServiceId) {
-            const res = await fetch(`${API_URL}/services/${editingServiceId}`, {
+            const res = await adminFetch(`/services/${editingServiceId}`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(newService)
@@ -193,7 +193,7 @@ export default function ServicesView() {
             setServices(prev => prev.map(s => s._id === editingServiceId ? updated : s));
             setEditingServiceId(null);
         } else {
-            const res = await fetch(`${API_URL}/services`, {
+            const res = await adminFetch(`/services`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ ...newService, categoryId: currentParentId })
@@ -208,7 +208,7 @@ export default function ServicesView() {
 
     const handleDeleteService = async (serviceId: string) => {
         if (!window.confirm(t.confirmDelete)) return;
-        await fetch(`${API_URL}/services/${serviceId}`, { method: 'DELETE' });
+        await adminFetch(`/services/${serviceId}`, { method: 'DELETE' });
         setServices(prev => prev.filter(s => s._id !== serviceId));
     };
 

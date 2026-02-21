@@ -1,4 +1,5 @@
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
+import { apiFetch, API_URL } from '@/lib/api';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import Sidebar from '@/components/custom/Sidebar';
@@ -17,7 +18,7 @@ import {
   Search
 } from 'lucide-react';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_URL_RAW = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 // Orders View Component
 function OrdersView() {
@@ -48,8 +49,8 @@ function OrdersView() {
 
   useEffect(() => {
     if (!user?._id) return;
-    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
-    fetch(`${API_URL}/orders?userId=${user._id}`)
+const API_URL_RAW = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+    apiFetch(`/orders?userId=${user._id}`)
       .then(r => r.json())
       .then(orders => {
         setAllOrders(orders.map((o: any) => ({
@@ -119,7 +120,7 @@ function OrdersView() {
         {filteredOrders.length === 0 ? (
           <div className="text-center py-12 text-white/30">
             <ShoppingCart className="w-10 h-10 mx-auto mb-2 opacity-50" />
-            <p className="text-sm">{t.noResults || 'لا توجد طلبات'}</p>
+            <p className="text-sm">{t.noResults || '�� ���� �����'}</p>
           </div>
         ) : filteredOrders.map((order) => (
           <Card key={order.id} className="p-3 bg-white/5 border-white/10">
@@ -128,7 +129,7 @@ function OrdersView() {
                 <p className="text-white text-sm font-medium truncate">{order.service}</p>
                 <div className="flex items-center gap-2 mt-1 text-xs text-white/40">
                   <span className="text-cyan-400 font-mono">{order.id}</span>
-                  <span>×{order.quantity}</span>
+                  <span>�{order.quantity}</span>
                 </div>
               </div>
               <div className="flex flex-col items-end gap-1 shrink-0">
@@ -198,8 +199,8 @@ function SearchView({ onNavigate: _onNavigate, onServiceSelect, onCategorySelect
     const fetchData = async () => {
       try {
         const [svcRes, catRes] = await Promise.all([
-          fetch(`${API_URL}/services`),
-          fetch(`${API_URL}/categories`),
+          fetch(`${API_URL_RAW}/services`),
+          fetch(`${API_URL_RAW}/categories`),
         ]);
         const svcData = await svcRes.json();
         const catData = await catRes.json();
@@ -235,7 +236,7 @@ function SearchView({ onNavigate: _onNavigate, onServiceSelect, onCategorySelect
         />
       </div>
 
-      {loading && <p className="text-white/40 text-sm text-center py-8">جاري التحميل...</p>}
+      {loading && <p className="text-white/40 text-sm text-center py-8">���� �������...</p>}
 
       {/* Results */}
       {query.length > 0 && !loading && (
@@ -243,7 +244,7 @@ function SearchView({ onNavigate: _onNavigate, onServiceSelect, onCategorySelect
           {/* Categories */}
           {filteredCategories.length > 0 && (
             <div>
-              <p className="text-white/40 text-xs mb-2 font-medium">الأقسام</p>
+              <p className="text-white/40 text-xs mb-2 font-medium">�������</p>
               <div className="space-y-2">
                 {filteredCategories.map(cat => (
                   <Card
@@ -255,11 +256,11 @@ function SearchView({ onNavigate: _onNavigate, onServiceSelect, onCategorySelect
                   >
                     <div className="flex items-center gap-3">
                       <div className="w-12 h-12 rounded-xl overflow-hidden shrink-0 bg-gradient-to-br from-purple-500/20 to-pink-500/20 flex items-center justify-center">
-                        {cat.image ? <img src={`${API_URL.replace('/api', '')}${cat.image}`} alt={cat.name} className="w-full h-full object-cover" /> : <span className="text-xl">📂</span>}
+                        {cat.image ? <img src={`${API_URL.replace('/api', '')}${cat.image}`} alt={cat.name} className="w-full h-full object-cover" /> : <span className="text-xl">??</span>}
                       </div>
                       <div className="overflow-hidden">
                         <h4 className="text-white font-medium text-sm truncate">{cat.name}</h4>
-                        <p className="text-white/40 text-xs">قسم</p>
+                        <p className="text-white/40 text-xs">���</p>
                       </div>
                     </div>
                   </Card>
@@ -271,7 +272,7 @@ function SearchView({ onNavigate: _onNavigate, onServiceSelect, onCategorySelect
           {/* Services */}
           {filteredServices.length > 0 && (
             <div>
-              <p className="text-white/40 text-xs mb-2 font-medium">الخدمات ({filteredServices.length})</p>
+              <p className="text-white/40 text-xs mb-2 font-medium">������� ({filteredServices.length})</p>
               <div className="space-y-2">
                 {filteredServices.slice(0, 20).map(svc => (
                   <Card
@@ -283,7 +284,7 @@ function SearchView({ onNavigate: _onNavigate, onServiceSelect, onCategorySelect
                   >
                     <div className="flex items-center gap-3">
                       <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500/20 to-purple-500/20 flex items-center justify-center shrink-0">
-                        <span className="text-xl">⚡</span>
+                        <span className="text-xl">?</span>
                       </div>
                       <div className="overflow-hidden flex-1">
                         <h4 className="text-white font-medium text-sm truncate">{svc.name}</h4>
@@ -296,7 +297,7 @@ function SearchView({ onNavigate: _onNavigate, onServiceSelect, onCategorySelect
                   </Card>
                 ))}
                 {filteredServices.length > 20 && (
-                  <p className="text-white/30 text-xs text-center">+{filteredServices.length - 20} نتيجة أخرى</p>
+                  <p className="text-white/30 text-xs text-center">+{filteredServices.length - 20} ����� ����</p>
                 )}
               </div>
             </div>
@@ -305,7 +306,7 @@ function SearchView({ onNavigate: _onNavigate, onServiceSelect, onCategorySelect
           {filteredServices.length === 0 && filteredCategories.length === 0 && (
             <div className="text-center py-12">
               <Search className="w-12 h-12 text-white/10 mx-auto mb-4" />
-              <p className="text-white/40 text-sm">لا توجد نتائج</p>
+              <p className="text-white/40 text-sm">�� ���� �����</p>
             </div>
           )}
         </div>
@@ -341,98 +342,98 @@ function NewOrderView({ onServiceClick }: NewOrderViewProps) {
 const allTelegramServices = [
   {
     id: '1823',
-    name: 'ط§ط¹ط¶ط§ط، طھظ„ظٹط¬ط±ط§ظ… ط­ط³ط§ط¨ط§طھ ظ…ط­ط°ظˆظپظ‡',
+    name: 'اعضاء تليجرام حسابات محذوفه',
     pricePer1000: 2.00,
     oldPrice: 2.02,
     discount: '-1%',
     min: 500,
     max: 60000,
-    category: 'ط®ط¯ظ…ط§طھ طھظ„ظٹط¬ط±ط§ظ… | ط¬ظٹط±ظٹ',
-    shortDesc: 'ط­ط³ط§ط¨ط§طھ ظ…ط­ط°ظˆظپط©طŒ ط¬ظˆط¯ط© ظ…ظ†ط®ظپط¶ط©طŒ ط¨ط¯ط، ظپظˆط±ظٹ',
-    description: `- ط§ظ„ط¨ط¯ط§ط، : 0 -4 ط³ط§ط¹ط§طھ ًںڑ©
-- ط§ظ„ط¶ظ…ط§ظ† : ط­ط³ط§ط¨ط§طھ ظ…ط­ط°ظˆظپظ‡ ظھ0 ظ†ط²ظˆط§ ًںڈ®
-- ط§ظ„ط±ط§ط¨ط· : ط±ط§ط¨ط· ط¯ط¹ظˆط© ًںڈ®
-- ط§ظ„ط¬ظˆط¯ظ‡ : HQ ًںڈ®
-- طھظ‚ط¨ظ„ ظƒط±ظˆط¨ط§طھ / ظ‚ظ†ظˆط§طھ ًںژ‰
+    category: 'خدمات تليجرام | جيري',
+    shortDesc: 'حسابات محذوفة، جودة منخفضة، بدء فوري',
+    description: `- البداء : 0 -4 ساعات 🚩
+- الضمان : حسابات محذوفه ٪0 نزوا 🏮
+- الرابط : رابط دعوة 🏮
+- الجوده : HQ 🏮
+- تقبل كروبات / قنوات 🎉
 
-- طھظˆط¶ظٹط­ ظ…ظ‡ظ… : ط§ظ„ط­ط³ط§ط¨ط§طھ ط¨طھط¯ط±ظٹط¬ ط±ط§ط­ طھظ†ط­ط°ظپ ظ…ط¹ظ‰ ظ…ط±ظˆط± ط§ظ„ط§ظٹط§ظ… . طھظ… ط§ظ„طھط­ظ‚ظ‚ ظ…ظ† ط§ظ„ط®ط¯ظ…ظ‡ ظˆط§ظ„ط®ط¯ظ…ظ‡ 100/100ط­ط³ط§ط¨ط§طھ ظ…ط­ط°ظˆظپظ‡`,
+- توضيح مهم : الحسابات بتدريج راح تنحذف معى مرور الايام . تم التحقق من الخدمه والخدمه 100/100حسابات محذوفه`,
     details: [
-      { label: 'ط³ط±ط¹ط© ط§ظ„ط®ط¯ظ…ظ‡', value: 'ط§ظ„ط®ط¯ظ…ط© ط·ط¨ظٹط¹ظٹظ‡' },
-      { label: 'ظ†ط³ط¨ظ‡ ط§ظ„ظ†ط²ظˆظ„', value: 'ظ…ط²ظٹط¬ ط¨ظٹظ† ط§ظ„ظˆظ‡ظ…ظٹ ظˆط§ظ„ط­ظ‚ظٹظ‚ظٹ' },
-      { label: 'ط¶ظ…ط§ظ†', value: '0 ظٹظˆظ…' },
-      { label: 'ط§ظ„ط³ط±ط¹ط©', value: '50K ظپظٹ ط§ظ„ظٹظˆظ…' },
+      { label: 'سرعة الخدمه', value: 'الخدمة طبيعيه' },
+      { label: 'نسبه النزول', value: 'مزيج بين الوهمي والحقيقي' },
+      { label: 'ضمان', value: '0 يوم' },
+      { label: 'السرعة', value: '50K في اليوم' },
     ]
   },
   {
     id: '1824',
-    name: 'ط§ط¹ط¶ط§ط، طھظ„ظٹط¬ط±ط§ظ… ط¨ط¯ظˆظ† ظ†ط²ظˆظ„ ظ„ظ„ط§ط¨ط¯ (ظ…ظ…ظ„ظˆظƒظ‡)',
+    name: 'اعضاء تليجرام بدون نزول للابد (مملوكه)',
     pricePer1000: 1.20,
     oldPrice: 1.21,
     discount: '-1%',
     min: 50,
     max: 50000,
-    category: 'ط®ط¯ظ…ط§طھ طھظ„ظٹط¬ط±ط§ظ… | ط¬ظٹط±ظٹ',
-    shortDesc: 'ط¶ظ…ط§ظ† ط¹ط¯ظ… ط§ظ„ظ†ط²ظˆظ„ ظ…ط¯ظ‰ ط§ظ„ط­ظٹط§ط©طŒ ط­ط³ط§ط¨ط§طھ ط¹ط§ظ„ظٹط© ط§ظ„ط¬ظˆط¯ط©',
-    description: `- ط§ظ„ط¨ط¯ط§ط، : 0 -2 ط³ط§ط¹ط§طھ ًںڑ©
-- ط§ظ„ط¶ظ…ط§ظ† : ط¨ط¯ظˆظ† ظ†ط²ظˆظ„ ظ„ظ„ط§ط¨ط¯ â™¾ï¸ڈ ًںڈ®
-- ط§ظ„ط±ط§ط¨ط· : ط±ط§ط¨ط· ط¯ط¹ظˆط© / ظٹظˆط²ط± ًںڈ®
-- ط§ظ„ط¬ظˆط¯ظ‡ : HQ - ط­ط³ط§ط¨ط§طھ ظ…ظ…ظ„ظˆظƒظ‡ ًںڈ®
-- طھظ‚ط¨ظ„ ظ‚ظ†ظˆط§طھ ظپظ‚ط· ًںژ‰
+    category: 'خدمات تليجرام | جيري',
+    shortDesc: 'ضمان عدم النزول مدى الحياة، حسابات عالية الجودة',
+    description: `- البداء : 0 -2 ساعات 🚩
+- الضمان : بدون نزول للابد ♾️ 🏮
+- الرابط : رابط دعوة / يوزر 🏮
+- الجوده : HQ - حسابات مملوكه 🏮
+- تقبل قنوات فقط 🎉
 
-- طھظˆط¶ظٹط­ ظ…ظ‡ظ… : ط§ط¹ط¶ط§ط، ط­ظ‚ظٹظ‚ظٹظٹظ† ط¨ط¯ظˆظ† ظ†ط²ظˆظ„ ظ†ظ‡ط§ط¦ظٹط§ظ‹طŒ ط®ط¯ظ…ط© ظ…ظ…ظ„ظˆظƒط© ط¨ط¶ظ…ط§ظ† ظ…ط¯ظ‰ ط§ظ„ط­ظٹط§ط©`,
+- توضيح مهم : اعضاء حقيقيين بدون نزول نهائياً، خدمة مملوكة بضمان مدى الحياة`,
     details: [
-      { label: 'ط³ط±ط¹ط© ط§ظ„ط®ط¯ظ…ظ‡', value: 'ط³ط±ظٹط¹ط©' },
-      { label: 'ظ†ط³ط¨ظ‡ ط§ظ„ظ†ط²ظˆظ„', value: '0% - ط¨ط¯ظˆظ† ظ†ط²ظˆظ„' },
-      { label: 'ط¶ظ…ط§ظ†', value: 'ظ…ط¯ظ‰ ط§ظ„ط­ظٹط§ط© â™¾ï¸ڈ' },
-      { label: 'ط§ظ„ط³ط±ط¹ط©', value: '30K ظپظٹ ط§ظ„ظٹظˆظ…' },
+      { label: 'سرعة الخدمه', value: 'سريعة' },
+      { label: 'نسبه النزول', value: '0% - بدون نزول' },
+      { label: 'ضمان', value: 'مدى الحياة ♾️' },
+      { label: 'السرعة', value: '30K في اليوم' },
     ]
   },
   {
     id: '1825',
-    name: 'ط§ط¹ط¶ط§ط، طھظ„ظٹط¬ط±ط§ظ… ط¨ط¯ظˆظ† ظ†ط²ظˆظ„ ظ„ظ„ط§ط¨ط¯ ظ„ظ„ظƒط±ظˆط¨ط§طھ (ظ…ظ…ظ„ظˆظƒظ‡)',
+    name: 'اعضاء تليجرام بدون نزول للابد للكروبات (مملوكه)',
     pricePer1000: 1.20,
     oldPrice: 1.21,
     discount: '-1%',
     min: 50,
     max: 20000,
-    category: 'ط®ط¯ظ…ط§طھ طھظ„ظٹط¬ط±ط§ظ… | ط¬ظٹط±ظٹ',
-    shortDesc: 'ظ…ط®طµطµ ظ„ظ„ظ…ط¬ظ…ظˆط¹ط§طھطŒ ط¶ظ…ط§ظ† ظ…ط¯ظ‰ ط§ظ„ط­ظٹط§ط©',
-    description: `- ط§ظ„ط¨ط¯ط§ط، : 0 -2 ط³ط§ط¹ط§طھ ًںڑ©
-- ط§ظ„ط¶ظ…ط§ظ† : ط¨ط¯ظˆظ† ظ†ط²ظˆظ„ ظ„ظ„ط§ط¨ط¯ â™¾ï¸ڈ ًںڈ®
-- ط§ظ„ط±ط§ط¨ط· : ط±ط§ط¨ط· ط¯ط¹ظˆط© ظƒط±ظˆط¨ ًںڈ®
-- ط§ظ„ط¬ظˆط¯ظ‡ : HQ - ط­ط³ط§ط¨ط§طھ ظ…ظ…ظ„ظˆظƒظ‡ ًںڈ®
-- طھظ‚ط¨ظ„ ظƒط±ظˆط¨ط§طھ ظپظ‚ط· ًںژ‰
+    category: 'خدمات تليجرام | جيري',
+    shortDesc: 'مخصص للمجموعات، ضمان مدى الحياة',
+    description: `- البداء : 0 -2 ساعات 🚩
+- الضمان : بدون نزول للابد ♾️ 🏮
+- الرابط : رابط دعوة كروب 🏮
+- الجوده : HQ - حسابات مملوكه 🏮
+- تقبل كروبات فقط 🎉
 
-- طھظˆط¶ظٹط­ ظ…ظ‡ظ… : ط§ط¹ط¶ط§ط، ط­ظ‚ظٹظ‚ظٹظٹظ† ظ…ط®طµطµظٹظ† ظ„ظ„ظƒط±ظˆط¨ط§طھ ط¨ط¶ظ…ط§ظ† ظ…ط¯ظ‰ ط§ظ„ط­ظٹط§ط© ط¨ط¯ظˆظ† ظ†ط²ظˆظ„`,
+- توضيح مهم : اعضاء حقيقيين مخصصين للكروبات بضمان مدى الحياة بدون نزول`,
     details: [
-      { label: 'ط³ط±ط¹ط© ط§ظ„ط®ط¯ظ…ظ‡', value: 'ط³ط±ظٹط¹ط©' },
-      { label: 'ظ†ط³ط¨ظ‡ ط§ظ„ظ†ط²ظˆظ„', value: '0% - ط¨ط¯ظˆظ† ظ†ط²ظˆظ„' },
-      { label: 'ط¶ظ…ط§ظ†', value: 'ظ…ط¯ظ‰ ط§ظ„ط­ظٹط§ط© â™¾ï¸ڈ' },
-      { label: 'ط§ظ„ط³ط±ط¹ط©', value: '20K ظپظٹ ط§ظ„ظٹظˆظ…' },
+      { label: 'سرعة الخدمه', value: 'سريعة' },
+      { label: 'نسبه النزول', value: '0% - بدون نزول' },
+      { label: 'ضمان', value: 'مدى الحياة ♾️' },
+      { label: 'السرعة', value: '20K في اليوم' },
     ]
   },
   {
     id: '1826',
-    name: 'ط§ط¹ط¶ط§ط، طھظ„ظٹط¬ط±ط§ظ… ط±ط®ظٹطµ (ظ…ظ…ظ„ظˆظƒظ‡) م€½ï¸ڈ',
+    name: 'اعضاء تليجرام رخيص (مملوكه) 〽️',
     pricePer1000: 0.07,
     oldPrice: 0.07,
     discount: '-1%',
     min: 100,
     max: 100000,
-    category: 'ط®ط¯ظ…ط§طھ طھظ„ظٹط¬ط±ط§ظ… | ط¬ظٹط±ظٹ',
-    shortDesc: 'ط§ط±ط®طµ ط®ط¯ظ…ط© ظپظٹ ط§ظ„ط³ظˆظ‚طŒ ط³ط±ط¹ط© ظ…طھظˆط³ط·ط©',
-    description: `- ط§ظ„ط¨ط¯ط§ط، : 0 -6 ط³ط§ط¹ط§طھ ًںڑ©
-- ط§ظ„ط¶ظ…ط§ظ† : ظ„ط§ ظٹظˆط¬ط¯ ط¶ظ…ط§ظ† ًںڈ®
-- ط§ظ„ط±ط§ط¨ط· : ط±ط§ط¨ط· ط¯ط¹ظˆط© / ظٹظˆط²ط± ًںڈ®
-- ط§ظ„ط¬ظˆط¯ظ‡ : Low - ط­ط³ط§ط¨ط§طھ ظ…ظ…ظ„ظˆظƒظ‡ ًںڈ®
-- طھظ‚ط¨ظ„ ظƒط±ظˆط¨ط§طھ / ظ‚ظ†ظˆط§طھ ًںژ‰
+    category: 'خدمات تليجرام | جيري',
+    shortDesc: 'ارخص خدمة في السوق، سرعة متوسطة',
+    description: `- البداء : 0 -6 ساعات 🚩
+- الضمان : لا يوجد ضمان 🏮
+- الرابط : رابط دعوة / يوزر 🏮
+- الجوده : Low - حسابات مملوكه 🏮
+- تقبل كروبات / قنوات 🎉
 
-- طھظˆط¶ظٹط­ ظ…ظ‡ظ… : ط§ط±ط®طµ ط®ط¯ظ…ط© ط§ط¹ط¶ط§ط، ظپظٹ ط§ظ„ط³ظˆظ‚طŒ ظ…ظ†ط§ط³ط¨ط© ظ„ظ…ظ† ظٹط±ظٹط¯ ط§ط±ظ‚ط§ظ… ظƒط¨ظٹط±ط© ط¨ط£ظ‚ظ„ ط³ط¹ط±`,
+- توضيح مهم : ارخص خدمة اعضاء في السوق، مناسبة لمن يريد ارقام كبيرة بأقل سعر`,
     details: [
-      { label: 'ط³ط±ط¹ط© ط§ظ„ط®ط¯ظ…ظ‡', value: 'ظ…طھظˆط³ط·ط©' },
-      { label: 'ظ†ط³ط¨ظ‡ ط§ظ„ظ†ط²ظˆظ„', value: 'ظ…ظ…ظƒظ† ظ†ط²ظˆظ„ ط¨ط³ظٹط·' },
-      { label: 'ط¶ظ…ط§ظ†', value: 'ظ„ط§ ظٹظˆط¬ط¯' },
-      { label: 'ط§ظ„ط³ط±ط¹ط©', value: '100K ظپظٹ ط§ظ„ظٹظˆظ…' },
+      { label: 'سرعة الخدمه', value: 'متوسطة' },
+      { label: 'نسبه النزول', value: 'ممكن نزول بسيط' },
+      { label: 'ضمان', value: 'لا يوجد' },
+      { label: 'السرعة', value: '100K في اليوم' },
     ]
   },
 ];
@@ -466,18 +467,18 @@ function ServiceDetailsView({ serviceId, serviceData, onBack }: ServiceDetailsVi
   const handleSubmitOrder = async () => {
     if (!user) return;
     if (quantity < serviceMin || quantity > serviceMax) {
-      setOrderResult({ success: false, message: t.invalidQuantity || `الكمية يجب أن تكون بين ${serviceMin} و ${serviceMax}` });
+      setOrderResult({ success: false, message: t.invalidQuantity || `������ ��� �� ���� ��� ${serviceMin} � ${serviceMax}` });
       return;
     }
     if ((user.balance || 0) < totalPrice) {
-      setOrderResult({ success: false, message: t.insufficientBalance || 'رصيدك غير كافي' });
+      setOrderResult({ success: false, message: t.insufficientBalance || '����� ��� ����' });
       return;
     }
 
     setOrderLoading(true);
     setOrderResult(null);
     try {
-      const res = await fetch(`${API_URL}/orders`, {
+      const res = await apiFetch(`/orders`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -491,13 +492,13 @@ function ServiceDetailsView({ serviceId, serviceData, onBack }: ServiceDetailsVi
       });
       const data = await res.json();
       if (!res.ok) {
-        setOrderResult({ success: false, message: data.error || 'حدث خطأ' });
+        setOrderResult({ success: false, message: data.error || '��� ���' });
       } else {
-        setOrderResult({ success: true, message: t.orderSuccess || 'تم الطلب بنجاح! ✅', orderId: data.orderId });
+        setOrderResult({ success: true, message: t.orderSuccess || '�� ����� �����! ?', orderId: data.orderId });
         await refreshUser();
       }
     } catch {
-      setOrderResult({ success: false, message: t.connectionError || 'خطأ في الاتصال' });
+      setOrderResult({ success: false, message: t.connectionError || '��� �� �������' });
     }
     setOrderLoading(false);
   };
@@ -521,32 +522,32 @@ function ServiceDetailsView({ serviceId, serviceData, onBack }: ServiceDetailsVi
             <div className="flex items-center gap-3 mb-6 p-3 bg-gradient-to-r from-cyan-500/10 to-purple-500/10 rounded-xl border border-cyan-500/20">
               <div className="flex items-baseline gap-1">
                 <span className="text-3xl font-bold text-cyan-400 font-space">${servicePrice}</span>
-                <span className="text-white/40 text-sm">/ {t.perUnit || 'لكل وحدة'}</span>
+                <span className="text-white/40 text-sm">/ {t.perUnit || '��� ����'}</span>
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-3 mb-6">
               {serviceData?.speed && (
                 <div className="p-3 bg-white/5 rounded-xl border border-white/5">
-                  <div className="text-xs text-white/40 mb-1">âڑ، {t.speed || 'Speed'}</div>
+                  <div className="text-xs text-white/40 mb-1">⚡ {t.speed || 'Speed'}</div>
                   <div className="text-sm text-white font-medium">{serviceData.speed}</div>
                 </div>
               )}
               {serviceData?.guarantee && (
                 <div className="p-3 bg-white/5 rounded-xl border border-white/5">
-                  <div className="text-xs text-white/40 mb-1">ًں›،ï¸ڈ {t.guarantee || 'Guarantee'}</div>
+                  <div className="text-xs text-white/40 mb-1">🛡️ {t.guarantee || 'Guarantee'}</div>
                   <div className="text-sm text-white font-medium">{serviceData.guarantee}</div>
                 </div>
               )}
               {serviceData?.dropRate && (
                 <div className="p-3 bg-white/5 rounded-xl border border-white/5">
-                  <div className="text-xs text-white/40 mb-1">ًں“‰ {t.dropRate || 'Drop Rate'}</div>
+                  <div className="text-xs text-white/40 mb-1">📉 {t.dropRate || 'Drop Rate'}</div>
                   <div className="text-sm text-white font-medium">{serviceData.dropRate}</div>
                 </div>
               )}
               {serviceData?.startTime && (
                 <div className="p-3 bg-white/5 rounded-xl border border-white/5">
-                  <div className="text-xs text-white/40 mb-1">ًں•گ {t.startTime}</div>
+                  <div className="text-xs text-white/40 mb-1">🕐 {t.startTime}</div>
                   <div className="text-sm text-white font-medium">{serviceData.startTime}</div>
                 </div>
               )}
@@ -671,9 +672,9 @@ function ServiceDetailsView({ serviceId, serviceData, onBack }: ServiceDetailsVi
                 className="w-full h-14 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white text-lg font-bold shadow-lg shadow-cyan-500/20 rounded-xl transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {orderLoading ? (
-                  <span className="flex items-center gap-2"><span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> {t.processing || 'جاري المعالجة...'}</span>
+                  <span className="flex items-center gap-2"><span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> {t.processing || '���� ��������...'}</span>
                 ) : orderResult?.success ? (
-                  t.orderPlaced || '✅ تم الطلب'
+                  t.orderPlaced || '? �� �����'
                 ) : (
                   t.confirmOrder
                 )}
@@ -708,11 +709,11 @@ function SettingsView({ defaultTab = 'referral' }: { defaultTab?: 'settings' | '
 
   useEffect(() => {
     if (user?._id) {
-      fetch(`${API_URL}/referrals/stats/${user._id}`)
+      apiFetch(`/referrals/stats/${user._id}`)
         .then(r => r.json())
         .then(data => { if (data.referralCode) setRefStats(data); })
         .catch(console.error);
-      fetch(`${API_URL}/v2/key/${user._id}`)
+      apiFetch(`/v2/key/${user._id}`)
         .then(r => r.json())
         .then(data => { if (data.apiKey) setApiKey(data.apiKey); })
         .catch(console.error);
@@ -721,27 +722,27 @@ function SettingsView({ defaultTab = 'referral' }: { defaultTab?: 'settings' | '
 
   const handleSave = async () => {
     setMessage(null);
-    if (newPassword && newPassword !== confirmPassword) { setMessage({ type: 'error', text: 'كلمات المرور غير متطابقة' }); return; }
-    if (newPassword && !currentPassword) { setMessage({ type: 'error', text: 'يرجى إدخال كلمة المرور الحالية' }); return; }
-    if (!email && !newPassword) { setMessage({ type: 'error', text: 'لا توجد تغييرات لحفظها' }); return; }
+    if (newPassword && newPassword !== confirmPassword) { setMessage({ type: 'error', text: '����� ������ ��� �������' }); return; }
+    if (newPassword && !currentPassword) { setMessage({ type: 'error', text: '���� ����� ���� ������ �������' }); return; }
+    if (!email && !newPassword) { setMessage({ type: 'error', text: '�� ���� ������� ������' }); return; }
     setSaving(true);
     try {
       const body: any = {};
       if (email !== user?.email) body.email = email;
       if (newPassword) { body.newPassword = newPassword; body.currentPassword = currentPassword; }
       else if (currentPassword) body.currentPassword = currentPassword;
-      if (Object.keys(body).length === 0) { setMessage({ type: 'error', text: 'لا توجد تغييرات لحفظها' }); setSaving(false); return; }
-      const res = await fetch(`${API_URL}/auth/profile/${user?._id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      if (Object.keys(body).length === 0) { setMessage({ type: 'error', text: '�� ���� ������� ������' }); setSaving(false); return; }
+      const res = await apiFetch(`/auth/profile/${user?._id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
       const data = await res.json();
       if (!res.ok) {
-        const errMap: Record<string, string> = { wrong_password: 'كلمة المرور الحالية غير صحيحة', email_exists: 'البريد الإلكتروني مستخدم بالفعل', current_password_required: 'يرجى إدخال كلمة المرور الحالية' };
+        const errMap: Record<string, string> = { wrong_password: '���� ������ ������� ��� �����', email_exists: '������ ���������� ������ ������', current_password_required: '���� ����� ���� ������ �������' };
         setMessage({ type: 'error', text: errMap[data.error] || data.error });
       } else {
-        setMessage({ type: 'success', text: 'تم حفظ التغييرات بنجاح ✅' });
+        setMessage({ type: 'success', text: '�� ��� ��������� ����� ?' });
         setCurrentPassword(''); setNewPassword(''); setConfirmPassword('');
         await refreshUser();
       }
-    } catch { setMessage({ type: 'error', text: 'حدث خطأ في الاتصال' }); }
+    } catch { setMessage({ type: 'error', text: '��� ��� �� �������' }); }
     setSaving(false);
   };
 
@@ -765,10 +766,10 @@ function SettingsView({ defaultTab = 'referral' }: { defaultTab?: 'settings' | '
       {/* Tabs */}
       <div className="flex gap-2 mb-6">
         <button onClick={() => setTab('referral')} className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${tab === 'referral' ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30' : 'bg-white/5 text-white/50 border border-white/10 hover:bg-white/10'}`}>
-          نظام الاحالة
+          ���� �������
         </button>
         <button onClick={() => setTab('settings')} className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${tab === 'settings' ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30' : 'bg-white/5 text-white/50 border border-white/10 hover:bg-white/10'}`}>
-          الاعدادات
+          ���������
         </button>
         <button onClick={() => setTab('api')} className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${tab === 'api' ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30' : 'bg-white/5 text-white/50 border border-white/10 hover:bg-white/10'}`}>
           API
@@ -787,19 +788,19 @@ function SettingsView({ defaultTab = 'referral' }: { defaultTab?: 'settings' | '
               <Input value={email} onChange={e => setEmail(e.target.value)} className="bg-white/5 border-white/10 text-white focus:border-cyan-500/50 h-10" dir="ltr" />
             </div>
             <div className="border-t border-white/10 pt-4">
-              <p className="text-white/50 text-xs mb-3">لتغيير كلمة المرور أو البريد، أدخل كلمة المرور الحالية</p>
+              <p className="text-white/50 text-xs mb-3">������ ���� ������ �� �����ϡ ���� ���� ������ �������</p>
             </div>
             <div>
               <label className="block font-body text-white/80 text-sm mb-1.5">{t.currentPassword}</label>
-              <Input type="password" value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} className="bg-white/5 border-white/10 text-white focus:border-cyan-500/50 h-10" placeholder="••••••••" />
+              <Input type="password" value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} className="bg-white/5 border-white/10 text-white focus:border-cyan-500/50 h-10" placeholder="��������" />
             </div>
             <div>
               <label className="block font-body text-white/80 text-sm mb-1.5">{t.newPassword}</label>
-              <Input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} className="bg-white/5 border-white/10 text-white focus:border-cyan-500/50 h-10" placeholder="••••••••" />
+              <Input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} className="bg-white/5 border-white/10 text-white focus:border-cyan-500/50 h-10" placeholder="��������" />
             </div>
             <div>
-              <label className="block font-body text-white/80 text-sm mb-1.5">تأكيد كلمة المرور الجديدة</label>
-              <Input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} className="bg-white/5 border-white/10 text-white focus:border-cyan-500/50 h-10" placeholder="••••••••" />
+              <label className="block font-body text-white/80 text-sm mb-1.5">����� ���� ������ �������</label>
+              <Input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} className="bg-white/5 border-white/10 text-white focus:border-cyan-500/50 h-10" placeholder="��������" />
             </div>
             {message && <div className={`p-3 rounded-xl text-sm ${message.type === 'success' ? 'bg-green-500/10 text-green-400 border border-green-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'}`}>{message.text}</div>}
             <Button onClick={handleSave} disabled={saving} className="w-full bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700 text-white shadow-lg shadow-cyan-500/20 h-11">
@@ -814,22 +815,22 @@ function SettingsView({ defaultTab = 'referral' }: { defaultTab?: 'settings' | '
           {/* Referral Info */}
           <Card className="p-5 bg-white/5 border-white/10 backdrop-blur-sm">
             <div className="flex items-start gap-3 mb-4">
-              <div className="w-10 h-10 rounded-xl bg-cyan-500/20 flex items-center justify-center text-lg shrink-0">🔗</div>
+              <div className="w-10 h-10 rounded-xl bg-cyan-500/20 flex items-center justify-center text-lg shrink-0">??</div>
               <div>
-                <h3 className="text-white font-bold text-sm">نظام الانتساب</h3>
-                <p className="text-white/50 text-xs mt-1">سيتم إضافة الرصيد لحسابك تلقائياً عند شحن المدعوين</p>
+                <h3 className="text-white font-bold text-sm">���� ��������</h3>
+                <p className="text-white/50 text-xs mt-1">���� ����� ������ ������ �������� ��� ��� ��������</p>
               </div>
             </div>
 
             {/* Referral Link */}
             <div>
-              <label className="block text-white/40 text-xs mb-2">الرابط الخاص بك</label>
+              <label className="block text-white/40 text-xs mb-2">������ ����� ��</label>
               <div className="flex items-center gap-2">
                 <div className="flex-1 px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white/70 text-sm font-mono truncate" dir="ltr">
                   {refLink || '...'}
                 </div>
                 <button onClick={handleCopy} className="px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all shrink-0">
-                  {copied ? <span className="text-green-400 text-sm">✅</span> : <span className="text-white/40 text-sm">📋</span>}
+                  {copied ? <span className="text-green-400 text-sm">?</span> : <span className="text-white/40 text-sm">??</span>}
                 </button>
               </div>
             </div>
@@ -838,21 +839,21 @@ function SettingsView({ defaultTab = 'referral' }: { defaultTab?: 'settings' | '
           {/* Balance */}
           <Card className="p-5 bg-white/5 border-white/10 backdrop-blur-sm">
             <div className="flex items-center justify-between">
-              <span className="text-white/50 text-sm">الرصيد من الإحالات</span>
+              <span className="text-white/50 text-sm">������ �� ��������</span>
               <span className="text-green-400 font-bold text-lg" dir="ltr">${(refStats?.totalEarnings || 0).toFixed(2)}</span>
             </div>
-            <p className="text-white/30 text-xs mt-1">نسبة العمولة: {refStats?.commissionRate || 5}% من كل شحنة</p>
+            <p className="text-white/30 text-xs mt-1">���� �������: {refStats?.commissionRate || 5}% �� �� ����</p>
           </Card>
 
           {/* Statistics */}
-          <h3 className="text-white font-bold text-sm pt-2">الإحصائيات</h3>
+          <h3 className="text-white font-bold text-sm pt-2">����������</h3>
           <div className="grid grid-cols-2 gap-3">
             <Card className="p-4 bg-white/5 border-white/10 text-center">
-              <p className="text-white/40 text-xs mb-1">الأشخاص المدعوين</p>
+              <p className="text-white/40 text-xs mb-1">������� ��������</p>
               <p className="text-white font-bold text-2xl">{refStats?.totalReferrals || 0}</p>
             </Card>
             <Card className="p-4 bg-white/5 border-white/10 text-center">
-              <p className="text-white/40 text-xs mb-1">إجمالي الدخل</p>
+              <p className="text-white/40 text-xs mb-1">������ �����</p>
               <p className="text-green-400 font-bold text-2xl" dir="ltr">${(refStats?.totalEarnings || 0).toFixed(2)}</p>
             </Card>
           </div>
@@ -866,23 +867,23 @@ function SettingsView({ defaultTab = 'referral' }: { defaultTab?: 'settings' | '
             {/* API Key Card */}
             <Card className="p-5 bg-white/5 border-white/10 backdrop-blur-sm">
               <div className="flex items-start gap-3 mb-4">
-                <div className="w-10 h-10 rounded-xl bg-cyan-500/20 flex items-center justify-center text-lg shrink-0">🔑</div>
+                <div className="w-10 h-10 rounded-xl bg-cyan-500/20 flex items-center justify-center text-lg shrink-0">??</div>
                 <div>
                   <h3 className="text-white font-bold text-sm">API</h3>
-                  <p className="text-white/50 text-xs mt-1">استخدم مفتاح API لربط خدماتنا مع موقعك</p>
+                  <p className="text-white/50 text-xs mt-1">������ ����� API ���� ������� �� �����</p>
                 </div>
               </div>
               <div>
-                <label className="block text-white/40 text-xs mb-2">الرمز الخاص بك</label>
+                <label className="block text-white/40 text-xs mb-2">����� ����� ��</label>
                 <div className="flex items-center gap-2">
                   <div className="flex-1 px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white/70 text-sm font-mono truncate" dir="ltr">
                     {apiKey ? (showApiKey ? apiKey : apiKey.substring(0, 10) + '...' + apiKey.substring(apiKey.length - 6)) : '...'}
                   </div>
                   <button onClick={() => setShowApiKey(!showApiKey)} className="px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all shrink-0">
-                    <span className="text-white/40 text-sm">{showApiKey ? '🙈' : '👁️'}</span>
+                    <span className="text-white/40 text-sm">{showApiKey ? '??' : '???'}</span>
                   </button>
                   <button onClick={() => { try { navigator.clipboard.writeText(apiKey); } catch { const ta = document.createElement('textarea'); ta.value = apiKey; ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); } setApiCopied(true); setTimeout(() => setApiCopied(false), 2000); }} className="px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all shrink-0">
-                    {apiCopied ? <span className="text-green-400 text-sm">✅</span> : <span className="text-white/40 text-sm">📋</span>}
+                    {apiCopied ? <span className="text-green-400 text-sm">?</span> : <span className="text-white/40 text-sm">??</span>}
                   </button>
                 </div>
               </div>
@@ -890,7 +891,7 @@ function SettingsView({ defaultTab = 'referral' }: { defaultTab?: 'settings' | '
                 onClick={async () => {
                   setRegenerating(true);
                   try {
-                    const res = await fetch(`${API_URL}/v2/generate-key`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId: user?._id }) });
+                    const res = await apiFetch(`/v2/generate-key`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId: user?._id }) });
                     const data = await res.json();
                     if (data.apiKey) setApiKey(data.apiKey);
                   } catch (e) { console.error(e); }
@@ -899,36 +900,36 @@ function SettingsView({ defaultTab = 'referral' }: { defaultTab?: 'settings' | '
                 disabled={regenerating}
                 className="mt-3 w-full py-2.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm font-medium hover:bg-red-500/20 transition-all"
               >
-                {regenerating ? '...' : 'تغيير الرمز المميز'}
+                {regenerating ? '...' : '����� ����� ������'}
               </button>
             </Card>
 
             {/* API Endpoint */}
             <Card className="p-5 bg-white/5 border-white/10 backdrop-blur-sm">
-              <h3 className="text-white font-bold text-sm mb-3">📡 عنوان API</h3>
+              <h3 className="text-white font-bold text-sm mb-3">?? ����� API</h3>
               <div className="px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-cyan-400 text-sm font-mono" dir="ltr">
                 {apiBase}
               </div>
-              <p className="text-white/30 text-xs mt-2">استخدم هذا العنوان مع المفتاح للوصول إلى خدماتنا عبر API</p>
+              <p className="text-white/30 text-xs mt-2">������ ��� ������� �� ������� ������ ��� ������� ��� API</p>
             </Card>
 
             {/* ====== API DOCUMENTATION ====== */}
             <div className="pt-2">
-              <h3 className="text-white font-bold text-lg mb-4 flex items-center gap-2">📖 توثيق API</h3>
+              <h3 className="text-white font-bold text-lg mb-4 flex items-center gap-2">?? ����� API</h3>
             </div>
 
             {/* Service List */}
             <Card className="p-5 bg-white/5 border-white/10 backdrop-blur-sm">
-              <h4 className="text-cyan-400 font-bold text-sm mb-1 flex items-center gap-2">📋 قائمة الخدمات — Service list</h4>
-              <p className="text-white/40 text-xs mb-3">استخدم هذه الطريقة للحصول على قائمة الخدمات</p>
+              <h4 className="text-cyan-400 font-bold text-sm mb-1 flex items-center gap-2">?? ����� ������� � Service list</h4>
+              <p className="text-white/40 text-xs mb-3">������ ��� ������� ������ ��� ����� �������</p>
               <div className="mb-3">
-                <p className="text-white/50 text-xs mb-1">طلب عينة:</p>
+                <p className="text-white/50 text-xs mb-1">��� ����:</p>
                 <div className="bg-black/40 rounded-lg px-3 py-2 text-xs font-mono text-green-400 break-all" dir="ltr">
                   {apiBase}?action=services&key=yourKey
                 </div>
               </div>
               <div className="mb-3">
-                <p className="text-white/50 text-xs mb-1">عينة الاستجابة:</p>
+                <p className="text-white/50 text-xs mb-1">���� ���������:</p>
                 <pre className="bg-black/40 rounded-lg px-3 py-2 text-xs font-mono text-yellow-300 overflow-x-auto" dir="ltr">{`[
   {
     "service": 1,
@@ -945,14 +946,14 @@ function SettingsView({ defaultTab = 'referral' }: { defaultTab?: 'settings' | '
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-xs">
-                  <thead><tr className="text-white/40 border-b border-white/10"><th className="text-right py-1.5 px-2">الحقل</th><th className="text-right py-1.5 px-2">النوع</th><th className="text-right py-1.5 px-2">الوصف</th></tr></thead>
+                  <thead><tr className="text-white/40 border-b border-white/10"><th className="text-right py-1.5 px-2">�����</th><th className="text-right py-1.5 px-2">�����</th><th className="text-right py-1.5 px-2">�����</th></tr></thead>
                   <tbody className="text-white/60">
-                    <tr className="border-b border-white/5"><td className="py-1.5 px-2 font-mono text-cyan-400">service</td><td className="py-1.5 px-2">Integer</td><td className="py-1.5 px-2">هوية الخدمة</td></tr>
-                    <tr className="border-b border-white/5"><td className="py-1.5 px-2 font-mono text-cyan-400">name</td><td className="py-1.5 px-2">String</td><td className="py-1.5 px-2">اسم الخدمة</td></tr>
-                    <tr className="border-b border-white/5"><td className="py-1.5 px-2 font-mono text-cyan-400">category</td><td className="py-1.5 px-2">String</td><td className="py-1.5 px-2">الصنف</td></tr>
-                    <tr className="border-b border-white/5"><td className="py-1.5 px-2 font-mono text-cyan-400">rate</td><td className="py-1.5 px-2">Double</td><td className="py-1.5 px-2">السعر لكل 1000</td></tr>
-                    <tr className="border-b border-white/5"><td className="py-1.5 px-2 font-mono text-cyan-400">min</td><td className="py-1.5 px-2">Integer</td><td className="py-1.5 px-2">أقل كمية</td></tr>
-                    <tr><td className="py-1.5 px-2 font-mono text-cyan-400">max</td><td className="py-1.5 px-2">Integer</td><td className="py-1.5 px-2">أقصى كمية</td></tr>
+                    <tr className="border-b border-white/5"><td className="py-1.5 px-2 font-mono text-cyan-400">service</td><td className="py-1.5 px-2">Integer</td><td className="py-1.5 px-2">���� ������</td></tr>
+                    <tr className="border-b border-white/5"><td className="py-1.5 px-2 font-mono text-cyan-400">name</td><td className="py-1.5 px-2">String</td><td className="py-1.5 px-2">��� ������</td></tr>
+                    <tr className="border-b border-white/5"><td className="py-1.5 px-2 font-mono text-cyan-400">category</td><td className="py-1.5 px-2">String</td><td className="py-1.5 px-2">�����</td></tr>
+                    <tr className="border-b border-white/5"><td className="py-1.5 px-2 font-mono text-cyan-400">rate</td><td className="py-1.5 px-2">Double</td><td className="py-1.5 px-2">����� ��� 1000</td></tr>
+                    <tr className="border-b border-white/5"><td className="py-1.5 px-2 font-mono text-cyan-400">min</td><td className="py-1.5 px-2">Integer</td><td className="py-1.5 px-2">��� ����</td></tr>
+                    <tr><td className="py-1.5 px-2 font-mono text-cyan-400">max</td><td className="py-1.5 px-2">Integer</td><td className="py-1.5 px-2">���� ����</td></tr>
                   </tbody>
                 </table>
               </div>
@@ -960,27 +961,27 @@ function SettingsView({ defaultTab = 'referral' }: { defaultTab?: 'settings' | '
 
             {/* Add Order */}
             <Card className="p-5 bg-white/5 border-white/10 backdrop-blur-sm">
-              <h4 className="text-green-400 font-bold text-sm mb-1 flex items-center gap-2">🛒 إنشاء طلب — Add order</h4>
-              <p className="text-white/40 text-xs mb-3">استخدم هذه الطريقة لإنشاء طلب جديد</p>
+              <h4 className="text-green-400 font-bold text-sm mb-1 flex items-center gap-2">?? ����� ��� � Add order</h4>
+              <p className="text-white/40 text-xs mb-3">������ ��� ������� ������ ��� ����</p>
               <div className="mb-3">
-                <p className="text-white/50 text-xs mb-1">طلب عينة:</p>
+                <p className="text-white/50 text-xs mb-1">��� ����:</p>
                 <div className="bg-black/40 rounded-lg px-3 py-2 text-xs font-mono text-green-400 break-all" dir="ltr">
                   {apiBase}?action=add&service=1&link=instagram.com/username&quantity=100&key=yourKey
                 </div>
               </div>
               <div className="mb-3">
-                <p className="text-white/50 text-xs mb-1">عينة الاستجابة:</p>
+                <p className="text-white/50 text-xs mb-1">���� ���������:</p>
                 <pre className="bg-black/40 rounded-lg px-3 py-2 text-xs font-mono text-yellow-300" dir="ltr">{`{
   "order": 10001
 }`}</pre>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-xs">
-                  <thead><tr className="text-white/40 border-b border-white/10"><th className="text-right py-1.5 px-2">المعامل</th><th className="text-right py-1.5 px-2">النوع</th><th className="text-right py-1.5 px-2">الوصف</th></tr></thead>
+                  <thead><tr className="text-white/40 border-b border-white/10"><th className="text-right py-1.5 px-2">�������</th><th className="text-right py-1.5 px-2">�����</th><th className="text-right py-1.5 px-2">�����</th></tr></thead>
                   <tbody className="text-white/60">
-                    <tr className="border-b border-white/5"><td className="py-1.5 px-2 font-mono text-green-400">service</td><td className="py-1.5 px-2">Integer</td><td className="py-1.5 px-2">هوية الخدمة</td></tr>
-                    <tr className="border-b border-white/5"><td className="py-1.5 px-2 font-mono text-green-400">link</td><td className="py-1.5 px-2">String</td><td className="py-1.5 px-2">رابط الحساب / المنشور</td></tr>
-                    <tr><td className="py-1.5 px-2 font-mono text-green-400">quantity</td><td className="py-1.5 px-2">Integer</td><td className="py-1.5 px-2">الكمية المطلوبة</td></tr>
+                    <tr className="border-b border-white/5"><td className="py-1.5 px-2 font-mono text-green-400">service</td><td className="py-1.5 px-2">Integer</td><td className="py-1.5 px-2">���� ������</td></tr>
+                    <tr className="border-b border-white/5"><td className="py-1.5 px-2 font-mono text-green-400">link</td><td className="py-1.5 px-2">String</td><td className="py-1.5 px-2">���� ������ / �������</td></tr>
+                    <tr><td className="py-1.5 px-2 font-mono text-green-400">quantity</td><td className="py-1.5 px-2">Integer</td><td className="py-1.5 px-2">������ ��������</td></tr>
                   </tbody>
                 </table>
               </div>
@@ -988,16 +989,16 @@ function SettingsView({ defaultTab = 'referral' }: { defaultTab?: 'settings' | '
 
             {/* Order Status */}
             <Card className="p-5 bg-white/5 border-white/10 backdrop-blur-sm">
-              <h4 className="text-purple-400 font-bold text-sm mb-1 flex items-center gap-2">📊 حالة الطلب — Order status</h4>
-              <p className="text-white/40 text-xs mb-3">استخدم هذه الطريقة للحصول على معلومات حول الطلب</p>
+              <h4 className="text-purple-400 font-bold text-sm mb-1 flex items-center gap-2">?? ���� ����� � Order status</h4>
+              <p className="text-white/40 text-xs mb-3">������ ��� ������� ������ ��� ������� ��� �����</p>
               <div className="mb-3">
-                <p className="text-white/50 text-xs mb-1">طلب عينة:</p>
+                <p className="text-white/50 text-xs mb-1">��� ����:</p>
                 <div className="bg-black/40 rounded-lg px-3 py-2 text-xs font-mono text-green-400 break-all" dir="ltr">
                   {apiBase}?action=status&order=10001&key=yourKey
                 </div>
               </div>
               <div className="mb-3">
-                <p className="text-white/50 text-xs mb-1">عينة الاستجابة:</p>
+                <p className="text-white/50 text-xs mb-1">���� ���������:</p>
                 <pre className="bg-black/40 rounded-lg px-3 py-2 text-xs font-mono text-yellow-300" dir="ltr">{`{
   "charge": "0.27819",
   "start_count": "0",
@@ -1008,12 +1009,12 @@ function SettingsView({ defaultTab = 'referral' }: { defaultTab?: 'settings' | '
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-xs">
-                  <thead><tr className="text-white/40 border-b border-white/10"><th className="text-right py-1.5 px-2">الحقل</th><th className="text-right py-1.5 px-2">النوع</th><th className="text-right py-1.5 px-2">الوصف</th></tr></thead>
+                  <thead><tr className="text-white/40 border-b border-white/10"><th className="text-right py-1.5 px-2">�����</th><th className="text-right py-1.5 px-2">�����</th><th className="text-right py-1.5 px-2">�����</th></tr></thead>
                   <tbody className="text-white/60">
-                    <tr className="border-b border-white/5"><td className="py-1.5 px-2 font-mono text-purple-400">charge</td><td className="py-1.5 px-2">Double</td><td className="py-1.5 px-2">المبلغ المصروف</td></tr>
+                    <tr className="border-b border-white/5"><td className="py-1.5 px-2 font-mono text-purple-400">charge</td><td className="py-1.5 px-2">Double</td><td className="py-1.5 px-2">������ �������</td></tr>
                     <tr className="border-b border-white/5"><td className="py-1.5 px-2 font-mono text-purple-400">status</td><td className="py-1.5 px-2">String</td><td className="py-1.5 px-2">In progress, Completed, Awaiting, Canceled, Partial</td></tr>
-                    <tr className="border-b border-white/5"><td className="py-1.5 px-2 font-mono text-purple-400">remains</td><td className="py-1.5 px-2">Integer</td><td className="py-1.5 px-2">الكمية المتبقية</td></tr>
-                    <tr><td className="py-1.5 px-2 font-mono text-purple-400">currency</td><td className="py-1.5 px-2">String</td><td className="py-1.5 px-2">العملة</td></tr>
+                    <tr className="border-b border-white/5"><td className="py-1.5 px-2 font-mono text-purple-400">remains</td><td className="py-1.5 px-2">Integer</td><td className="py-1.5 px-2">������ ��������</td></tr>
+                    <tr><td className="py-1.5 px-2 font-mono text-purple-400">currency</td><td className="py-1.5 px-2">String</td><td className="py-1.5 px-2">������</td></tr>
                   </tbody>
                 </table>
               </div>
@@ -1021,16 +1022,16 @@ function SettingsView({ defaultTab = 'referral' }: { defaultTab?: 'settings' | '
 
             {/* Multiple Status */}
             <Card className="p-5 bg-white/5 border-white/10 backdrop-blur-sm">
-              <h4 className="text-purple-400 font-bold text-sm mb-1 flex items-center gap-2">📊 حالة طلبات متعددة — Multiple status</h4>
-              <p className="text-white/40 text-xs mb-3">استخدم هذه الطريقة للحصول على حالة عدة طلبات</p>
+              <h4 className="text-purple-400 font-bold text-sm mb-1 flex items-center gap-2">?? ���� ����� ������ � Multiple status</h4>
+              <p className="text-white/40 text-xs mb-3">������ ��� ������� ������ ��� ���� ��� �����</p>
               <div className="mb-3">
-                <p className="text-white/50 text-xs mb-1">طلب عينة:</p>
+                <p className="text-white/50 text-xs mb-1">��� ����:</p>
                 <div className="bg-black/40 rounded-lg px-3 py-2 text-xs font-mono text-green-400 break-all" dir="ltr">
                   {apiBase}?action=status&orders=10001,10002,10003&key=yourKey
                 </div>
               </div>
               <div>
-                <p className="text-white/50 text-xs mb-1">عينة الاستجابة:</p>
+                <p className="text-white/50 text-xs mb-1">���� ���������:</p>
                 <pre className="bg-black/40 rounded-lg px-3 py-2 text-xs font-mono text-yellow-300 overflow-x-auto" dir="ltr">{`{
   "10001": {
     "charge": "0.27",
@@ -1046,16 +1047,16 @@ function SettingsView({ defaultTab = 'referral' }: { defaultTab?: 'settings' | '
 
             {/* Balance */}
             <Card className="p-5 bg-white/5 border-white/10 backdrop-blur-sm">
-              <h4 className="text-yellow-400 font-bold text-sm mb-1 flex items-center gap-2">💰 الرصيد — Balance</h4>
-              <p className="text-white/40 text-xs mb-3">استخدم هذه الطريقة لاسترداد رصيد حسابك</p>
+              <h4 className="text-yellow-400 font-bold text-sm mb-1 flex items-center gap-2">?? ������ � Balance</h4>
+              <p className="text-white/40 text-xs mb-3">������ ��� ������� �������� ���� �����</p>
               <div className="mb-3">
-                <p className="text-white/50 text-xs mb-1">طلب عينة:</p>
+                <p className="text-white/50 text-xs mb-1">��� ����:</p>
                 <div className="bg-black/40 rounded-lg px-3 py-2 text-xs font-mono text-green-400 break-all" dir="ltr">
                   {apiBase}?action=balance&key=yourKey
                 </div>
               </div>
               <div>
-                <p className="text-white/50 text-xs mb-1">عينة الاستجابة:</p>
+                <p className="text-white/50 text-xs mb-1">���� ���������:</p>
                 <pre className="bg-black/40 rounded-lg px-3 py-2 text-xs font-mono text-yellow-300" dir="ltr">{`{
   "balance": "99.80",
   "currency": "USD"
@@ -1065,16 +1066,16 @@ function SettingsView({ defaultTab = 'referral' }: { defaultTab?: 'settings' | '
 
             {/* Refill */}
             <Card className="p-5 bg-white/5 border-white/10 backdrop-blur-sm">
-              <h4 className="text-blue-400 font-bold text-sm mb-1 flex items-center gap-2">🔄 إعادة تعبئة — Refill</h4>
-              <p className="text-white/40 text-xs mb-3">استخدم هذه الطريقة لإنشاء إعادة تعبئة للطلب</p>
+              <h4 className="text-blue-400 font-bold text-sm mb-1 flex items-center gap-2">?? ����� ����� � Refill</h4>
+              <p className="text-white/40 text-xs mb-3">������ ��� ������� ������ ����� ����� �����</p>
               <div className="mb-3">
-                <p className="text-white/50 text-xs mb-1">طلب عينة:</p>
+                <p className="text-white/50 text-xs mb-1">��� ����:</p>
                 <div className="bg-black/40 rounded-lg px-3 py-2 text-xs font-mono text-green-400 break-all" dir="ltr">
                   {apiBase}?action=refill&order=10001&key=yourKey
                 </div>
               </div>
               <div>
-                <p className="text-white/50 text-xs mb-1">عينة الاستجابة:</p>
+                <p className="text-white/50 text-xs mb-1">���� ���������:</p>
                 <pre className="bg-black/40 rounded-lg px-3 py-2 text-xs font-mono text-yellow-300" dir="ltr">{`{
   "refill": 1
 }`}</pre>
@@ -1083,16 +1084,16 @@ function SettingsView({ defaultTab = 'referral' }: { defaultTab?: 'settings' | '
 
             {/* Cancel */}
             <Card className="p-5 bg-white/5 border-white/10 backdrop-blur-sm">
-              <h4 className="text-red-400 font-bold text-sm mb-1 flex items-center gap-2">❌ إلغاء الطلب — Cancel</h4>
-              <p className="text-white/40 text-xs mb-3">استخدم هذه الطريقة لإلغاء طلب واسترداد المبلغ</p>
+              <h4 className="text-red-400 font-bold text-sm mb-1 flex items-center gap-2">? ����� ����� � Cancel</h4>
+              <p className="text-white/40 text-xs mb-3">������ ��� ������� ������ ��� �������� ������</p>
               <div className="mb-3">
-                <p className="text-white/50 text-xs mb-1">طلب عينة:</p>
+                <p className="text-white/50 text-xs mb-1">��� ����:</p>
                 <div className="bg-black/40 rounded-lg px-3 py-2 text-xs font-mono text-green-400 break-all" dir="ltr">
                   {apiBase}?action=cancel&order=10001&key=yourKey
                 </div>
               </div>
               <div>
-                <p className="text-white/50 text-xs mb-1">عينة الاستجابة:</p>
+                <p className="text-white/50 text-xs mb-1">���� ���������:</p>
                 <pre className="bg-black/40 rounded-lg px-3 py-2 text-xs font-mono text-yellow-300" dir="ltr">{`{
   "ok": true
 }`}</pre>
@@ -1143,7 +1144,7 @@ function AddFundsView() {
   const { user, refreshUser } = useAuth();
 
   useEffect(() => {
-    fetch(`${API_URL}/gateways/public`).then(r => r.json()).then(setGateways).catch(console.error);
+    fetch(`${API_URL_RAW}/gateways/public`).then(r => r.json()).then(setGateways).catch(console.error);
   }, []);
 
   // Poll payment status
@@ -1151,7 +1152,7 @@ function AddFundsView() {
     if (!cryptoPayment?.paymentId) return;
     const interval = setInterval(async () => {
       try {
-        const res = await fetch(`${API_URL}/nowpayments/status/${cryptoPayment.paymentId}`);
+        const res = await fetch(`${API_URL_RAW}/nowpayments/status/${cryptoPayment.paymentId}`);
         const data = await res.json();
         setPaymentStatus(data.status);
         if (data.status === 'finished' || data.status === 'confirmed' || data.status === 'partially_paid') {
@@ -1198,7 +1199,7 @@ function AddFundsView() {
     setPaymentLoading(true);
     setPaymentError('');
     try {
-      const res = await fetch(`${API_URL}/nowpayments/create-payment`, {
+      const res = await fetch(`${API_URL_RAW}/nowpayments/create-payment`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -1277,7 +1278,7 @@ function AddFundsView() {
                       <div className="flex items-center justify-center gap-2" dir="ltr">
                         <code className="text-xl font-mono bg-black/30 px-3 py-1 rounded text-white">{selectedMethodData.accountNumber}</code>
                         <Button size="sm" variant="ghost" onClick={() => copyText(selectedMethodData.accountNumber)} className="h-8 px-2 text-xs text-white/60 hover:text-white">
-                          {copied ? '✅' : t.copy}
+                          {copied ? '?' : t.copy}
                         </Button>
                       </div>
                     </div>
@@ -1285,7 +1286,7 @@ function AddFundsView() {
 
                   {selectedMethodData.instructionText && (
                     <div className="p-3 rounded-lg bg-white/5 border border-white/10">
-                      <p className="text-white/60 text-sm">📋 {selectedMethodData.instructionText}</p>
+                      <p className="text-white/60 text-sm">?? {selectedMethodData.instructionText}</p>
                     </div>
                   )}
 
@@ -1299,8 +1300,8 @@ function AddFundsView() {
                       className={`w-full h-12 font-bold gap-2 ${selectedMethodData.contactType === 'whatsapp' ? 'bg-green-600 hover:bg-green-700' : 'bg-blue-500 hover:bg-blue-600'} text-white`}
                       onClick={() => {
                         const msg = lang === 'ar'
-                          ? `طلب شحن رصيد\n👤 المستخدم: ${user?.username || ''}\n💳 طريقة الدفع: ${selectedMethodData?.name || ''}\n💰 المبلغ المحول: ${manualAmount || '0'}$\n📋 رقم الحساب: ${selectedMethodData?.accountNumber || ''}`
-                          : `Balance top-up request\n👤 Username: ${user?.username || ''}\n💳 Payment method: ${selectedMethodData?.name || ''}\n💰 Amount transferred: $${manualAmount || '0'}\n📋 Account: ${selectedMethodData?.accountNumber || ''}`;
+                          ? `��� ��� ����\n?? ��������: ${user?.username || ''}\n?? ����� �����: ${selectedMethodData?.name || ''}\n?? ������ ������: ${manualAmount || '0'}$\n?? ��� ������: ${selectedMethodData?.accountNumber || ''}`
+                          : `Balance top-up request\n?? Username: ${user?.username || ''}\n?? Payment method: ${selectedMethodData?.name || ''}\n?? Amount transferred: $${manualAmount || '0'}\n?? Account: ${selectedMethodData?.accountNumber || ''}`;
                         const encodedMsg = encodeURIComponent(msg);
                         if (selectedMethodData.contactType === 'whatsapp') {
                           window.open(`https://wa.me/${selectedMethodData.contactValue.replace(/[^0-9]/g, '')}?text=${encodedMsg}`, '_blank');
@@ -1342,7 +1343,7 @@ function AddFundsView() {
                       setIsRedeeming(true);
                       setCouponMsg(null);
                       try {
-                        const res = await fetch(`${API_URL}/coupons/redeem`, {
+                        const res = await apiFetch(`/coupons/redeem`, {
                           method: 'POST',
                           headers: { 'Content-Type': 'application/json' },
                           body: JSON.stringify({ code: couponCode.trim(), userId: user._id }),
@@ -1414,7 +1415,7 @@ function AddFundsView() {
                         {paymentLoading ? (
                           <span className="flex items-center gap-2">
                             <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                            {lang === 'ar' ? 'جاري إنشاء عنوان الدفع...' : 'Creating payment...'}
+                            {lang === 'ar' ? '���� ����� ����� �����...' : 'Creating payment...'}
                           </span>
                         ) : (
                           t.continuePayment
@@ -1432,10 +1433,10 @@ function AddFundsView() {
                           : 'bg-cyan-500/20 border border-cyan-500/30 text-cyan-300'
                         }`}>
                         {paymentStatus === 'finished' || paymentStatus === 'confirmed' || paymentStatus === 'partially_paid'
-                          ? (lang === 'ar' ? '✅ تم استلام الدفعة! تم إضافة الرصيد' : '✅ Payment received! Balance added')
+                          ? (lang === 'ar' ? '? �� ������ ������! �� ����� ������' : '? Payment received! Balance added')
                           : paymentStatus === 'sending' || paymentStatus === 'confirming'
-                            ? (lang === 'ar' ? '⏳ جاري تأكيد المعاملة...' : '⏳ Confirming transaction...')
-                            : (lang === 'ar' ? '⏳ في انتظار الدفع...' : '⏳ Waiting for payment...')}
+                            ? (lang === 'ar' ? '? ���� ����� ��������...' : '? Confirming transaction...')
+                            : (lang === 'ar' ? '? �� ������ �����...' : '? Waiting for payment...')}
                       </div>
 
                       {/* Payment Details */}
@@ -1443,19 +1444,19 @@ function AddFundsView() {
                         <>
                           <div className="p-4 rounded-xl bg-yellow-500/10 border border-yellow-500/30">
                             <p className="text-yellow-200 font-body mb-1 text-sm">
-                              {lang === 'ar' ? 'أرسل بالضبط:' : 'Send exactly:'}
+                              {lang === 'ar' ? '���� ������:' : 'Send exactly:'}
                             </p>
                             <div className="flex items-center justify-center gap-2" dir="ltr">
                               <code className="text-2xl font-mono bg-black/30 px-4 py-2 rounded text-white font-bold">
                                 {cryptoPayment.payAmount} {cryptoPayment.payCurrency.toUpperCase()}
                               </code>
                             </div>
-                            <p className="text-center text-white/40 text-xs mt-1">≈ ${cryptoPayment.priceAmount}</p>
+                            <p className="text-center text-white/40 text-xs mt-1">? ${cryptoPayment.priceAmount}</p>
                           </div>
 
                           <div className="p-4 rounded-xl bg-white/5 border border-white/10">
                             <p className="text-white/60 font-body mb-2 text-sm">
-                              {lang === 'ar' ? '📋 عنوان الاستلام:' : '📋 Payment address:'}
+                              {lang === 'ar' ? '?? ����� ��������:' : '?? Payment address:'}
                             </p>
                             <div className="flex items-center gap-2" dir="ltr">
                               <code className="flex-1 text-xs font-mono bg-black/30 px-3 py-2 rounded text-cyan-300 break-all select-all">
@@ -1467,15 +1468,15 @@ function AddFundsView() {
                                 onClick={() => copyText(cryptoPayment.payAddress)}
                                 className="h-9 px-3 text-xs text-white/60 hover:text-white shrink-0"
                               >
-                                {copied ? '✅' : (lang === 'ar' ? 'نسخ' : 'Copy')}
+                                {copied ? '?' : (lang === 'ar' ? '���' : 'Copy')}
                               </Button>
                             </div>
                           </div>
 
                           <div className="p-3 rounded-lg bg-orange-500/10 border border-orange-500/20">
                             <p className="text-orange-200 text-xs text-center">
-                              ⚠️ {lang === 'ar'
-                                ? `أرسل فقط ${cryptoPayment.payCurrency.toUpperCase()} إلى هذا العنوان. سيتم تحديث الرصيد تلقائياً بعد التأكيد.`
+                              ?? {lang === 'ar'
+                                ? `���� ��� ${cryptoPayment.payCurrency.toUpperCase()} ��� ��� �������. ���� ����� ������ �������� ��� �������.`
                                 : `Only send ${cryptoPayment.payCurrency.toUpperCase()} to this address. Balance will update automatically after confirmation.`}
                             </p>
                           </div>
@@ -1483,7 +1484,7 @@ function AddFundsView() {
                           {/* Animated waiting indicator */}
                           <div className="flex items-center justify-center gap-2 text-white/40 text-sm py-2">
                             <span className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse" />
-                            {lang === 'ar' ? 'يتم التحقق كل 10 ثوانٍ تلقائياً...' : 'Auto-checking every 10 seconds...'}
+                            {lang === 'ar' ? '��� ������ �� 10 ����� ��������...' : 'Auto-checking every 10 seconds...'}
                           </div>
 
                           {/* Cancel Button */}
@@ -1492,7 +1493,7 @@ function AddFundsView() {
                             variant="ghost"
                             className="w-full mt-2 text-white/40 hover:text-white/70 hover:bg-white/5 border border-white/10"
                           >
-                            {lang === 'ar' ? '✕ إلغاء' : '✕ Cancel'}
+                            {lang === 'ar' ? '? �����' : '? Cancel'}
                           </Button>
                         </>
                       )}
@@ -1501,13 +1502,13 @@ function AddFundsView() {
                       {(paymentStatus === 'finished' || paymentStatus === 'confirmed' || paymentStatus === 'partially_paid') && (
                         <div className="text-center py-4">
                           <p className="text-green-300 text-lg font-bold mb-2">
-                            🎉 {lang === 'ar' ? `تم إضافة $${cryptoPayment.priceAmount} لرصيدك!` : `$${cryptoPayment.priceAmount} added to your balance!`}
+                            ?? {lang === 'ar' ? `�� ����� $${cryptoPayment.priceAmount} ������!` : `$${cryptoPayment.priceAmount} added to your balance!`}
                           </p>
                           <Button
                             onClick={() => { setCryptoPayment(null); setAutoAmount(''); setPaymentStatus(''); }}
                             className="mt-2 bg-white/10 hover:bg-white/20 text-white"
                           >
-                            {lang === 'ar' ? 'دفعة جديدة' : 'New Payment'}
+                            {lang === 'ar' ? '���� �����' : 'New Payment'}
                           </Button>
                         </div>
                       )}
@@ -1540,7 +1541,7 @@ function AddFundsView() {
                   {acStep === 'phone' && (
                     <div className="space-y-3">
                       <label className="block font-body text-white/80 mb-1">
-                        {lang === 'ar' ? '📱 رقم الهاتف (آسياسيل)' : '📱 Phone Number (Asiacell)'}
+                        {lang === 'ar' ? '?? ��� ������ (�������)' : '?? Phone Number (Asiacell)'}
                       </label>
                       <Input
                         value={acPhone}
@@ -1555,7 +1556,7 @@ function AddFundsView() {
                           if (!/^07\d{9}$/.test(acPhone) || !user?._id) return;
                           setAcLoading(true); setAcError('');
                           try {
-                            const res = await fetch(`${API_URL}/asiacell/login`, {
+                            const res = await fetch(`${API_URL_RAW}/asiacell/login`, {
                               method: 'POST',
                               headers: { 'Content-Type': 'application/json' },
                               body: JSON.stringify({ phone: acPhone, userId: user._id }),
@@ -1576,9 +1577,9 @@ function AddFundsView() {
                         {acLoading ? (
                           <span className="flex items-center gap-2">
                             <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                            {lang === 'ar' ? 'جاري الإرسال...' : 'Sending...'}
+                            {lang === 'ar' ? '���� �������...' : 'Sending...'}
                           </span>
-                        ) : (lang === 'ar' ? 'إرسال رمز التحقق' : 'Send OTP')}
+                        ) : (lang === 'ar' ? '����� ��� ������' : 'Send OTP')}
                       </Button>
                     </div>
                   )}
@@ -1587,7 +1588,7 @@ function AddFundsView() {
                   {acStep === 'otp' && (
                     <div className="space-y-3">
                       <label className="block font-body text-white/80 mb-1">
-                        {lang === 'ar' ? '🔐 أدخل رمز التحقق المرسل إلى' : '🔐 Enter OTP sent to'} <span className="text-cyan-400 font-mono" dir="ltr">{acPhone}</span>
+                        {lang === 'ar' ? '?? ���� ��� ������ ������ ���' : '?? Enter OTP sent to'} <span className="text-cyan-400 font-mono" dir="ltr">{acPhone}</span>
                       </label>
                       <Input
                         value={acOtp}
@@ -1602,7 +1603,7 @@ function AddFundsView() {
                           if (acOtp.length !== 6) return;
                           setAcLoading(true); setAcError('');
                           try {
-                            const res = await fetch(`${API_URL}/asiacell/verify-otp`, {
+                            const res = await fetch(`${API_URL_RAW}/asiacell/verify-otp`, {
                               method: 'POST',
                               headers: { 'Content-Type': 'application/json' },
                               body: JSON.stringify({ sessionId: acSessionId, otp: acOtp }),
@@ -1622,9 +1623,9 @@ function AddFundsView() {
                         {acLoading ? (
                           <span className="flex items-center gap-2">
                             <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                            {lang === 'ar' ? 'جاري التحقق...' : 'Verifying...'}
+                            {lang === 'ar' ? '���� ������...' : 'Verifying...'}
                           </span>
-                        ) : (lang === 'ar' ? 'تأكيد الرمز' : 'Verify OTP')}
+                        ) : (lang === 'ar' ? '����� �����' : 'Verify OTP')}
                       </Button>
                     </div>
                   )}
@@ -1633,20 +1634,20 @@ function AddFundsView() {
                   {acStep === 'amount' && (
                     <div className="space-y-3">
                       <div className="p-3 rounded-lg bg-green-500/10 border border-green-500/20 text-center">
-                        <p className="text-green-300 text-sm">✅ {lang === 'ar' ? 'تم التحقق بنجاح!' : 'Verified successfully!'}</p>
+                        <p className="text-green-300 text-sm">? {lang === 'ar' ? '�� ������ �����!' : 'Verified successfully!'}</p>
                       </div>
                       <label className="block font-body text-white/80 mb-1">
-                        {lang === 'ar' ? '👤 اسم المستخدم' : '👤 Username'}
+                        {lang === 'ar' ? '?? ��� ��������' : '?? Username'}
                       </label>
                       <Input
                         value={acUsername || user?.username || ''}
                         onChange={e => setAcUsername(e.target.value)}
                         className="bg-white/5 border-white/10 text-white focus:border-cyan-500/50 text-center"
-                        placeholder={lang === 'ar' ? 'اسم المستخدم' : 'Your username'}
+                        placeholder={lang === 'ar' ? '��� ��������' : 'Your username'}
                         dir="ltr"
                       />
                       <label className="block font-body text-white/80 mb-1">
-                        {lang === 'ar' ? '💰 المبلغ بالدينار العراقي (IQD)' : '💰 Amount in Iraqi Dinar (IQD)'}
+                        {lang === 'ar' ? '?? ������ �������� ������� (IQD)' : '?? Amount in Iraqi Dinar (IQD)'}
                       </label>
                       <Input
                         type="number"
@@ -1684,7 +1685,7 @@ function AddFundsView() {
                           if (!amt || amt < 250) return;
                           setAcLoading(true); setAcError('');
                           try {
-                            const res = await fetch(`${API_URL}/asiacell/transfer`, {
+                            const res = await fetch(`${API_URL_RAW}/asiacell/transfer`, {
                               method: 'POST',
                               headers: { 'Content-Type': 'application/json' },
                               body: JSON.stringify({ sessionId: acSessionId, amount: amt, username: acUsername || user?.username }),
@@ -1704,9 +1705,9 @@ function AddFundsView() {
                         {acLoading ? (
                           <span className="flex items-center gap-2">
                             <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                            {lang === 'ar' ? 'جاري التحويل...' : 'Processing...'}
+                            {lang === 'ar' ? '���� �������...' : 'Processing...'}
                           </span>
-                        ) : (lang === 'ar' ? `تحويل ${acAmount ? parseInt(acAmount).toLocaleString() : '0'} IQD` : `Transfer ${acAmount ? parseInt(acAmount).toLocaleString() : '0'} IQD`)}
+                        ) : (lang === 'ar' ? `����� ${acAmount ? parseInt(acAmount).toLocaleString() : '0'} IQD` : `Transfer ${acAmount ? parseInt(acAmount).toLocaleString() : '0'} IQD`)}
                       </Button>
                     </div>
                   )}
@@ -1716,13 +1717,13 @@ function AddFundsView() {
                     <div className="space-y-3">
                       <div className="p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/20 text-center">
                         <p className="text-yellow-300 text-sm">
-                          ⚠️ {lang === 'ar'
-                            ? `سيتم تحويل ${parseInt(acAmount).toLocaleString()} IQD ($${(parseInt(acAmount) / 1000).toFixed(2)})`
+                          ?? {lang === 'ar'
+                            ? `���� ����� ${parseInt(acAmount).toLocaleString()} IQD ($${(parseInt(acAmount) / 1000).toFixed(2)})`
                             : `Transferring ${parseInt(acAmount).toLocaleString()} IQD ($${(parseInt(acAmount) / 1000).toFixed(2)})`}
                         </p>
                       </div>
                       <label className="block font-body text-white/80 mb-1">
-                        {lang === 'ar' ? '� أدخل رمز التأكيد' : '🔐 Enter confirmation OTP'}
+                        {lang === 'ar' ? '? ���� ��� �������' : '?? Enter confirmation OTP'}
                       </label>
                       <Input
                         value={acConfirmOtp}
@@ -1737,7 +1738,7 @@ function AddFundsView() {
                           if (acConfirmOtp.length !== 6) return;
                           setAcLoading(true); setAcError('');
                           try {
-                            const res = await fetch(`${API_URL}/asiacell/confirm`, {
+                            const res = await fetch(`${API_URL_RAW}/asiacell/confirm`, {
                               method: 'POST',
                               headers: { 'Content-Type': 'application/json' },
                               body: JSON.stringify({ sessionId: acSessionId, otp: acConfirmOtp }),
@@ -1759,9 +1760,9 @@ function AddFundsView() {
                         {acLoading ? (
                           <span className="flex items-center gap-2">
                             <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                            {lang === 'ar' ? 'جاري التأكيد...' : 'Confirming...'}
+                            {lang === 'ar' ? '���� �������...' : 'Confirming...'}
                           </span>
-                        ) : (lang === 'ar' ? 'تأكيد التحويل' : 'Confirm Transfer')}
+                        ) : (lang === 'ar' ? '����� �������' : 'Confirm Transfer')}
                       </Button>
                     </div>
                   )}
@@ -1770,13 +1771,13 @@ function AddFundsView() {
                   {acStep === 'success' && (
                     <div className="text-center py-4 space-y-3">
                       <div className="w-16 h-16 mx-auto rounded-full bg-green-500/20 flex items-center justify-center">
-                        <span className="text-3xl">🎉</span>
+                        <span className="text-3xl">??</span>
                       </div>
                       <p className="text-green-300 text-lg font-bold">
-                        {lang === 'ar' ? `تم إضافة $${acCredited} لرصيدك!` : `$${acCredited} added to your balance!`}
+                        {lang === 'ar' ? `�� ����� $${acCredited} ������!` : `$${acCredited} added to your balance!`}
                       </p>
                       <p className="text-white/40 text-sm">
-                        {parseInt(acAmount).toLocaleString()} IQD → ${acCredited}
+                        {parseInt(acAmount).toLocaleString()} IQD ? ${acCredited}
                       </p>
                       <Button
                         onClick={() => {
@@ -1785,7 +1786,7 @@ function AddFundsView() {
                         }}
                         className="mt-2 bg-white/10 hover:bg-white/20 text-white"
                       >
-                        {lang === 'ar' ? 'عملية جديدة' : 'New Transfer'}
+                        {lang === 'ar' ? '����� �����' : 'New Transfer'}
                       </Button>
                     </div>
                   )}
@@ -1800,7 +1801,7 @@ function AddFundsView() {
                       variant="ghost"
                       className="w-full text-white/40 hover:text-white/70 hover:bg-white/5 border border-white/10"
                     >
-                      {lang === 'ar' ? '✕ إلغاء' : '✕ Cancel'}
+                      {lang === 'ar' ? '? �����' : '? Cancel'}
                     </Button>
                   )}
                 </div>
@@ -1828,26 +1829,26 @@ function SupportView() {
   const [sendingTicket, setSendingTicket] = useState(false);
   const [ticketMsg, setTicketMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
-  const topics = ['مشكلة في طلب', 'مشكلة في الدفع', 'مشكلة في الحساب', 'استفسار عام', 'اقتراح أو ملاحظة'];
+  const topics = ['����� �� ���', '����� �� �����', '����� �� ������', '������� ���', '������ �� ������'];
 
   useEffect(() => {
-    fetch(`${API_URL}/settings/support`).then(r => r.json()).then(data => { if (data) setConfig(data); }).catch(console.error).finally(() => setLoading(false));
+    fetch(`${API_URL_RAW}/settings/public/support`).then(r => r.json()).then(data => { if (data) setConfig(data); }).catch(console.error).finally(() => setLoading(false));
   }, []);
 
   const fetchTickets = () => {
     if (!user?._id) return;
-    fetch(`${API_URL}/tickets/user/${user._id}`).then(r => r.json()).then(data => { if (Array.isArray(data)) setTickets(data); }).catch(console.error);
+    apiFetch(`/tickets/user/${user._id}`).then(r => r.json()).then(data => { if (Array.isArray(data)) setTickets(data); }).catch(console.error);
   };
   useEffect(() => { fetchTickets(); }, [user?._id]);
 
   const handleSubmitTicket = async () => {
-    if (!ticketTopic || !ticketMessage.trim()) { setTicketMsg({ type: 'error', text: 'يرجى اختيار الموضوع وكتابة الرسالة' }); return; }
+    if (!ticketTopic || !ticketMessage.trim()) { setTicketMsg({ type: 'error', text: '���� ������ ������� ������ �������' }); return; }
     setSendingTicket(true); setTicketMsg(null);
     try {
-      const res = await fetch(`${API_URL}/tickets`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId: user?._id, topic: ticketTopic, message: ticketMessage }) });
-      if (res.ok) { setTicketMsg({ type: 'success', text: 'تم إرسال التذكرة بنجاح ✅' }); setTicketTopic(''); setTicketMessage(''); fetchTickets(); }
-      else { setTicketMsg({ type: 'error', text: 'فشل إرسال التذكرة' }); }
-    } catch { setTicketMsg({ type: 'error', text: 'خطأ في الاتصال' }); }
+      const res = await apiFetch(`/tickets`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId: user?._id, topic: ticketTopic, message: ticketMessage }) });
+      if (res.ok) { setTicketMsg({ type: 'success', text: '�� ����� ������� ����� ?' }); setTicketTopic(''); setTicketMessage(''); fetchTickets(); }
+      else { setTicketMsg({ type: 'error', text: '��� ����� �������' }); }
+    } catch { setTicketMsg({ type: 'error', text: '��� �� �������' }); }
     setSendingTicket(false);
   };
 
@@ -1867,7 +1868,7 @@ function SupportView() {
             <div className="w-12 h-12 rounded-xl bg-green-500/20 flex items-center justify-center">
               <svg viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6 text-green-400"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" /><path d="M12 2C6.477 2 2 6.477 2 12c0 1.89.525 3.66 1.438 5.168L2 22l4.832-1.438A9.955 9.955 0 0012 22c5.523 0 10-4.477 10-10S17.523 2 12 2zm0 18c-1.66 0-3.203-.51-4.484-1.375l-.32-.191-2.872.855.855-2.872-.191-.32A7.963 7.963 0 014 12c0-4.411 3.589-8 8-8s8 3.589 8 8-3.589 8-8 8z" /></svg>
             </div>
-            <div className="flex-1 text-start"><p className="text-white font-bold text-sm">{lang === 'ar' ? 'واتساب' : 'WhatsApp'}</p><p className="text-white/40 text-xs" dir="ltr">{config.whatsapp}</p></div>
+            <div className="flex-1 text-start"><p className="text-white font-bold text-sm">{lang === 'ar' ? '������' : 'WhatsApp'}</p><p className="text-white/40 text-xs" dir="ltr">{config.whatsapp}</p></div>
           </button>
         )}
         {config.telegram && (
@@ -1875,25 +1876,25 @@ function SupportView() {
             <div className="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center">
               <svg viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6 text-blue-400"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .24z" /></svg>
             </div>
-            <div className="flex-1 text-start"><p className="text-white font-bold text-sm">{lang === 'ar' ? 'تلجرام' : 'Telegram'}</p><p className="text-white/40 text-xs">{config.telegram}</p></div>
+            <div className="flex-1 text-start"><p className="text-white font-bold text-sm">{lang === 'ar' ? '������' : 'Telegram'}</p><p className="text-white/40 text-xs">{config.telegram}</p></div>
           </button>
         )}
         {config.email && (
           <button onClick={() => window.open(`mailto:${config.email}`, '_blank')} className="w-full flex items-center gap-4 p-4 rounded-2xl bg-purple-500/10 border border-purple-500/30 hover:bg-purple-500/20 transition-all">
-            <div className="w-12 h-12 rounded-xl bg-purple-500/20 flex items-center justify-center"><span className="text-2xl">📧</span></div>
-            <div className="flex-1 text-start"><p className="text-white font-bold text-sm">{lang === 'ar' ? 'البريد الإلكتروني' : 'Email'}</p><p className="text-white/40 text-xs">{config.email}</p></div>
+            <div className="w-12 h-12 rounded-xl bg-purple-500/20 flex items-center justify-center"><span className="text-2xl">??</span></div>
+            <div className="flex-1 text-start"><p className="text-white font-bold text-sm">{lang === 'ar' ? '������ ����������' : 'Email'}</p><p className="text-white/40 text-xs">{config.email}</p></div>
           </button>
         )}
         {!loading && !config.whatsapp && !config.telegram && !config.email && (
-          <Card className="p-6 bg-white/5 border-white/10 text-center"><p className="text-white/40 text-sm">{lang === 'ar' ? 'لا توجد وسائل اتصال متاحة حالياً' : 'No contact channels available'}</p></Card>
+          <Card className="p-6 bg-white/5 border-white/10 text-center"><p className="text-white/40 text-sm">{lang === 'ar' ? '�� ���� ����� ����� ����� ������' : 'No contact channels available'}</p></Card>
         )}
       </div>
 
       {/* Ticket Form */}
       <Card className="p-5 bg-white/5 border-white/10 backdrop-blur-sm space-y-4">
-        <h3 className="text-white font-bold text-base flex items-center gap-2">🎫 إرسال تذكرة دعم</h3>
+        <h3 className="text-white font-bold text-base flex items-center gap-2">?? ����� ����� ���</h3>
         <div>
-          <label className="block text-white/60 text-sm mb-2">{t.ticketSubject || 'موضوع التذكرة'}</label>
+          <label className="block text-white/60 text-sm mb-2">{t.ticketSubject || '����� �������'}</label>
           <div className="relative">
             <select
               value={ticketTopic}
@@ -1901,7 +1902,7 @@ function SupportView() {
               className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-cyan-500/50 appearance-none"
               style={{ paddingInlineEnd: '2.5rem' }}
             >
-              <option value="" disabled className="bg-[#0a0a1a] text-white/50">{lang === 'ar' ? 'اختر الموضوع...' : 'Select a topic...'}</option>
+              <option value="" disabled className="bg-[#0a0a1a] text-white/50">{lang === 'ar' ? '���� �������...' : 'Select a topic...'}</option>
               {topics.map(tp => (
                 <option key={tp} value={tp} className="bg-[#0a0a1a] text-white">
                   {tp}
@@ -1914,34 +1915,34 @@ function SupportView() {
           </div>
         </div>
         <div>
-          <label className="block text-white/60 text-sm mb-2">رسالة المساعدة</label>
-          <textarea value={ticketMessage} onChange={e => setTicketMessage(e.target.value)} placeholder="اكتب رسالتك هنا..." rows={4} className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-white/30 text-sm resize-none focus:outline-none focus:border-cyan-500/50" />
+          <label className="block text-white/60 text-sm mb-2">����� ��������</label>
+          <textarea value={ticketMessage} onChange={e => setTicketMessage(e.target.value)} placeholder="���� ������ ���..." rows={4} className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-white/30 text-sm resize-none focus:outline-none focus:border-cyan-500/50" />
         </div>
         {ticketMsg && <div className={`p-3 rounded-xl text-sm ${ticketMsg.type === 'success' ? 'bg-green-500/10 text-green-400 border border-green-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'}`}>{ticketMsg.text}</div>}
         <Button onClick={handleSubmitTicket} disabled={sendingTicket || !ticketTopic || !ticketMessage.trim()} className="w-full bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700 text-white h-11 disabled:opacity-50">
-          {sendingTicket ? '...' : '📨 إرسال التذكرة'}
+          {sendingTicket ? '...' : '?? ����� �������'}
         </Button>
       </Card>
 
       {/* Tickets List */}
       {tickets.length > 0 && (
         <div className="space-y-3">
-          <h3 className="text-white font-bold text-base">📋 تذاكري</h3>
+          <h3 className="text-white font-bold text-base">?? ������</h3>
           {tickets.map(ticket => (
             <Card key={ticket._id} className="p-4 bg-white/5 border-white/10 space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-white font-medium text-sm">{ticket.topic}</span>
                 <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium border ${ticket.status === 'closed' ? 'bg-green-500/10 text-green-400 border-green-500/30' : 'bg-yellow-500/10 text-yellow-400 border-yellow-500/30'}`}>
-                  {ticket.status === 'closed' ? 'تم الرد ✅' : 'قيد المراجعة ⏳'}
+                  {ticket.status === 'closed' ? '�� ���� ?' : '��� �������� ?'}
                 </span>
               </div>
               <div className="bg-white/5 rounded-xl p-3 border border-white/5">
-                <p className="text-white/40 text-[10px] mb-1">رسالتك:</p>
+                <p className="text-white/40 text-[10px] mb-1">������:</p>
                 <p className="text-white/80 text-sm leading-relaxed">{ticket.message}</p>
               </div>
               {ticket.adminReply && (
                 <div className="bg-gradient-to-r from-cyan-500/10 to-purple-500/10 rounded-xl p-3 border border-cyan-500/20">
-                  <p className="text-cyan-400 text-[10px] mb-1 font-bold">رد الأدمن:</p>
+                  <p className="text-cyan-400 text-[10px] mb-1 font-bold">�� ������:</p>
                   <p className="text-white text-sm leading-relaxed">{ticket.adminReply}</p>
                   {ticket.repliedAt && <p className="text-white/25 text-[10px] mt-2">{new Date(ticket.repliedAt).toLocaleString('ar-IQ')}</p>}
                 </div>
@@ -1963,16 +1964,16 @@ function TermsView() {
   const [sections, setSections] = useState<{ title: string; body: string }[]>([]);
 
   useEffect(() => {
-    fetch(`${API_URL}/settings/terms`)
+    fetch(`${API_URL_RAW}/settings/public/terms`)
       .then(r => r.json())
       .then(data => {
         if (data && Array.isArray(data) && data.length > 0) setSections(data);
         else setSections([
-          { title: '1. القبول بالشروط', body: 'باستخدامك لمنصة Jerry، فإنك توافق على جميع الشروط والأحكام المذكورة أدناه. يرجى قراءتها بعناية قبل استخدام أي خدمة.' },
-          { title: '2. الخدمات المقدمة', body: 'نقدم خدمات التسويق الرقمي بما في ذلك زيادة المتابعين والمشاهدات واللايكات عبر منصات التواصل الاجتماعي المختلفة.' },
-          { title: '3. سياسة الاسترداد', body: 'لا يمكن استرداد المبالغ بعد بدء تنفيذ الطلب. في حالة عدم اكتمال الطلب، سيتم إرجاع الرصيد المتبقي إلى حسابك.' },
-          { title: '4. المسؤولية', body: 'لا تتحمل المنصة أي مسؤولية عن أي إجراءات تتخذها منصات التواصل الاجتماعي تجاه حساباتك نتيجة استخدام خدماتنا.' },
-          { title: '5. الخصوصية', body: 'نحترم خصوصيتك ولا نشارك بياناتك الشخصية مع أي طرف ثالث. يتم استخدام بياناتك فقط لتقديم الخدمات المطلوبة.' },
+          { title: '1. ������ �������', body: '��������� ����� Jerry� ���� ����� ��� ���� ������ �������� �������� �����. ���� ������� ������ ��� ������� �� ����.' },
+          { title: '2. ������� �������', body: '���� ����� ������� ������ ��� �� ��� ����� ��������� ���������� ��������� ��� ����� ������� ��������� ��������.' },
+          { title: '3. ����� ���������', body: '�� ���� ������� ������� ��� ��� ����� �����. �� ���� ��� ������ ����ȡ ���� ����� ������ ������� ��� �����.' },
+          { title: '4. ���������', body: '�� ����� ������ �� ������� �� �� ������� ������ ����� ������� ��������� ���� ������� ����� ������� �������.' },
+          { title: '5. ��������', body: '����� ������� ��� ����� ������� ������� �� �� ��� ����. ��� ������� ������� ��� ������ ������� ��������.' },
         ]);
       })
       .catch(console.error);
@@ -2001,14 +2002,14 @@ function UpdatesView() {
   const [updates, setUpdates] = useState<{ version: string; date: string; title: string; description: string; type: string }[]>([]);
 
   useEffect(() => {
-    fetch(`${API_URL}/settings/updates`)
+    fetch(`${API_URL_RAW}/settings/public/updates`)
       .then(r => r.json())
       .then(data => {
         if (data && Array.isArray(data) && data.length > 0) setUpdates(data);
         else setUpdates([
-          { version: 'v2.5', date: '2025-02-15', title: 'تحسينات واجهة المستخدم', description: 'تحسين التصميم العام وإضافة قائمة جانبية جديدة للموبايل مع تحسين سرعة التطبيق.', type: 'تحسين' },
-          { version: 'v2.4', date: '2025-02-10', title: 'إضافة خدمات تليجرام', description: 'تمت إضافة خدمات جديدة لتليجرام تشمل الأعضاء والمشاهدات بضمانات متعددة.', type: 'جديد' },
-          { version: 'v2.3', date: '2025-02-01', title: 'نظام البحث الذكي', description: 'إضافة خاصية البحث عن الخدمات والأقسام بالاسم من الشريط السفلي.', type: 'جديد' },
+          { version: 'v2.5', date: '2025-02-15', title: '������� ����� ��������', description: '����� ������� ����� ������ ����� ������ ����� �������� �� ����� ���� �������.', type: '�����' },
+          { version: 'v2.4', date: '2025-02-10', title: '����� ����� �������', description: '��� ����� ����� ����� �������� ���� ������� ���������� ������� ������.', type: '����' },
+          { version: 'v2.3', date: '2025-02-01', title: '���� ����� �����', description: '����� ����� ����� �� ������� �������� ������ �� ������ ������.', type: '����' },
         ]);
       })
       .catch(console.error);
@@ -2026,7 +2027,7 @@ function UpdatesView() {
                 <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">
                   {update.version}
                 </span>
-                <span className={`px-2 py-0.5 rounded-full text-xs font-medium border ${update.type === 'جديد' ? 'bg-green-500/20 text-green-400 border-green-500/30' : update.type === 'إصلاح' ? 'bg-red-500/20 text-red-400 border-red-500/30' : 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30'}`}>
+                <span className={`px-2 py-0.5 rounded-full text-xs font-medium border ${update.type === '����' ? 'bg-green-500/20 text-green-400 border-green-500/30' : update.type === '�����' ? 'bg-red-500/20 text-red-400 border-red-500/30' : 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30'}`}>
                   {update.type}
                 </span>
               </div>

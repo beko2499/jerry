@@ -3,7 +3,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { X, Send, Mail, User, MessageCircle, Clock, CheckCircle } from 'lucide-react';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+import { adminFetch, API_URL } from '@/lib/api';
 
 export default function TicketsView() {
     const [tickets, setTickets] = useState<any[]>([]);
@@ -13,7 +13,7 @@ export default function TicketsView() {
     const [sending, setSending] = useState(false);
 
     const fetchTickets = () => {
-        fetch(`${API_URL}/tickets`).then(r => r.json()).then(data => { if (Array.isArray(data)) setTickets(data); }).catch(console.error);
+        adminFetch(`/tickets`).then(r => r.json()).then(data => { if (Array.isArray(data)) setTickets(data); }).catch(console.error);
     };
     useEffect(() => { fetchTickets(); }, []);
 
@@ -23,7 +23,7 @@ export default function TicketsView() {
         if (!replyText.trim() || !selectedTicket) return;
         setSending(true);
         try {
-            const res = await fetch(`${API_URL}/tickets/${selectedTicket._id}/reply`, {
+            const res = await adminFetch(`/tickets/${selectedTicket._id}/reply`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ reply: replyText }),
@@ -39,7 +39,7 @@ export default function TicketsView() {
 
     const handleDelete = async (id: string) => {
         if (!confirm('حذف هذه التذكرة؟')) return;
-        await fetch(`${API_URL}/tickets/${id}`, { method: 'DELETE' });
+        await adminFetch(`/tickets/${id}`, { method: 'DELETE' });
         if (selectedTicket?._id === id) setSelectedTicket(null);
         fetchTickets();
     };

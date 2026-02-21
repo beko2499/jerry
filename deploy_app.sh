@@ -7,8 +7,8 @@ DOMAIN="followerjerry.com"
 
 echo ">>> 1. Creating Project Directory ($APP_DIR)..."
 mkdir -p "$APP_DIR"
-# Copy from current folder (where script is run)
-cp -r ./* "$APP_DIR/"
+# Copy from current folder (including hidden files like .env)
+cp -rT . "$APP_DIR"
 chown -R root:root "$APP_DIR"
 cd "$APP_DIR" || exit
 

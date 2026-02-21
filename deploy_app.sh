@@ -30,8 +30,9 @@ cd ..
 echo ">>> 5. Configuring Nginx..."
 cat > /etc/nginx/sites-available/$DOMAIN <<EOF
 server {
-    listen 80;
-    server_name $DOMAIN www.$DOMAIN;
+    listen 80 default_server;
+    listen [::]:80 default_server;
+    server_name $DOMAIN www.$DOMAIN 77.42.65.87;
 
     root $APP_DIR/dist;
     index index.html;
@@ -52,10 +53,11 @@ server {
 EOF
 
 ln -sf /etc/nginx/sites-available/$DOMAIN /etc/nginx/sites-enabled/
+rm -f /etc/nginx/sites-enabled/default
 systemctl reload nginx
 
 echo ">>> 6. Securing with SSL (Certbot)..."
-certbot --nginx -d $DOMAIN -d www.$DOMAIN --non-interactive --agree-tos -m maram24900@gmail.com
+certbot --nginx -d $DOMAIN -d www.$DOMAIN --non-interactive --agree-tos -m maram24900@gmail.com || echo ">>> Cannot apply SSL yet (domain not pointing to IP). Skipping SSL for now. <<<"
 
 systemctl restart nginx
 

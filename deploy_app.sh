@@ -1,6 +1,6 @@
 #!/bin/bash
 # deploy_app.sh
-# description: Copies project, installs deps, builds frontend, starts backend, configures Apache
+# description: Copies project, installs deps, builds frontend, starts backend, configures Nginx
 
 APP_DIR="/var/www/followerjerry.com"
 DOMAIN="followerjerry.com"
@@ -27,34 +27,36 @@ pm2 start index.js --name "jerry-api"
 pm2 save
 cd ..
 
-echo ">>> 5. Configuring Apache..."
-cat > /etc/apache2/sites-available/$DOMAIN.conf <<EOF
-<VirtualHost *:80>
-    ServerName $DOMAIN
-    ServerAlias www.$DOMAIN
-    DocumentRoot $APP_DIR/dist
+echo ">>> 5. Configuring Nginx..."
+cat > /etc/nginx/sites-available/$DOMAIN <<EOF
+server {
+    listen 80;
+    server_name $DOMAIN www.$DOMAIN;
 
-    <Directory $APP_DIR/dist>
-        AllowOverride All
-        Require all granted
-        FallbackResource /index.html
-    </Directory>
+    root $APP_DIR/dist;
+    index index.html;
 
-    ProxyPreserveHost On
-    ProxyPass /api http://127.0.0.1:5000/api
-    ProxyPassReverse /api http://127.0.0.1:5000/api
+    location / {
+        try_files \$uri \$uri/ /index.html;
+    }
 
-    ErrorLog \${APACHE_LOG_DIR}/${DOMAIN}_error.log
-    CustomLog \${APACHE_LOG_DIR}/${DOMAIN}_access.log combined
-</VirtualHost>
+    location /api/ {
+        proxy_pass http://127.0.0.1:5000/api/;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade \$http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host \$host;
+        proxy_cache_bypass \$http_upgrade;
+    }
+}
 EOF
 
-a2ensite $DOMAIN.conf
-systemctl reload apache2
+ln -sf /etc/nginx/sites-available/$DOMAIN /etc/nginx/sites-enabled/
+systemctl reload nginx
 
 echo ">>> 6. Securing with SSL (Certbot)..."
-certbot --apache -d $DOMAIN -d www.$DOMAIN --non-interactive --agree-tos -m maram24900@gmail.com
+certbot --nginx -d $DOMAIN -d www.$DOMAIN --non-interactive --agree-tos -m maram24900@gmail.com
 
-systemctl restart apache2
+systemctl restart nginx
 
 echo ">>> Deployment Complete! Your app should be live at https://$DOMAIN <<<"

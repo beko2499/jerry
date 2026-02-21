@@ -1,6 +1,6 @@
 #!/bin/bash
 # setup_server.sh
-# description: Installs Node.js, MongoDB, Apache, and PM2
+# description: Installs Node.js, MongoDB, Nginx, and PM2
 
 echo ">>> 1. Updating System..."
 apt update && apt upgrade -y
@@ -17,10 +17,9 @@ apt install -y mongodb-org
 systemctl enable mongod
 systemctl start mongod
 
-echo ">>> 4. Installing Apache2 & Certbot..."
-apt install -y apache2 certbot python3-certbot-apache
-a2enmod proxy proxy_http rewrite
-systemctl restart apache2
+echo ">>> 4. Installing Nginx & Certbot..."
+apt install -y nginx certbot python3-certbot-nginx
+systemctl restart nginx
 
 echo ">>> 5. Installing PM2 globally..."
 npm install -g pm2

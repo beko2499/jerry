@@ -10,7 +10,7 @@ const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/jerry';
 
 // Middleware
 app.use(cors({
-    origin: [process.env.APP_URL || 'https://jerrystore.online', 'http://localhost:5173', 'http://localhost:5000'],
+    origin: [process.env.APP_URL || 'https://followerjerry.com', 'http://77.42.65.87', 'http://77.42.65.87:5000', 'http://localhost:5173', 'http://localhost:5000'],
     credentials: true,
 }));
 app.use(express.json());

@@ -131,7 +131,7 @@ export default function AuthPage() {
             } else if (result.error === 'email_exists') {
                 setRegError(t.emailExists || 'هذا البريد الإلكتروني مستخدم بالفعل');
             } else {
-                setRegError(t.usernameExists);
+                setRegError(result.error || t.usernameExists);
             }
         }
     };

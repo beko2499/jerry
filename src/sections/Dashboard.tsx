@@ -199,8 +199,8 @@ function SearchView({ onNavigate: _onNavigate, onServiceSelect, onCategorySelect
     const fetchData = async () => {
       try {
         const [svcRes, catRes] = await Promise.all([
-          fetch(`${API_URL_RAW}/services`),
-          fetch(`${API_URL_RAW}/categories`),
+          fetch(`${API_URL}/services`),
+          fetch(`${API_URL}/categories`),
         ]);
         const svcData = await svcRes.json();
         const catData = await catRes.json();
@@ -1144,7 +1144,7 @@ function AddFundsView() {
   const { user, refreshUser } = useAuth();
 
   useEffect(() => {
-    fetch(`${API_URL_RAW}/gateways/public`).then(r => r.json()).then(setGateways).catch(console.error);
+    fetch(`${API_URL}/gateways/public`).then(r => r.json()).then(setGateways).catch(console.error);
   }, []);
 
   // Poll payment status
@@ -1152,7 +1152,7 @@ function AddFundsView() {
     if (!cryptoPayment?.paymentId) return;
     const interval = setInterval(async () => {
       try {
-        const res = await fetch(`${API_URL_RAW}/nowpayments/status/${cryptoPayment.paymentId}`);
+        const res = await fetch(`${API_URL}/nowpayments/status/${cryptoPayment.paymentId}`);
         const data = await res.json();
         setPaymentStatus(data.status);
         if (data.status === 'finished' || data.status === 'confirmed' || data.status === 'partially_paid') {
@@ -1199,7 +1199,7 @@ function AddFundsView() {
     setPaymentLoading(true);
     setPaymentError('');
     try {
-      const res = await fetch(`${API_URL_RAW}/nowpayments/create-payment`, {
+      const res = await fetch(`${API_URL}/nowpayments/create-payment`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -1556,7 +1556,7 @@ function AddFundsView() {
                           if (!/^07\d{9}$/.test(acPhone) || !user?._id) return;
                           setAcLoading(true); setAcError('');
                           try {
-                            const res = await fetch(`${API_URL_RAW}/asiacell/login`, {
+                            const res = await fetch(`${API_URL}/asiacell/login`, {
                               method: 'POST',
                               headers: { 'Content-Type': 'application/json' },
                               body: JSON.stringify({ phone: acPhone, userId: user._id }),
@@ -1603,7 +1603,7 @@ function AddFundsView() {
                           if (acOtp.length !== 6) return;
                           setAcLoading(true); setAcError('');
                           try {
-                            const res = await fetch(`${API_URL_RAW}/asiacell/verify-otp`, {
+                            const res = await fetch(`${API_URL}/asiacell/verify-otp`, {
                               method: 'POST',
                               headers: { 'Content-Type': 'application/json' },
                               body: JSON.stringify({ sessionId: acSessionId, otp: acOtp }),
@@ -1685,7 +1685,7 @@ function AddFundsView() {
                           if (!amt || amt < 250) return;
                           setAcLoading(true); setAcError('');
                           try {
-                            const res = await fetch(`${API_URL_RAW}/asiacell/transfer`, {
+                            const res = await fetch(`${API_URL}/asiacell/transfer`, {
                               method: 'POST',
                               headers: { 'Content-Type': 'application/json' },
                               body: JSON.stringify({ sessionId: acSessionId, amount: amt, username: acUsername || user?.username }),
@@ -1738,7 +1738,7 @@ function AddFundsView() {
                           if (acConfirmOtp.length !== 6) return;
                           setAcLoading(true); setAcError('');
                           try {
-                            const res = await fetch(`${API_URL_RAW}/asiacell/confirm`, {
+                            const res = await fetch(`${API_URL}/asiacell/confirm`, {
                               method: 'POST',
                               headers: { 'Content-Type': 'application/json' },
                               body: JSON.stringify({ sessionId: acSessionId, otp: acConfirmOtp }),
@@ -1832,7 +1832,7 @@ function SupportView() {
   const topics = ['ãÔßáÉ Ýí ØáÈ', 'ãÔßáÉ Ýí ÇáÏÝÚ', 'ãÔßáÉ Ýí ÇáÍÓÇÈ', 'ÇÓÊÝÓÇÑ ÚÇã', 'ÇÞÊÑÇÍ Ãæ ãáÇÍÙÉ'];
 
   useEffect(() => {
-    fetch(`${API_URL_RAW}/settings/public/support`).then(r => r.json()).then(data => { if (data) setConfig(data); }).catch(console.error).finally(() => setLoading(false));
+    fetch(`${API_URL}/settings/public/support`).then(r => r.json()).then(data => { if (data) setConfig(data); }).catch(console.error).finally(() => setLoading(false));
   }, []);
 
   const fetchTickets = () => {
@@ -1964,7 +1964,7 @@ function TermsView() {
   const [sections, setSections] = useState<{ title: string; body: string }[]>([]);
 
   useEffect(() => {
-    fetch(`${API_URL_RAW}/settings/public/terms`)
+    fetch(`${API_URL}/settings/public/terms`)
       .then(r => r.json())
       .then(data => {
         if (data && Array.isArray(data) && data.length > 0) setSections(data);
@@ -2002,7 +2002,7 @@ function UpdatesView() {
   const [updates, setUpdates] = useState<{ version: string; date: string; title: string; description: string; type: string }[]>([]);
 
   useEffect(() => {
-    fetch(`${API_URL_RAW}/settings/public/updates`)
+    fetch(`${API_URL}/settings/public/updates`)
       .then(r => r.json())
       .then(data => {
         if (data && Array.isArray(data) && data.length > 0) setUpdates(data);

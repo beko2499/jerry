@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { useLanguage } from '@/contexts/LanguageContext';
 
-import { adminFetch, API_URL } from '@/lib/api';
+import { adminFetch } from '@/lib/api';
 
 export default function SupportView() {
     const { t } = useLanguage();

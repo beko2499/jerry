@@ -3,7 +3,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { X, Send, Mail, User, MessageCircle, Clock, CheckCircle } from 'lucide-react';
 
-import { adminFetch, API_URL } from '@/lib/api';
+import { adminFetch } from '@/lib/api';
 
 export default function TicketsView() {
     const [tickets, setTickets] = useState<any[]>([]);

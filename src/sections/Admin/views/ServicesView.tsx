@@ -23,7 +23,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 
 const BACKEND_URL = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace('/api', '');
 
-import { adminFetch, API_URL } from '@/lib/api';
+import { adminFetch } from '@/lib/api';
 
 interface Category {
     _id: string;

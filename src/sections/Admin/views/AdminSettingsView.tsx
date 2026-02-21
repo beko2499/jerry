@@ -5,7 +5,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
-import { adminFetch, API_URL } from '@/lib/api';
+import { adminFetch } from '@/lib/api';
 
 interface TopReferrer {
     username: string;

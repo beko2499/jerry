@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
 
-import { adminFetch, API_URL } from '@/lib/api';
+import { adminFetch } from '@/lib/api';
 
 type DetailView = null | 'users' | 'orders' | 'revenue' | 'rechargeRevenue' | 'active';
 

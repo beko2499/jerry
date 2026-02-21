@@ -18,7 +18,7 @@ import {
   Search
 } from 'lucide-react';
 
-const API_URL_RAW = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+
 
 // Orders View Component
 function OrdersView() {
@@ -49,7 +49,7 @@ function OrdersView() {
 
   useEffect(() => {
     if (!user?._id) return;
-const API_URL_RAW = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+
     apiFetch(`/orders?userId=${user._id}`)
       .then(r => r.json())
       .then(orders => {

@@ -42,9 +42,10 @@ export async function apiFetch(path: string, options: RequestInit = {}) {
         ...options,
         headers: { ...authHeaders(), ...(options.headers || {}) },
     });
-    if (res.status === 401) {
+    if (res.status === 401 || res.status === 403) {
         clearToken();
         localStorage.removeItem('jerry_user');
+        if (res.status === 403) window.location.reload();
     }
     return res;
 }
@@ -60,7 +61,7 @@ export async function adminFetch(path: string, options: RequestInit = {}) {
         ...options,
         headers: { ...headers, ...(options.headers || {}) },
     });
-    if (res.status === 401) {
+    if (res.status === 401 || res.status === 403) {
         clearAdminToken();
         localStorage.removeItem('adminSession');
         window.location.reload();

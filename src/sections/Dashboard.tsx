@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+ï»¿import { useState, useEffect } from 'react';
 import { apiFetch, API_URL } from '@/lib/api';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -120,7 +120,7 @@ function OrdersView() {
         {filteredOrders.length === 0 ? (
           <div className="text-center py-12 text-white/30">
             <ShoppingCart className="w-10 h-10 mx-auto mb-2 opacity-50" />
-            <p className="text-sm">{t.noResults || 'áÇ ÊæÌÏ ØáÈÇÊ'}</p>
+            <p className="text-sm">{t.noResults || 'ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½'}</p>
           </div>
         ) : filteredOrders.map((order) => (
           <Card key={order.id} className="p-3 bg-white/5 border-white/10">
@@ -129,7 +129,7 @@ function OrdersView() {
                 <p className="text-white text-sm font-medium truncate">{order.service}</p>
                 <div className="flex items-center gap-2 mt-1 text-xs text-white/40">
                   <span className="text-cyan-400 font-mono">{order.id}</span>
-                  <span>×{order.quantity}</span>
+                  <span>ï¿½{order.quantity}</span>
                 </div>
               </div>
               <div className="flex flex-col items-end gap-1 shrink-0">
@@ -236,7 +236,7 @@ function SearchView({ onNavigate: _onNavigate, onServiceSelect, onCategorySelect
         />
       </div>
 
-      {loading && <p className="text-white/40 text-sm text-center py-8">ÌÇÑí ÇáÊÍãíá...</p>}
+      {loading && <p className="text-white/40 text-sm text-center py-8">ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½...</p>}
 
       {/* Results */}
       {query.length > 0 && !loading && (
@@ -244,7 +244,7 @@ function SearchView({ onNavigate: _onNavigate, onServiceSelect, onCategorySelect
           {/* Categories */}
           {filteredCategories.length > 0 && (
             <div>
-              <p className="text-white/40 text-xs mb-2 font-medium">ÇáÃŞÓÇã</p>
+              <p className="text-white/40 text-xs mb-2 font-medium">ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½</p>
               <div className="space-y-2">
                 {filteredCategories.map(cat => (
                   <Card
@@ -260,7 +260,7 @@ function SearchView({ onNavigate: _onNavigate, onServiceSelect, onCategorySelect
                       </div>
                       <div className="overflow-hidden">
                         <h4 className="text-white font-medium text-sm truncate">{cat.name}</h4>
-                        <p className="text-white/40 text-xs">ŞÓã</p>
+                        <p className="text-white/40 text-xs">ï¿½ï¿½ï¿½</p>
                       </div>
                     </div>
                   </Card>
@@ -272,7 +272,7 @@ function SearchView({ onNavigate: _onNavigate, onServiceSelect, onCategorySelect
           {/* Services */}
           {filteredServices.length > 0 && (
             <div>
-              <p className="text-white/40 text-xs mb-2 font-medium">ÇáÎÏãÇÊ ({filteredServices.length})</p>
+              <p className="text-white/40 text-xs mb-2 font-medium">ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ({filteredServices.length})</p>
               <div className="space-y-2">
                 {filteredServices.slice(0, 20).map(svc => (
                   <Card
@@ -297,7 +297,7 @@ function SearchView({ onNavigate: _onNavigate, onServiceSelect, onCategorySelect
                   </Card>
                 ))}
                 {filteredServices.length > 20 && (
-                  <p className="text-white/30 text-xs text-center">+{filteredServices.length - 20} äÊíÌÉ ÃÎÑì</p>
+                  <p className="text-white/30 text-xs text-center">+{filteredServices.length - 20} ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½</p>
                 )}
               </div>
             </div>
@@ -306,7 +306,7 @@ function SearchView({ onNavigate: _onNavigate, onServiceSelect, onCategorySelect
           {filteredServices.length === 0 && filteredCategories.length === 0 && (
             <div className="text-center py-12">
               <Search className="w-12 h-12 text-white/10 mx-auto mb-4" />
-              <p className="text-white/40 text-sm">áÇ ÊæÌÏ äÊÇÆÌ</p>
+              <p className="text-white/40 text-sm">ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½</p>
             </div>
           )}
         </div>
@@ -467,11 +467,11 @@ function ServiceDetailsView({ serviceId, serviceData, onBack }: ServiceDetailsVi
   const handleSubmitOrder = async () => {
     if (!user) return;
     if (quantity < serviceMin || quantity > serviceMax) {
-      setOrderResult({ success: false, message: t.invalidQuantity || `ÇáßãíÉ íÌÈ Ãä Êßæä Èíä ${serviceMin} æ ${serviceMax}` });
+      setOrderResult({ success: false, message: t.invalidQuantity || `ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ${serviceMin} ï¿½ ${serviceMax}` });
       return;
     }
     if ((user.balance || 0) < totalPrice) {
-      setOrderResult({ success: false, message: t.insufficientBalance || 'ÑÕíÏß ÛíÑ ßÇİí' });
+      setOrderResult({ success: false, message: t.insufficientBalance || 'ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½' });
       return;
     }
 
@@ -492,13 +492,13 @@ function ServiceDetailsView({ serviceId, serviceData, onBack }: ServiceDetailsVi
       });
       const data = await res.json();
       if (!res.ok) {
-        setOrderResult({ success: false, message: data.error || 'ÍÏË ÎØÃ' });
+        setOrderResult({ success: false, message: data.error || 'ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½' });
       } else {
-        setOrderResult({ success: true, message: t.orderSuccess || 'Êã ÇáØáÈ ÈäÌÇÍ! ?', orderId: data.orderId });
+        setOrderResult({ success: true, message: t.orderSuccess || 'ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½! ?', orderId: data.orderId });
         await refreshUser();
       }
     } catch {
-      setOrderResult({ success: false, message: t.connectionError || 'ÎØÃ İí ÇáÇÊÕÇá' });
+      setOrderResult({ success: false, message: t.connectionError || 'ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½' });
     }
     setOrderLoading(false);
   };
@@ -522,7 +522,7 @@ function ServiceDetailsView({ serviceId, serviceData, onBack }: ServiceDetailsVi
             <div className="flex items-center gap-3 mb-6 p-3 bg-gradient-to-r from-cyan-500/10 to-purple-500/10 rounded-xl border border-cyan-500/20">
               <div className="flex items-baseline gap-1">
                 <span className="text-3xl font-bold text-cyan-400 font-space">${servicePrice}</span>
-                <span className="text-white/40 text-sm">/ {t.perUnit || 'áßá æÍÏÉ'}</span>
+                <span className="text-white/40 text-sm">/ {t.perUnit || 'ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½'}</span>
               </div>
             </div>
 
@@ -672,9 +672,9 @@ function ServiceDetailsView({ serviceId, serviceData, onBack }: ServiceDetailsVi
                 className="w-full h-14 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white text-lg font-bold shadow-lg shadow-cyan-500/20 rounded-xl transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {orderLoading ? (
-                  <span className="flex items-center gap-2"><span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> {t.processing || 'ÌÇÑí ÇáãÚÇáÌÉ...'}</span>
+                  <span className="flex items-center gap-2"><span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> {t.processing || 'ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½...'}</span>
                 ) : orderResult?.success ? (
-                  t.orderPlaced || '? Êã ÇáØáÈ'
+                  t.orderPlaced || '? ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½'
                 ) : (
                   t.confirmOrder
                 )}
@@ -689,248 +689,248 @@ function ServiceDetailsView({ serviceId, serviceData, onBack }: ServiceDetailsVi
 
 // Settings View Component
 function SettingsView({ defaultTab = 'referral' }: { defaultTab?: 'settings' | 'referral' | 'api' }) {
-  const { t } = useLanguage();
-  const { user, refreshUser } = useAuth();
-  const [tab, setTab] = useState<'settings' | 'referral' | 'api'>(defaultTab);
-  const [email, setEmail] = useState(user?.email || '');
-  const [currentPassword, setCurrentPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
-  const [saving, setSaving] = useState(false);
-  // Referral states
-  const [refStats, setRefStats] = useState<{ referralCode: string; totalReferrals: number; totalEarnings: number; commissionRate: number } | null>(null);
-  const [copied, setCopied] = useState(false);
-  // API states
-  const [apiKey, setApiKey] = useState('');
-  const [showApiKey, setShowApiKey] = useState(false);
-  const [apiCopied, setApiCopied] = useState(false);
-  const [regenerating, setRegenerating] = useState(false);
+    const { t } = useLanguage();
+    const { user, refreshUser } = useAuth();
+    const [tab, setTab] = useState<'settings' | 'referral' | 'api'>(defaultTab);
+    const [email, setEmail] = useState(user?.email || '');
+    const [currentPassword, setCurrentPassword] = useState('');
+    const [newPassword, setNewPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+    const [saving, setSaving] = useState(false);
+    // Referral states
+    const [refStats, setRefStats] = useState<{ referralCode: string; totalReferrals: number; totalEarnings: number; commissionRate: number } | null>(null);
+    const [copied, setCopied] = useState(false);
+    // API states
+    const [apiKey, setApiKey] = useState('');
+    const [showApiKey, setShowApiKey] = useState(false);
+    const [apiCopied, setApiCopied] = useState(false);
+    const [regenerating, setRegenerating] = useState(false);
 
-  useEffect(() => {
-    if (user?._id) {
-      apiFetch(`/referrals/stats/${user._id}`)
-        .then(r => r.json())
-        .then(data => { if (data.referralCode) setRefStats(data); })
-        .catch(console.error);
-      apiFetch(`/v2/key/${user._id}`)
-        .then(r => r.json())
-        .then(data => { if (data.apiKey) setApiKey(data.apiKey); })
-        .catch(console.error);
-    }
-  }, [user?._id]);
+    useEffect(() => {
+        if (user?._id) {
+            apiFetch(`/referrals/stats/${user._id}`)
+                .then(r => r.json())
+                .then(data => { if (data.referralCode) setRefStats(data); })
+                .catch(console.error);
+            apiFetch(`/v2/key/${user._id}`)
+                .then(r => r.json())
+                .then(data => { if (data.apiKey) setApiKey(data.apiKey); })
+                .catch(console.error);
+        }
+    }, [user?._id]);
 
-  const handleSave = async () => {
-    setMessage(null);
-    if (newPassword && newPassword !== confirmPassword) { setMessage({ type: 'error', text: 'ßáãÇÊ ÇáãÑæÑ ÛíÑ ãÊØÇÈŞÉ' }); return; }
-    if (newPassword && !currentPassword) { setMessage({ type: 'error', text: 'íÑÌì ÅÏÎÇá ßáãÉ ÇáãÑæÑ ÇáÍÇáíÉ' }); return; }
-    if (!email && !newPassword) { setMessage({ type: 'error', text: 'áÇ ÊæÌÏ ÊÛííÑÇÊ áÍİÙåÇ' }); return; }
-    setSaving(true);
-    try {
-      const body: any = {};
-      if (email !== user?.email) body.email = email;
-      if (newPassword) { body.newPassword = newPassword; body.currentPassword = currentPassword; }
-      else if (currentPassword) body.currentPassword = currentPassword;
-      if (Object.keys(body).length === 0) { setMessage({ type: 'error', text: 'áÇ ÊæÌÏ ÊÛííÑÇÊ áÍİÙåÇ' }); setSaving(false); return; }
-      const res = await apiFetch(`/auth/profile/${user?._id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-      const data = await res.json();
-      if (!res.ok) {
-        const errMap: Record<string, string> = { wrong_password: 'ßáãÉ ÇáãÑæÑ ÇáÍÇáíÉ ÛíÑ ÕÍíÍÉ', email_exists: 'ÇáÈÑíÏ ÇáÅáßÊÑæäí ãÓÊÎÏã ÈÇáİÚá', current_password_required: 'íÑÌì ÅÏÎÇá ßáãÉ ÇáãÑæÑ ÇáÍÇáíÉ' };
-        setMessage({ type: 'error', text: errMap[data.error] || data.error });
-      } else {
-        setMessage({ type: 'success', text: 'Êã ÍİÙ ÇáÊÛííÑÇÊ ÈäÌÇÍ ?' });
-        setCurrentPassword(''); setNewPassword(''); setConfirmPassword('');
-        await refreshUser();
-      }
-    } catch { setMessage({ type: 'error', text: 'ÍÏË ÎØÃ İí ÇáÇÊÕÇá' }); }
-    setSaving(false);
-  };
+    const handleSave = async () => {
+        setMessage(null);
+        if (newPassword && newPassword !== confirmPassword) { setMessage({ type: 'error', text: 'ÙƒÙ„Ù…Ø© Ø§Ù„Ù…Ø±ÙˆØ± ØºÙŠØ± Ù…ØªØ·Ø§Ø¨Ù‚Ø©' }); return; }
+        if (newPassword && !currentPassword) { setMessage({ type: 'error', text: 'ÙŠØ±Ø¬Ù‰ Ø¥Ø¯Ø®Ø§Ù„ ÙƒÙ„Ù…Ø© Ø§Ù„Ù…Ø±ÙˆØ± Ø§Ù„Ø­Ø§Ù„ÙŠØ©' }); return; }
+        if (!email && !newPassword) { setMessage({ type: 'error', text: 'Ù„Ù… ÙŠØªÙ… ØªØºÙŠÙŠØ± Ø´ÙŠØ¡' }); return; }
+        setSaving(true);
+        try {
+            const body: any = {};
+            if (email !== user?.email) body.email = email;
+            if (newPassword) { body.newPassword = newPassword; body.currentPassword = currentPassword; }
+            else if (currentPassword) body.currentPassword = currentPassword;
+            if (Object.keys(body).length === 0) { setMessage({ type: 'error', text: 'Ù„Ù… ÙŠØªÙ… ØªØºÙŠÙŠØ± Ø´ÙŠØ¡' }); setSaving(false); return; }
+            const res = await apiFetch(`/auth/profile/${user?._id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+            const data = await res.json();
+            if (!res.ok) {
+                const errMap: Record<string, string> = { wrong_password: 'ÙƒÙ„Ù…Ø© Ø§Ù„Ù…Ø±ÙˆØ± Ø§Ù„Ø­Ø§Ù„ÙŠØ© ØºÙŠØ± ØµØ­ÙŠØ­Ø©', email_exists: 'Ø§Ù„Ø¨Ø±ÙŠØ¯ Ø§Ù„Ø¥Ù„ÙƒØªØ±ÙˆÙ†ÙŠ Ù…Ø³ØªØ®Ø¯Ù… Ø¨Ø§Ù„ÙØ¹Ù„', current_password_required: 'ÙŠØ±Ø¬Ù‰ Ø¥Ø¯Ø®Ø§Ù„ ÙƒÙ„Ù…Ø© Ø§Ù„Ù…Ø±ÙˆØ± Ø§Ù„Ø­Ø§Ù„ÙŠØ©' };
+                setMessage({ type: 'error', text: errMap[data.error] || data.error });
+            } else {
+                setMessage({ type: 'success', text: 'ØªÙ… Ø­ÙØ¸ Ø§Ù„ØªØºÙŠÙŠØ±Ø§Øª Ø¨Ù†Ø¬Ø§Ø­ âœ…' });
+                setCurrentPassword(''); setNewPassword(''); setConfirmPassword('');
+                await refreshUser();
+            }
+        } catch { setMessage({ type: 'error', text: 'Ø­Ø¯Ø« Ø®Ø·Ø£ ÙÙŠ Ø§Ù„Ø§ØªØµØ§Ù„' }); }
+        setSaving(false);
+    };
 
-  const siteUrl = window.location.origin;
-  const refLink = refStats ? `${siteUrl}/?ref=${refStats.referralCode}` : '';
+    const siteUrl = window.location.origin;
+    const refLink = refStats ? `${siteUrl}/?ref=${refStats.referralCode}` : '';
 
-  const handleCopy = () => {
-    try {
-      navigator.clipboard.writeText(refLink);
-    } catch {
-      const ta = document.createElement('textarea'); ta.value = refLink; ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
-    }
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
+    const handleCopy = () => {
+        try {
+            navigator.clipboard.writeText(refLink);
+        } catch {
+            const ta = document.createElement('textarea'); ta.value = refLink; ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+        }
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+    };
 
-  return (
-    <div className="p-4 md:p-8">
-      <h2 className="font-space text-xl md:text-2xl text-white mb-4 tracking-wide">{t.settings}</h2>
+    return (
+        <div className="p-4 md:p-8">
+            <h2 className="font-space text-xl md:text-2xl text-white mb-4 tracking-wide">{t.settings}</h2>
 
-      {/* Tabs */}
-      <div className="flex gap-2 mb-6">
-        <button onClick={() => setTab('referral')} className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${tab === 'referral' ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30' : 'bg-white/5 text-white/50 border border-white/10 hover:bg-white/10'}`}>
-          äÙÇã ÇáÇÍÇáÉ
-        </button>
-        <button onClick={() => setTab('settings')} className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${tab === 'settings' ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30' : 'bg-white/5 text-white/50 border border-white/10 hover:bg-white/10'}`}>
-          ÇáÇÚÏÇÏÇÊ
-        </button>
-        <button onClick={() => setTab('api')} className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${tab === 'api' ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30' : 'bg-white/5 text-white/50 border border-white/10 hover:bg-white/10'}`}>
-          API
-        </button>
-      </div>
-
-      {tab === 'settings' && (
-        <Card className="p-5 md:p-8 bg-white/5 border-white/10 max-w-lg backdrop-blur-sm">
-          <div className="space-y-5">
-            <div>
-              <label className="block font-body text-white/50 text-sm mb-1.5">{t.username}</label>
-              <div className="px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white/40 text-sm font-mono">@{user?.username}</div>
-            </div>
-            <div>
-              <label className="block font-body text-white/80 text-sm mb-1.5">{t.email}</label>
-              <Input value={email} onChange={e => setEmail(e.target.value)} className="bg-white/5 border-white/10 text-white focus:border-cyan-500/50 h-10" dir="ltr" />
-            </div>
-            <div className="border-t border-white/10 pt-4">
-              <p className="text-white/50 text-xs mb-3">áÊÛííÑ ßáãÉ ÇáãÑæÑ Ãæ ÇáÈÑíÏ¡ ÃÏÎá ßáãÉ ÇáãÑæÑ ÇáÍÇáíÉ</p>
-            </div>
-            <div>
-              <label className="block font-body text-white/80 text-sm mb-1.5">{t.currentPassword}</label>
-              <Input type="password" value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} className="bg-white/5 border-white/10 text-white focus:border-cyan-500/50 h-10" placeholder="••••••••" />
-            </div>
-            <div>
-              <label className="block font-body text-white/80 text-sm mb-1.5">{t.newPassword}</label>
-              <Input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} className="bg-white/5 border-white/10 text-white focus:border-cyan-500/50 h-10" placeholder="••••••••" />
-            </div>
-            <div>
-              <label className="block font-body text-white/80 text-sm mb-1.5">ÊÃßíÏ ßáãÉ ÇáãÑæÑ ÇáÌÏíÏÉ</label>
-              <Input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} className="bg-white/5 border-white/10 text-white focus:border-cyan-500/50 h-10" placeholder="••••••••" />
-            </div>
-            {message && <div className={`p-3 rounded-xl text-sm ${message.type === 'success' ? 'bg-green-500/10 text-green-400 border border-green-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'}`}>{message.text}</div>}
-            <Button onClick={handleSave} disabled={saving} className="w-full bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700 text-white shadow-lg shadow-cyan-500/20 h-11">
-              {saving ? '...' : t.saveChanges}
-            </Button>
-          </div>
-        </Card>
-      )}
-
-      {tab === 'referral' && (
-        <div className="max-w-lg space-y-4">
-          {/* Referral Info */}
-          <Card className="p-5 bg-white/5 border-white/10 backdrop-blur-sm">
-            <div className="flex items-start gap-3 mb-4">
-              <div className="w-10 h-10 rounded-xl bg-cyan-500/20 flex items-center justify-center text-lg shrink-0">??</div>
-              <div>
-                <h3 className="text-white font-bold text-sm">äÙÇã ÇáÇäÊÓÇÈ</h3>
-                <p className="text-white/50 text-xs mt-1">ÓíÊã ÅÖÇİÉ ÇáÑÕíÏ áÍÓÇÈß ÊáŞÇÆíÇğ ÚäÏ ÔÍä ÇáãÏÚæíä</p>
-              </div>
-            </div>
-
-            {/* Referral Link */}
-            <div>
-              <label className="block text-white/40 text-xs mb-2">ÇáÑÇÈØ ÇáÎÇÕ Èß</label>
-              <div className="flex items-center gap-2">
-                <div className="flex-1 px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white/70 text-sm font-mono truncate" dir="ltr">
-                  {refLink || '...'}
-                </div>
-                <button onClick={handleCopy} className="px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all shrink-0">
-                  {copied ? <span className="text-green-400 text-sm">?</span> : <span className="text-white/40 text-sm">??</span>}
+            {/* Tabs */}
+            <div className="flex gap-2 mb-6">
+                <button onClick={() => setTab('referral')} className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${tab === 'referral' ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30' : 'bg-white/5 text-white/50 border border-white/10 hover:bg-white/10'}`}>
+                    Ù†Ø¸Ø§Ù… Ø§Ù„Ø¥Ø­Ø§Ù„Ø©
                 </button>
-              </div>
-            </div>
-          </Card>
-
-          {/* Balance */}
-          <Card className="p-5 bg-white/5 border-white/10 backdrop-blur-sm">
-            <div className="flex items-center justify-between">
-              <span className="text-white/50 text-sm">ÇáÑÕíÏ ãä ÇáÅÍÇáÇÊ</span>
-              <span className="text-green-400 font-bold text-lg" dir="ltr">${(refStats?.totalEarnings || 0).toFixed(2)}</span>
-            </div>
-            <p className="text-white/30 text-xs mt-1">äÓÈÉ ÇáÚãæáÉ: {refStats?.commissionRate || 5}% ãä ßá ÔÍäÉ</p>
-          </Card>
-
-          {/* Statistics */}
-          <h3 className="text-white font-bold text-sm pt-2">ÇáÅÍÕÇÆíÇÊ</h3>
-          <div className="grid grid-cols-2 gap-3">
-            <Card className="p-4 bg-white/5 border-white/10 text-center">
-              <p className="text-white/40 text-xs mb-1">ÇáÃÔÎÇÕ ÇáãÏÚæíä</p>
-              <p className="text-white font-bold text-2xl">{refStats?.totalReferrals || 0}</p>
-            </Card>
-            <Card className="p-4 bg-white/5 border-white/10 text-center">
-              <p className="text-white/40 text-xs mb-1">ÅÌãÇáí ÇáÏÎá</p>
-              <p className="text-green-400 font-bold text-2xl" dir="ltr">${(refStats?.totalEarnings || 0).toFixed(2)}</p>
-            </Card>
-          </div>
-        </div>
-      )}
-
-      {tab === 'api' && (() => {
-        const apiBase = window.location.origin.replace(/:\d+$/, '').replace('http://', 'https://') + '/api/v2';
-        return (
-          <div className="max-w-2xl space-y-4">
-            {/* API Key Card */}
-            <Card className="p-5 bg-white/5 border-white/10 backdrop-blur-sm">
-              <div className="flex items-start gap-3 mb-4">
-                <div className="w-10 h-10 rounded-xl bg-cyan-500/20 flex items-center justify-center text-lg shrink-0">??</div>
-                <div>
-                  <h3 className="text-white font-bold text-sm">API</h3>
-                  <p className="text-white/50 text-xs mt-1">ÇÓÊÎÏã ãİÊÇÍ API áÑÈØ ÎÏãÇÊäÇ ãÚ ãæŞÚß</p>
-                </div>
-              </div>
-              <div>
-                <label className="block text-white/40 text-xs mb-2">ÇáÑãÒ ÇáÎÇÕ Èß</label>
-                <div className="flex items-center gap-2">
-                  <div className="flex-1 px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white/70 text-sm font-mono truncate" dir="ltr">
-                    {apiKey ? (showApiKey ? apiKey : apiKey.substring(0, 10) + '...' + apiKey.substring(apiKey.length - 6)) : '...'}
-                  </div>
-                  <button onClick={() => setShowApiKey(!showApiKey)} className="px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all shrink-0">
-                    <span className="text-white/40 text-sm">{showApiKey ? '??' : '???'}</span>
-                  </button>
-                  <button onClick={() => { try { navigator.clipboard.writeText(apiKey); } catch { const ta = document.createElement('textarea'); ta.value = apiKey; ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); } setApiCopied(true); setTimeout(() => setApiCopied(false), 2000); }} className="px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all shrink-0">
-                    {apiCopied ? <span className="text-green-400 text-sm">?</span> : <span className="text-white/40 text-sm">??</span>}
-                  </button>
-                </div>
-              </div>
-              <button
-                onClick={async () => {
-                  setRegenerating(true);
-                  try {
-                    const res = await apiFetch(`/v2/generate-key`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId: user?._id }) });
-                    const data = await res.json();
-                    if (data.apiKey) setApiKey(data.apiKey);
-                  } catch (e) { console.error(e); }
-                  setRegenerating(false);
-                }}
-                disabled={regenerating}
-                className="mt-3 w-full py-2.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm font-medium hover:bg-red-500/20 transition-all"
-              >
-                {regenerating ? '...' : 'ÊÛííÑ ÇáÑãÒ ÇáããíÒ'}
-              </button>
-            </Card>
-
-            {/* API Endpoint */}
-            <Card className="p-5 bg-white/5 border-white/10 backdrop-blur-sm">
-              <h3 className="text-white font-bold text-sm mb-3">?? ÚäæÇä API</h3>
-              <div className="px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-cyan-400 text-sm font-mono" dir="ltr">
-                {apiBase}
-              </div>
-              <p className="text-white/30 text-xs mt-2">ÇÓÊÎÏã åĞÇ ÇáÚäæÇä ãÚ ÇáãİÊÇÍ ááæÕæá Åáì ÎÏãÇÊäÇ ÚÈÑ API</p>
-            </Card>
-
-            {/* ====== API DOCUMENTATION ====== */}
-            <div className="pt-2">
-              <h3 className="text-white font-bold text-lg mb-4 flex items-center gap-2">?? ÊæËíŞ API</h3>
+                <button onClick={() => setTab('settings')} className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${tab === 'settings' ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30' : 'bg-white/5 text-white/50 border border-white/10 hover:bg-white/10'}`}>
+                    Ø§Ù„Ø¥Ø¹Ø¯Ø§Ø¯Ø§Øª
+                </button>
+                <button onClick={() => setTab('api')} className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${tab === 'api' ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30' : 'bg-white/5 text-white/50 border border-white/10 hover:bg-white/10'}`}>
+                    API
+                </button>
             </div>
 
-            {/* Service List */}
-            <Card className="p-5 bg-white/5 border-white/10 backdrop-blur-sm">
-              <h4 className="text-cyan-400 font-bold text-sm mb-1 flex items-center gap-2">?? ŞÇÆãÉ ÇáÎÏãÇÊ — Service list</h4>
-              <p className="text-white/40 text-xs mb-3">ÇÓÊÎÏã åĞå ÇáØÑíŞÉ ááÍÕæá Úáì ŞÇÆãÉ ÇáÎÏãÇÊ</p>
-              <div className="mb-3">
-                <p className="text-white/50 text-xs mb-1">ØáÈ ÚíäÉ:</p>
-                <div className="bg-black/40 rounded-lg px-3 py-2 text-xs font-mono text-green-400 break-all" dir="ltr">
-                  {apiBase}?action=services&key=yourKey
+            {tab === 'settings' && (
+                <Card className="p-5 md:p-8 bg-white/5 border-white/10 max-w-lg backdrop-blur-sm">
+                    <div className="space-y-5">
+                        <div>
+                            <label className="block font-body text-white/50 text-sm mb-1.5">{t.username}</label>
+                            <div className="px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white/40 text-sm font-mono">@{user?.username}</div>
+                        </div>
+                        <div>
+                            <label className="block font-body text-white/80 text-sm mb-1.5">{t.email}</label>
+                            <Input value={email} onChange={e => setEmail(e.target.value)} className="bg-white/5 border-white/10 text-white focus:border-cyan-500/50 h-10" dir="ltr" />
+                        </div>
+                        <div className="border-t border-white/10 pt-4">
+                            <p className="text-white/50 text-xs mb-3">Ù„ØªØºÙŠÙŠØ± ÙƒÙ„Ù…Ø© Ø§Ù„Ù…Ø±ÙˆØ± Ø£Ùˆ Ø§Ù„Ø¨Ø±ÙŠØ¯ØŒ Ø£Ø¯Ø®Ù„ ÙƒÙ„Ù…Ø© Ø§Ù„Ù…Ø±ÙˆØ± Ø§Ù„Ø­Ø§Ù„ÙŠØ©</p>
+                        </div>
+                        <div>
+                            <label className="block font-body text-white/80 text-sm mb-1.5">{t.currentPassword}</label>
+                            <Input type="password" value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} className="bg-white/5 border-white/10 text-white focus:border-cyan-500/50 h-10" placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢" />
+                        </div>
+                        <div>
+                            <label className="block font-body text-white/80 text-sm mb-1.5">{t.newPassword}</label>
+                            <Input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} className="bg-white/5 border-white/10 text-white focus:border-cyan-500/50 h-10" placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢" />
+                        </div>
+                        <div>
+                            <label className="block font-body text-white/80 text-sm mb-1.5">ØªØ£ÙƒÙŠØ¯ ÙƒÙ„Ù…Ø© Ø§Ù„Ù…Ø±ÙˆØ± Ø§Ù„Ø¬Ø¯ÙŠØ¯Ø©</label>
+                            <Input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} className="bg-white/5 border-white/10 text-white focus:border-cyan-500/50 h-10" placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢" />
+                        </div>
+                        {message && <div className={`p-3 rounded-xl text-sm ${message.type === 'success' ? 'bg-green-500/10 text-green-400 border border-green-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'}`}>{message.text}</div>}
+                        <Button onClick={handleSave} disabled={saving} className="w-full bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700 text-white shadow-lg shadow-cyan-500/20 h-11">
+                            {saving ? '...' : t.saveChanges}
+                        </Button>
+                    </div>
+                </Card>
+            )}
+
+            {tab === 'referral' && (
+                <div className="max-w-lg space-y-4">
+                    {/* Referral Info */}
+                    <Card className="p-5 bg-white/5 border-white/10 backdrop-blur-sm">
+                        <div className="flex items-start gap-3 mb-4">
+                            <div className="w-10 h-10 rounded-xl bg-cyan-500/20 flex items-center justify-center text-lg shrink-0">ğŸ”—</div>
+                            <div>
+                                <h3 className="text-white font-bold text-sm">Ù†Ø¸Ø§Ù… Ø§Ù„Ø¥Ø­Ø§Ù„Ø©</h3>
+                                <p className="text-white/50 text-xs mt-1">Ø´Ø§Ø±Ùƒ Ø±Ø§Ø¨Ø·Ùƒ ÙˆØ§Ø±Ø¨Ø­ Ø¹Ù…ÙˆÙ„Ø© Ù…Ù† Ø§Ù„Ù…Ø´ØªØ±ÙŠØ§Øª Ø¹Ø¨Ø± Ø±Ø§Ø¨Ø· Ø§Ù„Ø¥Ø­Ø§Ù„Ø©</p>
+                            </div>
+                        </div>
+
+                        {/* Referral Link */}
+                        <div>
+                            <label className="block text-white/40 text-xs mb-2">Ø±Ø§Ø¨Ø·Ùƒ Ø§Ù„Ø®Ø§Øµ Ø¨Ùƒ</label>
+                            <div className="flex items-center gap-2">
+                                <div className="flex-1 px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white/70 text-sm font-mono truncate" dir="ltr">
+                                    {refLink || '...'}
+                                </div>
+                                <button onClick={handleCopy} className="px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all shrink-0">
+                                    {copied ? <span className="text-green-400 text-sm">âœ…</span> : <span className="text-white/40 text-sm">ğŸ“‹</span>}
+                                </button>
+                            </div>
+                        </div>
+                    </Card>
+
+                    {/* Balance */}
+                    <Card className="p-5 bg-white/5 border-white/10 backdrop-blur-sm">
+                        <div className="flex items-center justify-between">
+                            <span className="text-white/50 text-sm">Ø§Ù„Ø£Ø±Ø¨Ø§Ø­ Ù…Ù† Ø§Ù„Ø¥Ø­Ø§Ù„Ø§Øª</span>
+                            <span className="text-green-400 font-bold text-lg" dir="ltr">${(refStats?.totalEarnings || 0).toFixed(2)}</span>
+                        </div>
+                        <p className="text-white/30 text-xs mt-1">Ù†Ø³Ø¨Ø© Ø§Ù„Ø¹Ù…ÙˆÙ„Ø©: {refStats?.commissionRate || 5}% Ù…Ù† ÙƒÙ„ Ø·Ù„Ø¨</p>
+                    </Card>
+
+                    {/* Statistics */}
+                    <h3 className="text-white font-bold text-sm pt-2">Ø§Ù„Ø¥Ø­ØµØ§Ø¦ÙŠØ§Øª</h3>
+                    <div className="grid grid-cols-2 gap-3">
+                        <Card className="p-4 bg-white/5 border-white/10 text-center">
+                            <p className="text-white/40 text-xs mb-1">Ø§Ù„Ø¥Ø­Ø§Ù„Ø§Øª Ø§Ù„Ù†Ø§Ø¬Ø­Ø©</p>
+                            <p className="text-white font-bold text-2xl">{refStats?.totalReferrals || 0}</p>
+                        </Card>
+                        <Card className="p-4 bg-white/5 border-white/10 text-center">
+                            <p className="text-white/40 text-xs mb-1">Ø§Ù„Ø£Ø±Ø¨Ø§Ø­ Ø§Ù„ÙƒÙ„ÙŠØ©</p>
+                            <p className="text-green-400 font-bold text-2xl" dir="ltr">${(refStats?.totalEarnings || 0).toFixed(2)}</p>
+                        </Card>
+                    </div>
                 </div>
-              </div>
-              <div className="mb-3">
-                <p className="text-white/50 text-xs mb-1">ÚíäÉ ÇáÇÓÊÌÇÈÉ:</p>
-                <pre className="bg-black/40 rounded-lg px-3 py-2 text-xs font-mono text-yellow-300 overflow-x-auto" dir="ltr">{`[
+            )}
+
+            {tab === 'api' && (() => {
+                const apiBase = window.location.origin.replace(/:\d+$/, '').replace('http://', 'https://') + '/api/v2';
+                return (
+                    <div className="max-w-2xl space-y-4">
+                        {/* API Key Card */}
+                        <Card className="p-5 bg-white/5 border-white/10 backdrop-blur-sm">
+                            <div className="flex items-start gap-3 mb-4">
+                                <div className="w-10 h-10 rounded-xl bg-cyan-500/20 flex items-center justify-center text-lg shrink-0">ğŸ”‘</div>
+                                <div>
+                                    <h3 className="text-white font-bold text-sm">API</h3>
+                                    <p className="text-white/50 text-xs mt-1">Ø§Ø³ØªØ®Ø¯Ù… Ù…ÙØªØ§Ø­ API Ù„Ù„ÙˆØµÙˆÙ„ Ù„Ù„Ø®Ø¯Ù…Ø§Øª Ù…Ù† Ø®Ø§Ø±Ø¬</p>
+                                </div>
+                            </div>
+                            <div>
+                                <label className="block text-white/40 text-xs mb-2">Ù…ÙØªØ§Ø­ Ø§Ù„Ù€ API</label>
+                                <div className="flex items-center gap-2">
+                                    <div className="flex-1 px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white/70 text-sm font-mono truncate" dir="ltr">
+                                        {apiKey ? (showApiKey ? apiKey : apiKey.substring(0, 10) + '...' + apiKey.substring(apiKey.length - 6)) : '...'}
+                                    </div>
+                                    <button onClick={() => setShowApiKey(!showApiKey)} className="px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all shrink-0">
+                                        <span className="text-white/40 text-sm">{showApiKey ? 'ğŸ™ˆ' : 'ğŸ‘ï¸'}</span>
+                                    </button>
+                                    <button onClick={() => { try { navigator.clipboard.writeText(apiKey); } catch { const ta = document.createElement('textarea'); ta.value = apiKey; ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); } setApiCopied(true); setTimeout(() => setApiCopied(false), 2000); }} className="px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all shrink-0">
+                                        {apiCopied ? <span className="text-green-400 text-sm">âœ…</span> : <span className="text-white/40 text-sm">ğŸ“‹</span>}
+                                    </button>
+                                </div>
+                            </div>
+                            <button
+                                onClick={async () => {
+                                    setRegenerating(true);
+                                    try {
+                                        const res = await apiFetch(`/v2/generate-key`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId: user?._id }) });
+                                        const data = await res.json();
+                                        if (data.apiKey) setApiKey(data.apiKey);
+                                    } catch (e) { console.error(e); }
+                                    setRegenerating(false);
+                                }}
+                                disabled={regenerating}
+                                className="mt-3 w-full py-2.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm font-medium hover:bg-red-500/20 transition-all"
+                            >
+                                {regenerating ? '...' : 'Ø¥Ø¹Ø§Ø¯Ø© ØªÙˆÙ„ÙŠØ¯ Ø§Ù„Ù…ÙØªØ§Ø­'}
+                            </button>
+                        </Card>
+
+                        {/* API Endpoint */}
+                        <Card className="p-5 bg-white/5 border-white/10 backdrop-blur-sm">
+                            <h3 className="text-white font-bold text-sm mb-3">ğŸŒ Ø±Ø§Ø¨Ø· API</h3>
+                            <div className="px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-cyan-400 text-sm font-mono" dir="ltr">
+                                {apiBase}
+                            </div>
+                            <p className="text-white/30 text-xs mt-2">Ø§Ø³ØªØ®Ø¯Ù… Ù‡Ø°Ø§ Ø§Ù„Ø±Ø§Ø¨Ø· ÙÙŠ Ø¨Ø±Ù†Ø§Ù…Ø¬Ùƒ Ù„Ù„ÙˆØµÙˆÙ„ Ù„Ø®Ø¯Ù…Ø§Øª Ø¹Ø¨Ø± API</p>
+                        </Card>
+
+                        {/* ====== API DOCUMENTATION ====== */}
+                        <div className="pt-2">
+                            <h3 className="text-white font-bold text-lg mb-4 flex items-center gap-2">ğŸ“– ØªÙˆØ«ÙŠÙ‚ API</h3>
+                        </div>
+
+                        {/* Service List */}
+                        <Card className="p-5 bg-white/5 border-white/10 backdrop-blur-sm">
+                            <h4 className="text-cyan-400 font-bold text-sm mb-1 flex items-center gap-2">ğŸ“‹ Ù‚Ø§Ø¦Ù…Ø© Ø§Ù„Ø®Ø¯Ù…Ø§Øª â€” Service list</h4>
+                            <p className="text-white/40 text-xs mb-3">Ø§Ø³ØªØ®Ø¯Ù… Ù‡Ø°Ø§ Ø§Ù„Ø±Ø§Ø¨Ø· Ù„Ù„Ø­ØµÙˆÙ„ Ø¹Ù„Ù‰ Ù‚Ø§Ø¦Ù…Ø© Ø§Ù„Ø®Ø¯Ù…Ø§Øª</p>
+                            <div className="mb-3">
+                                <p className="text-white/50 text-xs mb-1">Ù…Ø«Ø§Ù„ Ø·Ù„Ø¨:</p>
+                                <div className="bg-black/40 rounded-lg px-3 py-2 text-xs font-mono text-green-400 break-all" dir="ltr">
+                                    {apiBase}?action=services&key=yourKey
+                                </div>
+                            </div>
+                            <div className="mb-3">
+                                <p className="text-white/50 text-xs mb-1">Ù†ØªÙŠØ¬Ø© Ø§Ù„Ø§Ø³ØªØ¬Ø§Ø¨Ø©:</p>
+                                <pre className="bg-black/40 rounded-lg px-3 py-2 text-xs font-mono text-yellow-300 overflow-x-auto" dir="ltr">{`[
   {
     "service": 1,
     "name": "Followers",
@@ -943,96 +943,96 @@ function SettingsView({ defaultTab = 'referral' }: { defaultTab?: 'settings' | '
     "cancel": false
   }
 ]`}</pre>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="w-full text-xs">
-                  <thead><tr className="text-white/40 border-b border-white/10"><th className="text-right py-1.5 px-2">ÇáÍŞá</th><th className="text-right py-1.5 px-2">ÇáäæÚ</th><th className="text-right py-1.5 px-2">ÇáæÕİ</th></tr></thead>
-                  <tbody className="text-white/60">
-                    <tr className="border-b border-white/5"><td className="py-1.5 px-2 font-mono text-cyan-400">service</td><td className="py-1.5 px-2">Integer</td><td className="py-1.5 px-2">åæíÉ ÇáÎÏãÉ</td></tr>
-                    <tr className="border-b border-white/5"><td className="py-1.5 px-2 font-mono text-cyan-400">name</td><td className="py-1.5 px-2">String</td><td className="py-1.5 px-2">ÇÓã ÇáÎÏãÉ</td></tr>
-                    <tr className="border-b border-white/5"><td className="py-1.5 px-2 font-mono text-cyan-400">category</td><td className="py-1.5 px-2">String</td><td className="py-1.5 px-2">ÇáÕäİ</td></tr>
-                    <tr className="border-b border-white/5"><td className="py-1.5 px-2 font-mono text-cyan-400">rate</td><td className="py-1.5 px-2">Double</td><td className="py-1.5 px-2">ÇáÓÚÑ áßá 1000</td></tr>
-                    <tr className="border-b border-white/5"><td className="py-1.5 px-2 font-mono text-cyan-400">min</td><td className="py-1.5 px-2">Integer</td><td className="py-1.5 px-2">ÃŞá ßãíÉ</td></tr>
-                    <tr><td className="py-1.5 px-2 font-mono text-cyan-400">max</td><td className="py-1.5 px-2">Integer</td><td className="py-1.5 px-2">ÃŞÕì ßãíÉ</td></tr>
-                  </tbody>
-                </table>
-              </div>
-            </Card>
+                            </div>
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-xs">
+                                    <thead><tr className="text-white/40 border-b border-white/10"><th className="text-right py-1.5 px-2">Ø§Ù„Ø­Ù‚Ù„</th><th className="text-right py-1.5 px-2">Ø§Ù„Ù†ÙˆØ¹</th><th className="text-right py-1.5 px-2">Ø§Ù„ÙˆØµÙ</th></tr></thead>
+                                    <tbody className="text-white/60">
+                                        <tr className="border-b border-white/5"><td className="py-1.5 px-2 font-mono text-cyan-400">service</td><td className="py-1.5 px-2">Integer</td><td className="py-1.5 px-2">Ù…Ø¹Ø±Ù Ø§Ù„Ø®Ø¯Ù…Ø©</td></tr>
+                                        <tr className="border-b border-white/5"><td className="py-1.5 px-2 font-mono text-cyan-400">name</td><td className="py-1.5 px-2">String</td><td className="py-1.5 px-2">Ø§Ø³Ù… Ø§Ù„Ø®Ø¯Ù…Ø©</td></tr>
+                                        <tr className="border-b border-white/5"><td className="py-1.5 px-2 font-mono text-cyan-400">category</td><td className="py-1.5 px-2">String</td><td className="py-1.5 px-2">Ø§Ù„ØªØµÙ†ÙŠÙ</td></tr>
+                                        <tr className="border-b border-white/5"><td className="py-1.5 px-2 font-mono text-cyan-400">rate</td><td className="py-1.5 px-2">Double</td><td className="py-1.5 px-2">Ø§Ù„Ø³Ø¹Ø± Ù„ÙƒÙ„ 1000</td></tr>
+                                        <tr className="border-b border-white/5"><td className="py-1.5 px-2 font-mono text-cyan-400">min</td><td className="py-1.5 px-2">Integer</td><td className="py-1.5 px-2">Ø­Ø¯ Ø£Ø¯Ù†Ù‰</td></tr>
+                                        <tr><td className="py-1.5 px-2 font-mono text-cyan-400">max</td><td className="py-1.5 px-2">Integer</td><td className="py-1.5 px-2">Ø­Ø¯ Ø£Ù‚ØµÙ‰</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </Card>
 
-            {/* Add Order */}
-            <Card className="p-5 bg-white/5 border-white/10 backdrop-blur-sm">
-              <h4 className="text-green-400 font-bold text-sm mb-1 flex items-center gap-2">?? ÅäÔÇÁ ØáÈ — Add order</h4>
-              <p className="text-white/40 text-xs mb-3">ÇÓÊÎÏã åĞå ÇáØÑíŞÉ áÅäÔÇÁ ØáÈ ÌÏíÏ</p>
-              <div className="mb-3">
-                <p className="text-white/50 text-xs mb-1">ØáÈ ÚíäÉ:</p>
-                <div className="bg-black/40 rounded-lg px-3 py-2 text-xs font-mono text-green-400 break-all" dir="ltr">
-                  {apiBase}?action=add&service=1&link=instagram.com/username&quantity=100&key=yourKey
-                </div>
-              </div>
-              <div className="mb-3">
-                <p className="text-white/50 text-xs mb-1">ÚíäÉ ÇáÇÓÊÌÇÈÉ:</p>
-                <pre className="bg-black/40 rounded-lg px-3 py-2 text-xs font-mono text-yellow-300" dir="ltr">{`{
+                        {/* Add Order */}
+                        <Card className="p-5 bg-white/5 border-white/10 backdrop-blur-sm">
+                            <h4 className="text-green-400 font-bold text-sm mb-1 flex items-center gap-2">ğŸ›’ Ø¥Ø¶Ø§ÙØ© Ø·Ù„Ø¨ â€” Add order</h4>
+                            <p className="text-white/40 text-xs mb-3">Ø§Ø³ØªØ®Ø¯Ù… Ù‡Ø°Ø§ Ø§Ù„Ø±Ø§Ø¨Ø· Ù„Ø¥Ù†Ø´Ø§Ø¡ Ø·Ù„Ø¨ Ø¬Ø¯ÙŠØ¯</p>
+                            <div className="mb-3">
+                                <p className="text-white/50 text-xs mb-1">Ù…Ø«Ø§Ù„ Ø·Ù„Ø¨:</p>
+                                <div className="bg-black/40 rounded-lg px-3 py-2 text-xs font-mono text-green-400 break-all" dir="ltr">
+                                    {apiBase}?action=add&service=1&link=instagram.com/username&quantity=100&key=yourKey
+                                </div>
+                            </div>
+                            <div className="mb-3">
+                                <p className="text-white/50 text-xs mb-1">Ù†ØªÙŠØ¬Ø© Ø§Ù„Ø§Ø³ØªØ¬Ø§Ø¨Ø©:</p>
+                                <pre className="bg-black/40 rounded-lg px-3 py-2 text-xs font-mono text-yellow-300" dir="ltr">{`{
   "order": 10001
 }`}</pre>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="w-full text-xs">
-                  <thead><tr className="text-white/40 border-b border-white/10"><th className="text-right py-1.5 px-2">ÇáãÚÇãá</th><th className="text-right py-1.5 px-2">ÇáäæÚ</th><th className="text-right py-1.5 px-2">ÇáæÕİ</th></tr></thead>
-                  <tbody className="text-white/60">
-                    <tr className="border-b border-white/5"><td className="py-1.5 px-2 font-mono text-green-400">service</td><td className="py-1.5 px-2">Integer</td><td className="py-1.5 px-2">åæíÉ ÇáÎÏãÉ</td></tr>
-                    <tr className="border-b border-white/5"><td className="py-1.5 px-2 font-mono text-green-400">link</td><td className="py-1.5 px-2">String</td><td className="py-1.5 px-2">ÑÇÈØ ÇáÍÓÇÈ / ÇáãäÔæÑ</td></tr>
-                    <tr><td className="py-1.5 px-2 font-mono text-green-400">quantity</td><td className="py-1.5 px-2">Integer</td><td className="py-1.5 px-2">ÇáßãíÉ ÇáãØáæÈÉ</td></tr>
-                  </tbody>
-                </table>
-              </div>
-            </Card>
+                            </div>
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-xs">
+                                    <thead><tr className="text-white/40 border-b border-white/10"><th className="text-right py-1.5 px-2">Ø§Ù„Ø¨Ø§Ø±Ù…ØªØ±</th><th className="text-right py-1.5 px-2">Ø§Ù„Ù†ÙˆØ¹</th><th className="text-right py-1.5 px-2">Ø§Ù„ÙˆØµÙ</th></tr></thead>
+                                    <tbody className="text-white/60">
+                                        <tr className="border-b border-white/5"><td className="py-1.5 px-2 font-mono text-green-400">service</td><td className="py-1.5 px-2">Integer</td><td className="py-1.5 px-2">Ù…Ø¹Ø±Ù Ø§Ù„Ø®Ø¯Ù…Ø©</td></tr>
+                                        <tr className="border-b border-white/5"><td className="py-1.5 px-2 font-mono text-green-400">link</td><td className="py-1.5 px-2">String</td><td className="py-1.5 px-2">Ø±Ø§Ø¨Ø· Ø§Ù„Ø­Ø³Ø§Ø¨ / Ø§Ù„Ù…Ù†Ø´ÙˆØ±</td></tr>
+                                        <tr><td className="py-1.5 px-2 font-mono text-green-400">quantity</td><td className="py-1.5 px-2">Integer</td><td className="py-1.5 px-2">Ø§Ù„ÙƒÙ…ÙŠØ© Ø§Ù„Ù…Ø·Ù„ÙˆØ¨Ø©</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </Card>
 
-            {/* Order Status */}
-            <Card className="p-5 bg-white/5 border-white/10 backdrop-blur-sm">
-              <h4 className="text-purple-400 font-bold text-sm mb-1 flex items-center gap-2">?? ÍÇáÉ ÇáØáÈ — Order status</h4>
-              <p className="text-white/40 text-xs mb-3">ÇÓÊÎÏã åĞå ÇáØÑíŞÉ ááÍÕæá Úáì ãÚáæãÇÊ Íæá ÇáØáÈ</p>
-              <div className="mb-3">
-                <p className="text-white/50 text-xs mb-1">ØáÈ ÚíäÉ:</p>
-                <div className="bg-black/40 rounded-lg px-3 py-2 text-xs font-mono text-green-400 break-all" dir="ltr">
-                  {apiBase}?action=status&order=10001&key=yourKey
-                </div>
-              </div>
-              <div className="mb-3">
-                <p className="text-white/50 text-xs mb-1">ÚíäÉ ÇáÇÓÊÌÇÈÉ:</p>
-                <pre className="bg-black/40 rounded-lg px-3 py-2 text-xs font-mono text-yellow-300" dir="ltr">{`{
+                        {/* Order Status */}
+                        <Card className="p-5 bg-white/5 border-white/10 backdrop-blur-sm">
+                            <h4 className="text-purple-400 font-bold text-sm mb-1 flex items-center gap-2">ğŸ“Š Ø­Ø§Ù„Ø© Ø§Ù„Ø·Ù„Ø¨ â€” Order status</h4>
+                            <p className="text-white/40 text-xs mb-3">Ø§Ø³ØªØ®Ø¯Ù… Ù‡Ø°Ø§ Ø§Ù„Ø±Ø§Ø¨Ø· Ù„Ù…Ø¹Ø±ÙØ© Ø­Ø§Ù„Ø© Ø·Ù„Ø¨Ùƒ Ø§Ù„Ø­Ø§Ù„ÙŠ</p>
+                            <div className="mb-3">
+                                <p className="text-white/50 text-xs mb-1">Ù…Ø«Ø§Ù„ Ø·Ù„Ø¨:</p>
+                                <div className="bg-black/40 rounded-lg px-3 py-2 text-xs font-mono text-green-400 break-all" dir="ltr">
+                                    {apiBase}?action=status&order=10001&key=yourKey
+                                </div>
+                            </div>
+                            <div className="mb-3">
+                                <p className="text-white/50 text-xs mb-1">Ù†ØªÙŠØ¬Ø© Ø§Ù„Ø§Ø³ØªØ¬Ø§Ø¨Ø©:</p>
+                                <pre className="bg-black/40 rounded-lg px-3 py-2 text-xs font-mono text-yellow-300" dir="ltr">{`{
   "charge": "0.27819",
   "start_count": "0",
   "status": "In progress",
   "remains": "0",
   "currency": "USD"
 }`}</pre>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="w-full text-xs">
-                  <thead><tr className="text-white/40 border-b border-white/10"><th className="text-right py-1.5 px-2">ÇáÍŞá</th><th className="text-right py-1.5 px-2">ÇáäæÚ</th><th className="text-right py-1.5 px-2">ÇáæÕİ</th></tr></thead>
-                  <tbody className="text-white/60">
-                    <tr className="border-b border-white/5"><td className="py-1.5 px-2 font-mono text-purple-400">charge</td><td className="py-1.5 px-2">Double</td><td className="py-1.5 px-2">ÇáãÈáÛ ÇáãÕÑæİ</td></tr>
-                    <tr className="border-b border-white/5"><td className="py-1.5 px-2 font-mono text-purple-400">status</td><td className="py-1.5 px-2">String</td><td className="py-1.5 px-2">In progress, Completed, Awaiting, Canceled, Partial</td></tr>
-                    <tr className="border-b border-white/5"><td className="py-1.5 px-2 font-mono text-purple-400">remains</td><td className="py-1.5 px-2">Integer</td><td className="py-1.5 px-2">ÇáßãíÉ ÇáãÊÈŞíÉ</td></tr>
-                    <tr><td className="py-1.5 px-2 font-mono text-purple-400">currency</td><td className="py-1.5 px-2">String</td><td className="py-1.5 px-2">ÇáÚãáÉ</td></tr>
-                  </tbody>
-                </table>
-              </div>
-            </Card>
+                            </div>
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-xs">
+                                    <thead><tr className="text-white/40 border-b border-white/10"><th className="text-right py-1.5 px-2">Ø§Ù„Ø­Ù‚Ù„</th><th className="text-right py-1.5 px-2">Ø§Ù„Ù†ÙˆØ¹</th><th className="text-right py-1.5 px-2">Ø§Ù„ÙˆØµÙ</th></tr></thead>
+                                    <tbody className="text-white/60">
+                                        <tr className="border-b border-white/5"><td className="py-1.5 px-2 font-mono text-purple-400">charge</td><td className="py-1.5 px-2">Double</td><td className="py-1.5 px-2">Ø§Ù„ØªÙƒÙ„ÙØ© Ø§Ù„Ù…Ø­Ø³ÙˆØ¨Ø©</td></tr>
+                                        <tr className="border-b border-white/5"><td className="py-1.5 px-2 font-mono text-purple-400">status</td><td className="py-1.5 px-2">String</td><td className="py-1.5 px-2">In progress, Completed, Awaiting, Canceled, Partial</td></tr>
+                                        <tr className="border-b border-white/5"><td className="py-1.5 px-2 font-mono text-purple-400">remains</td><td className="py-1.5 px-2">Integer</td><td className="py-1.5 px-2">Ø§Ù„ÙƒÙ…ÙŠØ© Ø§Ù„Ù…ØªØ¨Ù‚ÙŠØ©</td></tr>
+                                        <tr><td className="py-1.5 px-2 font-mono text-purple-400">currency</td><td className="py-1.5 px-2">String</td><td className="py-1.5 px-2">Ø§Ù„Ø¹Ù…Ù„Ø©</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </Card>
 
-            {/* Multiple Status */}
-            <Card className="p-5 bg-white/5 border-white/10 backdrop-blur-sm">
-              <h4 className="text-purple-400 font-bold text-sm mb-1 flex items-center gap-2">?? ÍÇáÉ ØáÈÇÊ ãÊÚÏÏÉ — Multiple status</h4>
-              <p className="text-white/40 text-xs mb-3">ÇÓÊÎÏã åĞå ÇáØÑíŞÉ ááÍÕæá Úáì ÍÇáÉ ÚÏÉ ØáÈÇÊ</p>
-              <div className="mb-3">
-                <p className="text-white/50 text-xs mb-1">ØáÈ ÚíäÉ:</p>
-                <div className="bg-black/40 rounded-lg px-3 py-2 text-xs font-mono text-green-400 break-all" dir="ltr">
-                  {apiBase}?action=status&orders=10001,10002,10003&key=yourKey
-                </div>
-              </div>
-              <div>
-                <p className="text-white/50 text-xs mb-1">ÚíäÉ ÇáÇÓÊÌÇÈÉ:</p>
-                <pre className="bg-black/40 rounded-lg px-3 py-2 text-xs font-mono text-yellow-300 overflow-x-auto" dir="ltr">{`{
+                        {/* Multiple Status */}
+                        <Card className="p-5 bg-white/5 border-white/10 backdrop-blur-sm">
+                            <h4 className="text-purple-400 font-bold text-sm mb-1 flex items-center gap-2">ğŸ“Š Ø­Ø§Ù„Ø© Ø·Ù„Ø¨Ø§Øª Ù…ØªØ¹Ø¯Ø¯Ø© â€” Multiple status</h4>
+                            <p className="text-white/40 text-xs mb-3">Ø§Ø³ØªØ®Ø¯Ù… Ù‡Ø°Ø§ Ø§Ù„Ø±Ø§Ø¨Ø· Ù„Ù…Ø¹Ø±ÙØ© Ø­Ø§Ù„Ø© Ø£ÙƒØ«Ø± Ù…Ù† Ø·Ù„Ø¨</p>
+                            <div className="mb-3">
+                                <p className="text-white/50 text-xs mb-1">Ù…Ø«Ø§Ù„ Ø·Ù„Ø¨:</p>
+                                <div className="bg-black/40 rounded-lg px-3 py-2 text-xs font-mono text-green-400 break-all" dir="ltr">
+                                    {apiBase}?action=status&orders=10001,10002,10003&key=yourKey
+                                </div>
+                            </div>
+                            <div>
+                                <p className="text-white/50 text-xs mb-1">Ù†ØªÙŠØ¬Ø© Ø§Ù„Ø§Ø³ØªØ¬Ø§Ø¨Ø©:</p>
+                                <pre className="bg-black/40 rounded-lg px-3 py-2 text-xs font-mono text-yellow-300 overflow-x-auto" dir="ltr">{`{
   "10001": {
     "charge": "0.27",
     "start_count": "0",
@@ -1042,68 +1042,68 @@ function SettingsView({ defaultTab = 'referral' }: { defaultTab?: 'settings' | '
   },
   "10002": "Incorrect order ID"
 }`}</pre>
-              </div>
-            </Card>
+                            </div>
+                        </Card>
 
-            {/* Balance */}
-            <Card className="p-5 bg-white/5 border-white/10 backdrop-blur-sm">
-              <h4 className="text-yellow-400 font-bold text-sm mb-1 flex items-center gap-2">?? ÇáÑÕíÏ — Balance</h4>
-              <p className="text-white/40 text-xs mb-3">ÇÓÊÎÏã åĞå ÇáØÑíŞÉ áÇÓÊÑÏÇÏ ÑÕíÏ ÍÓÇÈß</p>
-              <div className="mb-3">
-                <p className="text-white/50 text-xs mb-1">ØáÈ ÚíäÉ:</p>
-                <div className="bg-black/40 rounded-lg px-3 py-2 text-xs font-mono text-green-400 break-all" dir="ltr">
-                  {apiBase}?action=balance&key=yourKey
-                </div>
-              </div>
-              <div>
-                <p className="text-white/50 text-xs mb-1">ÚíäÉ ÇáÇÓÊÌÇÈÉ:</p>
-                <pre className="bg-black/40 rounded-lg px-3 py-2 text-xs font-mono text-yellow-300" dir="ltr">{`{
+                        {/* Balance */}
+                        <Card className="p-5 bg-white/5 border-white/10 backdrop-blur-sm">
+                            <h4 className="text-yellow-400 font-bold text-sm mb-1 flex items-center gap-2">ğŸ’° Ø§Ù„Ø±ØµÙŠØ¯ â€” Balance</h4>
+                            <p className="text-white/40 text-xs mb-3">Ø§Ø³ØªØ®Ø¯Ù… Ù‡Ø°Ø§ Ø§Ù„Ø±Ø§Ø¨Ø· Ù„Ù„Ø§Ø³ØªØ¹Ù„Ø§Ù… Ø¹Ù† Ø±ØµÙŠØ¯Ùƒ</p>
+                            <div className="mb-3">
+                                <p className="text-white/50 text-xs mb-1">Ù…Ø«Ø§Ù„ Ø·Ù„Ø¨:</p>
+                                <div className="bg-black/40 rounded-lg px-3 py-2 text-xs font-mono text-green-400 break-all" dir="ltr">
+                                    {apiBase}?action=balance&key=yourKey
+                                </div>
+                            </div>
+                            <div>
+                                <p className="text-white/50 text-xs mb-1">Ù†ØªÙŠØ¬Ø© Ø§Ù„Ø§Ø³ØªØ¬Ø§Ø¨Ø©:</p>
+                                <pre className="bg-black/40 rounded-lg px-3 py-2 text-xs font-mono text-yellow-300" dir="ltr">{`{
   "balance": "99.80",
   "currency": "USD"
 }`}</pre>
-              </div>
-            </Card>
+                            </div>
+                        </Card>
 
-            {/* Refill */}
-            <Card className="p-5 bg-white/5 border-white/10 backdrop-blur-sm">
-              <h4 className="text-blue-400 font-bold text-sm mb-1 flex items-center gap-2">?? ÅÚÇÏÉ ÊÚÈÆÉ — Refill</h4>
-              <p className="text-white/40 text-xs mb-3">ÇÓÊÎÏã åĞå ÇáØÑíŞÉ áÅäÔÇÁ ÅÚÇÏÉ ÊÚÈÆÉ ááØáÈ</p>
-              <div className="mb-3">
-                <p className="text-white/50 text-xs mb-1">ØáÈ ÚíäÉ:</p>
-                <div className="bg-black/40 rounded-lg px-3 py-2 text-xs font-mono text-green-400 break-all" dir="ltr">
-                  {apiBase}?action=refill&order=10001&key=yourKey
-                </div>
-              </div>
-              <div>
-                <p className="text-white/50 text-xs mb-1">ÚíäÉ ÇáÇÓÊÌÇÈÉ:</p>
-                <pre className="bg-black/40 rounded-lg px-3 py-2 text-xs font-mono text-yellow-300" dir="ltr">{`{
+                        {/* Refill */}
+                        <Card className="p-5 bg-white/5 border-white/10 backdrop-blur-sm">
+                            <h4 className="text-blue-400 font-bold text-sm mb-1 flex items-center gap-2">ğŸ”„ Ø¥Ø¹Ø§Ø¯Ø© ØªØ¹Ø¨Ø¦Ø© â€” Refill</h4>
+                            <p className="text-white/40 text-xs mb-3">Ø§Ø³ØªØ®Ø¯Ù… Ù‡Ø°Ø§ Ø§Ù„Ø±Ø§Ø¨Ø· Ù„Ø·Ù„Ø¨ Ø¥Ø¹Ø§Ø¯Ø© ØªØ¹Ø¨Ø¦Ø© Ø§Ù„Ø·Ù„Ø¨</p>
+                            <div className="mb-3">
+                                <p className="text-white/50 text-xs mb-1">Ù…Ø«Ø§Ù„ Ø·Ù„Ø¨:</p>
+                                <div className="bg-black/40 rounded-lg px-3 py-2 text-xs font-mono text-green-400 break-all" dir="ltr">
+                                    {apiBase}?action=refill&order=10001&key=yourKey
+                                </div>
+                            </div>
+                            <div>
+                                <p className="text-white/50 text-xs mb-1">Ù†ØªÙŠØ¬Ø© Ø§Ù„Ø§Ø³ØªØ¬Ø§Ø¨Ø©:</p>
+                                <pre className="bg-black/40 rounded-lg px-3 py-2 text-xs font-mono text-yellow-300" dir="ltr">{`{
   "refill": 1
 }`}</pre>
-              </div>
-            </Card>
+                            </div>
+                        </Card>
 
-            {/* Cancel */}
-            <Card className="p-5 bg-white/5 border-white/10 backdrop-blur-sm">
-              <h4 className="text-red-400 font-bold text-sm mb-1 flex items-center gap-2">? ÅáÛÇÁ ÇáØáÈ — Cancel</h4>
-              <p className="text-white/40 text-xs mb-3">ÇÓÊÎÏã åĞå ÇáØÑíŞÉ áÅáÛÇÁ ØáÈ æÇÓÊÑÏÇÏ ÇáãÈáÛ</p>
-              <div className="mb-3">
-                <p className="text-white/50 text-xs mb-1">ØáÈ ÚíäÉ:</p>
-                <div className="bg-black/40 rounded-lg px-3 py-2 text-xs font-mono text-green-400 break-all" dir="ltr">
-                  {apiBase}?action=cancel&order=10001&key=yourKey
-                </div>
-              </div>
-              <div>
-                <p className="text-white/50 text-xs mb-1">ÚíäÉ ÇáÇÓÊÌÇÈÉ:</p>
-                <pre className="bg-black/40 rounded-lg px-3 py-2 text-xs font-mono text-yellow-300" dir="ltr">{`{
+                        {/* Cancel */}
+                        <Card className="p-5 bg-white/5 border-white/10 backdrop-blur-sm">
+                            <h4 className="text-red-400 font-bold text-sm mb-1 flex items-center gap-2">âŒ Ø¥Ù„ØºØ§Ø¡ Ø§Ù„Ø·Ù„Ø¨ â€” Cancel</h4>
+                            <p className="text-white/40 text-xs mb-3">Ø§Ø³ØªØ®Ø¯Ù… Ù‡Ø°Ø§ Ø§Ù„Ø±Ø§Ø¨Ø· Ù„Ø¥Ù„ØºØ§Ø¡ Ø·Ù„Ø¨ Ø§Ù„Ø§Ù†ØªØ¸Ø§Ø± ÙÙ‚Ø·</p>
+                            <div className="mb-3">
+                                <p className="text-white/50 text-xs mb-1">Ù…Ø«Ø§Ù„ Ø·Ù„Ø¨:</p>
+                                <div className="bg-black/40 rounded-lg px-3 py-2 text-xs font-mono text-green-400 break-all" dir="ltr">
+                                    {apiBase}?action=cancel&order=10001&key=yourKey
+                                </div>
+                            </div>
+                            <div>
+                                <p className="text-white/50 text-xs mb-1">Ù†ØªÙŠØ¬Ø© Ø§Ù„Ø§Ø³ØªØ¬Ø§Ø¨Ø©:</p>
+                                <pre className="bg-black/40 rounded-lg px-3 py-2 text-xs font-mono text-yellow-300" dir="ltr">{`{
   "ok": true
 }`}</pre>
-              </div>
-            </Card>
-          </div>
-        );
-      })()}
-    </div>
-  );
+                            </div>
+                        </Card>
+                    </div>
+                );
+            })()}
+        </div>
+    );
 }
 
 // Add Funds View Component
@@ -1300,7 +1300,7 @@ function AddFundsView() {
                       className={`w-full h-12 font-bold gap-2 ${selectedMethodData.contactType === 'whatsapp' ? 'bg-green-600 hover:bg-green-700' : 'bg-blue-500 hover:bg-blue-600'} text-white`}
                       onClick={() => {
                         const msg = lang === 'ar'
-                          ? `ØáÈ ÔÍä ÑÕíÏ\n?? ÇáãÓÊÎÏã: ${user?.username || ''}\n?? ØÑíŞÉ ÇáÏİÚ: ${selectedMethodData?.name || ''}\n?? ÇáãÈáÛ ÇáãÍæá: ${manualAmount || '0'}$\n?? ÑŞã ÇáÍÓÇÈ: ${selectedMethodData?.accountNumber || ''}`
+                          ? `ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½\n?? ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½: ${user?.username || ''}\n?? ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½: ${selectedMethodData?.name || ''}\n?? ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½: ${manualAmount || '0'}$\n?? ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½: ${selectedMethodData?.accountNumber || ''}`
                           : `Balance top-up request\n?? Username: ${user?.username || ''}\n?? Payment method: ${selectedMethodData?.name || ''}\n?? Amount transferred: $${manualAmount || '0'}\n?? Account: ${selectedMethodData?.accountNumber || ''}`;
                         const encodedMsg = encodeURIComponent(msg);
                         if (selectedMethodData.contactType === 'whatsapp') {
@@ -1415,7 +1415,7 @@ function AddFundsView() {
                         {paymentLoading ? (
                           <span className="flex items-center gap-2">
                             <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                            {lang === 'ar' ? 'ÌÇÑí ÅäÔÇÁ ÚäæÇä ÇáÏİÚ...' : 'Creating payment...'}
+                            {lang === 'ar' ? 'ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½...' : 'Creating payment...'}
                           </span>
                         ) : (
                           t.continuePayment
@@ -1433,10 +1433,10 @@ function AddFundsView() {
                           : 'bg-cyan-500/20 border border-cyan-500/30 text-cyan-300'
                         }`}>
                         {paymentStatus === 'finished' || paymentStatus === 'confirmed' || paymentStatus === 'partially_paid'
-                          ? (lang === 'ar' ? '? Êã ÇÓÊáÇã ÇáÏİÚÉ! Êã ÅÖÇİÉ ÇáÑÕíÏ' : '? Payment received! Balance added')
+                          ? (lang === 'ar' ? '? ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½! ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½' : '? Payment received! Balance added')
                           : paymentStatus === 'sending' || paymentStatus === 'confirming'
-                            ? (lang === 'ar' ? '? ÌÇÑí ÊÃßíÏ ÇáãÚÇãáÉ...' : '? Confirming transaction...')
-                            : (lang === 'ar' ? '? İí ÇäÊÙÇÑ ÇáÏİÚ...' : '? Waiting for payment...')}
+                            ? (lang === 'ar' ? '? ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½...' : '? Confirming transaction...')
+                            : (lang === 'ar' ? '? ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½...' : '? Waiting for payment...')}
                       </div>
 
                       {/* Payment Details */}
@@ -1444,7 +1444,7 @@ function AddFundsView() {
                         <>
                           <div className="p-4 rounded-xl bg-yellow-500/10 border border-yellow-500/30">
                             <p className="text-yellow-200 font-body mb-1 text-sm">
-                              {lang === 'ar' ? 'ÃÑÓá ÈÇáÖÈØ:' : 'Send exactly:'}
+                              {lang === 'ar' ? 'ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½:' : 'Send exactly:'}
                             </p>
                             <div className="flex items-center justify-center gap-2" dir="ltr">
                               <code className="text-2xl font-mono bg-black/30 px-4 py-2 rounded text-white font-bold">
@@ -1456,7 +1456,7 @@ function AddFundsView() {
 
                           <div className="p-4 rounded-xl bg-white/5 border border-white/10">
                             <p className="text-white/60 font-body mb-2 text-sm">
-                              {lang === 'ar' ? '?? ÚäæÇä ÇáÇÓÊáÇã:' : '?? Payment address:'}
+                              {lang === 'ar' ? '?? ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½:' : '?? Payment address:'}
                             </p>
                             <div className="flex items-center gap-2" dir="ltr">
                               <code className="flex-1 text-xs font-mono bg-black/30 px-3 py-2 rounded text-cyan-300 break-all select-all">
@@ -1468,7 +1468,7 @@ function AddFundsView() {
                                 onClick={() => copyText(cryptoPayment.payAddress)}
                                 className="h-9 px-3 text-xs text-white/60 hover:text-white shrink-0"
                               >
-                                {copied ? '?' : (lang === 'ar' ? 'äÓÎ' : 'Copy')}
+                                {copied ? '?' : (lang === 'ar' ? 'ï¿½ï¿½ï¿½' : 'Copy')}
                               </Button>
                             </div>
                           </div>
@@ -1476,7 +1476,7 @@ function AddFundsView() {
                           <div className="p-3 rounded-lg bg-orange-500/10 border border-orange-500/20">
                             <p className="text-orange-200 text-xs text-center">
                               ?? {lang === 'ar'
-                                ? `ÃÑÓá İŞØ ${cryptoPayment.payCurrency.toUpperCase()} Åáì åĞÇ ÇáÚäæÇä. ÓíÊã ÊÍÏíË ÇáÑÕíÏ ÊáŞÇÆíÇğ ÈÚÏ ÇáÊÃßíÏ.`
+                                ? `ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ${cryptoPayment.payCurrency.toUpperCase()} ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½. ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.`
                                 : `Only send ${cryptoPayment.payCurrency.toUpperCase()} to this address. Balance will update automatically after confirmation.`}
                             </p>
                           </div>
@@ -1484,7 +1484,7 @@ function AddFundsView() {
                           {/* Animated waiting indicator */}
                           <div className="flex items-center justify-center gap-2 text-white/40 text-sm py-2">
                             <span className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse" />
-                            {lang === 'ar' ? 'íÊã ÇáÊÍŞŞ ßá 10 ËæÇäò ÊáŞÇÆíÇğ...' : 'Auto-checking every 10 seconds...'}
+                            {lang === 'ar' ? 'ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ 10 ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½...' : 'Auto-checking every 10 seconds...'}
                           </div>
 
                           {/* Cancel Button */}
@@ -1493,7 +1493,7 @@ function AddFundsView() {
                             variant="ghost"
                             className="w-full mt-2 text-white/40 hover:text-white/70 hover:bg-white/5 border border-white/10"
                           >
-                            {lang === 'ar' ? '? ÅáÛÇÁ' : '? Cancel'}
+                            {lang === 'ar' ? '? ï¿½ï¿½ï¿½ï¿½ï¿½' : '? Cancel'}
                           </Button>
                         </>
                       )}
@@ -1502,13 +1502,13 @@ function AddFundsView() {
                       {(paymentStatus === 'finished' || paymentStatus === 'confirmed' || paymentStatus === 'partially_paid') && (
                         <div className="text-center py-4">
                           <p className="text-green-300 text-lg font-bold mb-2">
-                            ?? {lang === 'ar' ? `Êã ÅÖÇİÉ $${cryptoPayment.priceAmount} áÑÕíÏß!` : `$${cryptoPayment.priceAmount} added to your balance!`}
+                            ?? {lang === 'ar' ? `ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ $${cryptoPayment.priceAmount} ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½!` : `$${cryptoPayment.priceAmount} added to your balance!`}
                           </p>
                           <Button
                             onClick={() => { setCryptoPayment(null); setAutoAmount(''); setPaymentStatus(''); }}
                             className="mt-2 bg-white/10 hover:bg-white/20 text-white"
                           >
-                            {lang === 'ar' ? 'ÏİÚÉ ÌÏíÏÉ' : 'New Payment'}
+                            {lang === 'ar' ? 'ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½' : 'New Payment'}
                           </Button>
                         </div>
                       )}
@@ -1541,7 +1541,7 @@ function AddFundsView() {
                   {acStep === 'phone' && (
                     <div className="space-y-3">
                       <label className="block font-body text-white/80 mb-1">
-                        {lang === 'ar' ? '?? ÑŞã ÇáåÇÊİ (ÂÓíÇÓíá)' : '?? Phone Number (Asiacell)'}
+                        {lang === 'ar' ? '?? ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ (ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½)' : '?? Phone Number (Asiacell)'}
                       </label>
                       <Input
                         value={acPhone}
@@ -1577,9 +1577,9 @@ function AddFundsView() {
                         {acLoading ? (
                           <span className="flex items-center gap-2">
                             <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                            {lang === 'ar' ? 'ÌÇÑí ÇáÅÑÓÇá...' : 'Sending...'}
+                            {lang === 'ar' ? 'ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½...' : 'Sending...'}
                           </span>
-                        ) : (lang === 'ar' ? 'ÅÑÓÇá ÑãÒ ÇáÊÍŞŞ' : 'Send OTP')}
+                        ) : (lang === 'ar' ? 'ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½' : 'Send OTP')}
                       </Button>
                     </div>
                   )}
@@ -1588,7 +1588,7 @@ function AddFundsView() {
                   {acStep === 'otp' && (
                     <div className="space-y-3">
                       <label className="block font-body text-white/80 mb-1">
-                        {lang === 'ar' ? '?? ÃÏÎá ÑãÒ ÇáÊÍŞŞ ÇáãÑÓá Åáì' : '?? Enter OTP sent to'} <span className="text-cyan-400 font-mono" dir="ltr">{acPhone}</span>
+                        {lang === 'ar' ? '?? ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½' : '?? Enter OTP sent to'} <span className="text-cyan-400 font-mono" dir="ltr">{acPhone}</span>
                       </label>
                       <Input
                         value={acOtp}
@@ -1623,9 +1623,9 @@ function AddFundsView() {
                         {acLoading ? (
                           <span className="flex items-center gap-2">
                             <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                            {lang === 'ar' ? 'ÌÇÑí ÇáÊÍŞŞ...' : 'Verifying...'}
+                            {lang === 'ar' ? 'ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½...' : 'Verifying...'}
                           </span>
-                        ) : (lang === 'ar' ? 'ÊÃßíÏ ÇáÑãÒ' : 'Verify OTP')}
+                        ) : (lang === 'ar' ? 'ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½' : 'Verify OTP')}
                       </Button>
                     </div>
                   )}
@@ -1634,20 +1634,20 @@ function AddFundsView() {
                   {acStep === 'amount' && (
                     <div className="space-y-3">
                       <div className="p-3 rounded-lg bg-green-500/10 border border-green-500/20 text-center">
-                        <p className="text-green-300 text-sm">? {lang === 'ar' ? 'Êã ÇáÊÍŞŞ ÈäÌÇÍ!' : 'Verified successfully!'}</p>
+                        <p className="text-green-300 text-sm">? {lang === 'ar' ? 'ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½!' : 'Verified successfully!'}</p>
                       </div>
                       <label className="block font-body text-white/80 mb-1">
-                        {lang === 'ar' ? '?? ÇÓã ÇáãÓÊÎÏã' : '?? Username'}
+                        {lang === 'ar' ? '?? ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½' : '?? Username'}
                       </label>
                       <Input
                         value={acUsername || user?.username || ''}
                         onChange={e => setAcUsername(e.target.value)}
                         className="bg-white/5 border-white/10 text-white focus:border-cyan-500/50 text-center"
-                        placeholder={lang === 'ar' ? 'ÇÓã ÇáãÓÊÎÏã' : 'Your username'}
+                        placeholder={lang === 'ar' ? 'ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½' : 'Your username'}
                         dir="ltr"
                       />
                       <label className="block font-body text-white/80 mb-1">
-                        {lang === 'ar' ? '?? ÇáãÈáÛ ÈÇáÏíäÇÑ ÇáÚÑÇŞí (IQD)' : '?? Amount in Iraqi Dinar (IQD)'}
+                        {lang === 'ar' ? '?? ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ (IQD)' : '?? Amount in Iraqi Dinar (IQD)'}
                       </label>
                       <Input
                         type="number"
@@ -1705,9 +1705,9 @@ function AddFundsView() {
                         {acLoading ? (
                           <span className="flex items-center gap-2">
                             <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                            {lang === 'ar' ? 'ÌÇÑí ÇáÊÍæíá...' : 'Processing...'}
+                            {lang === 'ar' ? 'ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½...' : 'Processing...'}
                           </span>
-                        ) : (lang === 'ar' ? `ÊÍæíá ${acAmount ? parseInt(acAmount).toLocaleString() : '0'} IQD` : `Transfer ${acAmount ? parseInt(acAmount).toLocaleString() : '0'} IQD`)}
+                        ) : (lang === 'ar' ? `ï¿½ï¿½ï¿½ï¿½ï¿½ ${acAmount ? parseInt(acAmount).toLocaleString() : '0'} IQD` : `Transfer ${acAmount ? parseInt(acAmount).toLocaleString() : '0'} IQD`)}
                       </Button>
                     </div>
                   )}
@@ -1718,12 +1718,12 @@ function AddFundsView() {
                       <div className="p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/20 text-center">
                         <p className="text-yellow-300 text-sm">
                           ?? {lang === 'ar'
-                            ? `ÓíÊã ÊÍæíá ${parseInt(acAmount).toLocaleString()} IQD ($${(parseInt(acAmount) / 1000).toFixed(2)})`
+                            ? `ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ${parseInt(acAmount).toLocaleString()} IQD ($${(parseInt(acAmount) / 1000).toFixed(2)})`
                             : `Transferring ${parseInt(acAmount).toLocaleString()} IQD ($${(parseInt(acAmount) / 1000).toFixed(2)})`}
                         </p>
                       </div>
                       <label className="block font-body text-white/80 mb-1">
-                        {lang === 'ar' ? '? ÃÏÎá ÑãÒ ÇáÊÃßíÏ' : '?? Enter confirmation OTP'}
+                        {lang === 'ar' ? '? ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½' : '?? Enter confirmation OTP'}
                       </label>
                       <Input
                         value={acConfirmOtp}
@@ -1760,9 +1760,9 @@ function AddFundsView() {
                         {acLoading ? (
                           <span className="flex items-center gap-2">
                             <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                            {lang === 'ar' ? 'ÌÇÑí ÇáÊÃßíÏ...' : 'Confirming...'}
+                            {lang === 'ar' ? 'ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½...' : 'Confirming...'}
                           </span>
-                        ) : (lang === 'ar' ? 'ÊÃßíÏ ÇáÊÍæíá' : 'Confirm Transfer')}
+                        ) : (lang === 'ar' ? 'ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½' : 'Confirm Transfer')}
                       </Button>
                     </div>
                   )}
@@ -1774,7 +1774,7 @@ function AddFundsView() {
                         <span className="text-3xl">??</span>
                       </div>
                       <p className="text-green-300 text-lg font-bold">
-                        {lang === 'ar' ? `Êã ÅÖÇİÉ $${acCredited} áÑÕíÏß!` : `$${acCredited} added to your balance!`}
+                        {lang === 'ar' ? `ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ $${acCredited} ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½!` : `$${acCredited} added to your balance!`}
                       </p>
                       <p className="text-white/40 text-sm">
                         {parseInt(acAmount).toLocaleString()} IQD ? ${acCredited}
@@ -1786,7 +1786,7 @@ function AddFundsView() {
                         }}
                         className="mt-2 bg-white/10 hover:bg-white/20 text-white"
                       >
-                        {lang === 'ar' ? 'ÚãáíÉ ÌÏíÏÉ' : 'New Transfer'}
+                        {lang === 'ar' ? 'ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½' : 'New Transfer'}
                       </Button>
                     </div>
                   )}
@@ -1801,7 +1801,7 @@ function AddFundsView() {
                       variant="ghost"
                       className="w-full text-white/40 hover:text-white/70 hover:bg-white/5 border border-white/10"
                     >
-                      {lang === 'ar' ? '? ÅáÛÇÁ' : '? Cancel'}
+                      {lang === 'ar' ? '? ï¿½ï¿½ï¿½ï¿½ï¿½' : '? Cancel'}
                     </Button>
                   )}
                 </div>
@@ -1829,7 +1829,7 @@ function SupportView() {
   const [sendingTicket, setSendingTicket] = useState(false);
   const [ticketMsg, setTicketMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
-  const topics = ['ãÔßáÉ İí ØáÈ', 'ãÔßáÉ İí ÇáÏİÚ', 'ãÔßáÉ İí ÇáÍÓÇÈ', 'ÇÓÊİÓÇÑ ÚÇã', 'ÇŞÊÑÇÍ Ãæ ãáÇÍÙÉ'];
+  const topics = ['ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½', 'ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½', 'ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½', 'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½', 'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½'];
 
   useEffect(() => {
     fetch(`${API_URL}/settings/public/support`).then(r => r.json()).then(data => { if (data) setConfig(data); }).catch(console.error).finally(() => setLoading(false));
@@ -1842,13 +1842,13 @@ function SupportView() {
   useEffect(() => { fetchTickets(); }, [user?._id]);
 
   const handleSubmitTicket = async () => {
-    if (!ticketTopic || !ticketMessage.trim()) { setTicketMsg({ type: 'error', text: 'íÑÌì ÇÎÊíÇÑ ÇáãæÖæÚ æßÊÇÈÉ ÇáÑÓÇáÉ' }); return; }
+    if (!ticketTopic || !ticketMessage.trim()) { setTicketMsg({ type: 'error', text: 'ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½' }); return; }
     setSendingTicket(true); setTicketMsg(null);
     try {
       const res = await apiFetch(`/tickets`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId: user?._id, topic: ticketTopic, message: ticketMessage }) });
-      if (res.ok) { setTicketMsg({ type: 'success', text: 'Êã ÅÑÓÇá ÇáÊĞßÑÉ ÈäÌÇÍ ?' }); setTicketTopic(''); setTicketMessage(''); fetchTickets(); }
-      else { setTicketMsg({ type: 'error', text: 'İÔá ÅÑÓÇá ÇáÊĞßÑÉ' }); }
-    } catch { setTicketMsg({ type: 'error', text: 'ÎØÃ İí ÇáÇÊÕÇá' }); }
+      if (res.ok) { setTicketMsg({ type: 'success', text: 'ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ?' }); setTicketTopic(''); setTicketMessage(''); fetchTickets(); }
+      else { setTicketMsg({ type: 'error', text: 'ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½' }); }
+    } catch { setTicketMsg({ type: 'error', text: 'ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½' }); }
     setSendingTicket(false);
   };
 
@@ -1868,7 +1868,7 @@ function SupportView() {
             <div className="w-12 h-12 rounded-xl bg-green-500/20 flex items-center justify-center">
               <svg viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6 text-green-400"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" /><path d="M12 2C6.477 2 2 6.477 2 12c0 1.89.525 3.66 1.438 5.168L2 22l4.832-1.438A9.955 9.955 0 0012 22c5.523 0 10-4.477 10-10S17.523 2 12 2zm0 18c-1.66 0-3.203-.51-4.484-1.375l-.32-.191-2.872.855.855-2.872-.191-.32A7.963 7.963 0 014 12c0-4.411 3.589-8 8-8s8 3.589 8 8-3.589 8-8 8z" /></svg>
             </div>
-            <div className="flex-1 text-start"><p className="text-white font-bold text-sm">{lang === 'ar' ? 'æÇÊÓÇÈ' : 'WhatsApp'}</p><p className="text-white/40 text-xs" dir="ltr">{config.whatsapp}</p></div>
+            <div className="flex-1 text-start"><p className="text-white font-bold text-sm">{lang === 'ar' ? 'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½' : 'WhatsApp'}</p><p className="text-white/40 text-xs" dir="ltr">{config.whatsapp}</p></div>
           </button>
         )}
         {config.telegram && (
@@ -1876,25 +1876,25 @@ function SupportView() {
             <div className="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center">
               <svg viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6 text-blue-400"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .24z" /></svg>
             </div>
-            <div className="flex-1 text-start"><p className="text-white font-bold text-sm">{lang === 'ar' ? 'ÊáÌÑÇã' : 'Telegram'}</p><p className="text-white/40 text-xs">{config.telegram}</p></div>
+            <div className="flex-1 text-start"><p className="text-white font-bold text-sm">{lang === 'ar' ? 'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½' : 'Telegram'}</p><p className="text-white/40 text-xs">{config.telegram}</p></div>
           </button>
         )}
         {config.email && (
           <button onClick={() => window.open(`mailto:${config.email}`, '_blank')} className="w-full flex items-center gap-4 p-4 rounded-2xl bg-purple-500/10 border border-purple-500/30 hover:bg-purple-500/20 transition-all">
             <div className="w-12 h-12 rounded-xl bg-purple-500/20 flex items-center justify-center"><span className="text-2xl">??</span></div>
-            <div className="flex-1 text-start"><p className="text-white font-bold text-sm">{lang === 'ar' ? 'ÇáÈÑíÏ ÇáÅáßÊÑæäí' : 'Email'}</p><p className="text-white/40 text-xs">{config.email}</p></div>
+            <div className="flex-1 text-start"><p className="text-white font-bold text-sm">{lang === 'ar' ? 'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½' : 'Email'}</p><p className="text-white/40 text-xs">{config.email}</p></div>
           </button>
         )}
         {!loading && !config.whatsapp && !config.telegram && !config.email && (
-          <Card className="p-6 bg-white/5 border-white/10 text-center"><p className="text-white/40 text-sm">{lang === 'ar' ? 'áÇ ÊæÌÏ æÓÇÆá ÇÊÕÇá ãÊÇÍÉ ÍÇáíÇğ' : 'No contact channels available'}</p></Card>
+          <Card className="p-6 bg-white/5 border-white/10 text-center"><p className="text-white/40 text-sm">{lang === 'ar' ? 'ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½' : 'No contact channels available'}</p></Card>
         )}
       </div>
 
       {/* Ticket Form */}
       <Card className="p-5 bg-white/5 border-white/10 backdrop-blur-sm space-y-4">
-        <h3 className="text-white font-bold text-base flex items-center gap-2">?? ÅÑÓÇá ÊĞßÑÉ ÏÚã</h3>
+        <h3 className="text-white font-bold text-base flex items-center gap-2">?? ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½</h3>
         <div>
-          <label className="block text-white/60 text-sm mb-2">{t.ticketSubject || 'ãæÖæÚ ÇáÊĞßÑÉ'}</label>
+          <label className="block text-white/60 text-sm mb-2">{t.ticketSubject || 'ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½'}</label>
           <div className="relative">
             <select
               value={ticketTopic}
@@ -1902,7 +1902,7 @@ function SupportView() {
               className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-cyan-500/50 appearance-none"
               style={{ paddingInlineEnd: '2.5rem' }}
             >
-              <option value="" disabled className="bg-[#0a0a1a] text-white/50">{lang === 'ar' ? 'ÇÎÊÑ ÇáãæÖæÚ...' : 'Select a topic...'}</option>
+              <option value="" disabled className="bg-[#0a0a1a] text-white/50">{lang === 'ar' ? 'ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½...' : 'Select a topic...'}</option>
               {topics.map(tp => (
                 <option key={tp} value={tp} className="bg-[#0a0a1a] text-white">
                   {tp}
@@ -1915,34 +1915,34 @@ function SupportView() {
           </div>
         </div>
         <div>
-          <label className="block text-white/60 text-sm mb-2">ÑÓÇáÉ ÇáãÓÇÚÏÉ</label>
-          <textarea value={ticketMessage} onChange={e => setTicketMessage(e.target.value)} placeholder="ÇßÊÈ ÑÓÇáÊß åäÇ..." rows={4} className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-white/30 text-sm resize-none focus:outline-none focus:border-cyan-500/50" />
+          <label className="block text-white/60 text-sm mb-2">ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½</label>
+          <textarea value={ticketMessage} onChange={e => setTicketMessage(e.target.value)} placeholder="ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½..." rows={4} className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-white/30 text-sm resize-none focus:outline-none focus:border-cyan-500/50" />
         </div>
         {ticketMsg && <div className={`p-3 rounded-xl text-sm ${ticketMsg.type === 'success' ? 'bg-green-500/10 text-green-400 border border-green-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'}`}>{ticketMsg.text}</div>}
         <Button onClick={handleSubmitTicket} disabled={sendingTicket || !ticketTopic || !ticketMessage.trim()} className="w-full bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700 text-white h-11 disabled:opacity-50">
-          {sendingTicket ? '...' : '?? ÅÑÓÇá ÇáÊĞßÑÉ'}
+          {sendingTicket ? '...' : '?? ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½'}
         </Button>
       </Card>
 
       {/* Tickets List */}
       {tickets.length > 0 && (
         <div className="space-y-3">
-          <h3 className="text-white font-bold text-base">?? ÊĞÇßÑí</h3>
+          <h3 className="text-white font-bold text-base">?? ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½</h3>
           {tickets.map(ticket => (
             <Card key={ticket._id} className="p-4 bg-white/5 border-white/10 space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-white font-medium text-sm">{ticket.topic}</span>
                 <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium border ${ticket.status === 'closed' ? 'bg-green-500/10 text-green-400 border-green-500/30' : 'bg-yellow-500/10 text-yellow-400 border-yellow-500/30'}`}>
-                  {ticket.status === 'closed' ? 'Êã ÇáÑÏ ?' : 'ŞíÏ ÇáãÑÇÌÚÉ ?'}
+                  {ticket.status === 'closed' ? 'ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ?' : 'ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ?'}
                 </span>
               </div>
               <div className="bg-white/5 rounded-xl p-3 border border-white/5">
-                <p className="text-white/40 text-[10px] mb-1">ÑÓÇáÊß:</p>
+                <p className="text-white/40 text-[10px] mb-1">ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½:</p>
                 <p className="text-white/80 text-sm leading-relaxed">{ticket.message}</p>
               </div>
               {ticket.adminReply && (
                 <div className="bg-gradient-to-r from-cyan-500/10 to-purple-500/10 rounded-xl p-3 border border-cyan-500/20">
-                  <p className="text-cyan-400 text-[10px] mb-1 font-bold">ÑÏ ÇáÃÏãä:</p>
+                  <p className="text-cyan-400 text-[10px] mb-1 font-bold">ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½:</p>
                   <p className="text-white text-sm leading-relaxed">{ticket.adminReply}</p>
                   {ticket.repliedAt && <p className="text-white/25 text-[10px] mt-2">{new Date(ticket.repliedAt).toLocaleString('ar-IQ')}</p>}
                 </div>
@@ -1969,11 +1969,11 @@ function TermsView() {
       .then(data => {
         if (data && Array.isArray(data) && data.length > 0) setSections(data);
         else setSections([
-          { title: '1. ÇáŞÈæá ÈÇáÔÑæØ', body: 'ÈÇÓÊÎÏÇãß áãäÕÉ Jerry¡ İÅäß ÊæÇİŞ Úáì ÌãíÚ ÇáÔÑæØ æÇáÃÍßÇã ÇáãĞßæÑÉ ÃÏäÇå. íÑÌì ŞÑÇÁÊåÇ ÈÚäÇíÉ ŞÈá ÇÓÊÎÏÇã Ãí ÎÏãÉ.' },
-          { title: '2. ÇáÎÏãÇÊ ÇáãŞÏãÉ', body: 'äŞÏã ÎÏãÇÊ ÇáÊÓæíŞ ÇáÑŞãí ÈãÇ İí Ğáß ÒíÇÏÉ ÇáãÊÇÈÚíä æÇáãÔÇåÏÇÊ æÇááÇíßÇÊ ÚÈÑ ãäÕÇÊ ÇáÊæÇÕá ÇáÇÌÊãÇÚí ÇáãÎÊáİÉ.' },
-          { title: '3. ÓíÇÓÉ ÇáÇÓÊÑÏÇÏ', body: 'áÇ íãßä ÇÓÊÑÏÇÏ ÇáãÈÇáÛ ÈÚÏ ÈÏÁ ÊäİíĞ ÇáØáÈ. İí ÍÇáÉ ÚÏã ÇßÊãÇá ÇáØáÈ¡ ÓíÊã ÅÑÌÇÚ ÇáÑÕíÏ ÇáãÊÈŞí Åáì ÍÓÇÈß.' },
-          { title: '4. ÇáãÓÄæáíÉ', body: 'áÇ ÊÊÍãá ÇáãäÕÉ Ãí ãÓÄæáíÉ Úä Ãí ÅÌÑÇÁÇÊ ÊÊÎĞåÇ ãäÕÇÊ ÇáÊæÇÕá ÇáÇÌÊãÇÚí ÊÌÇå ÍÓÇÈÇÊß äÊíÌÉ ÇÓÊÎÏÇã ÎÏãÇÊäÇ.' },
-          { title: '5. ÇáÎÕæÕíÉ', body: 'äÍÊÑã ÎÕæÕíÊß æáÇ äÔÇÑß ÈíÇäÇÊß ÇáÔÎÕíÉ ãÚ Ãí ØÑİ ËÇáË. íÊã ÇÓÊÎÏÇã ÈíÇäÇÊß İŞØ áÊŞÏíã ÇáÎÏãÇÊ ÇáãØáæÈÉ.' },
+          { title: '1. ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½', body: 'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ Jerryï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½. ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.' },
+          { title: '2. ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½', body: 'ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.' },
+          { title: '3. ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½', body: 'ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½. ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½È¡ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½.' },
+          { title: '4. ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½', body: 'ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.' },
+          { title: '5. ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½', body: 'ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½. ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.' },
         ]);
       })
       .catch(console.error);
@@ -2007,9 +2007,9 @@ function UpdatesView() {
       .then(data => {
         if (data && Array.isArray(data) && data.length > 0) setUpdates(data);
         else setUpdates([
-          { version: 'v2.5', date: '2025-02-15', title: 'ÊÍÓíäÇÊ æÇÌåÉ ÇáãÓÊÎÏã', description: 'ÊÍÓíä ÇáÊÕãíã ÇáÚÇã æÅÖÇİÉ ŞÇÆãÉ ÌÇäÈíÉ ÌÏíÏÉ ááãæÈÇíá ãÚ ÊÍÓíä ÓÑÚÉ ÇáÊØÈíŞ.', type: 'ÊÍÓíä' },
-          { version: 'v2.4', date: '2025-02-10', title: 'ÅÖÇİÉ ÎÏãÇÊ ÊáíÌÑÇã', description: 'ÊãÊ ÅÖÇİÉ ÎÏãÇÊ ÌÏíÏÉ áÊáíÌÑÇã ÊÔãá ÇáÃÚÖÇÁ æÇáãÔÇåÏÇÊ ÈÖãÇäÇÊ ãÊÚÏÏÉ.', type: 'ÌÏíÏ' },
-          { version: 'v2.3', date: '2025-02-01', title: 'äÙÇã ÇáÈÍË ÇáĞßí', description: 'ÅÖÇİÉ ÎÇÕíÉ ÇáÈÍË Úä ÇáÎÏãÇÊ æÇáÃŞÓÇã ÈÇáÇÓã ãä ÇáÔÑíØ ÇáÓİáí.', type: 'ÌÏíÏ' },
+          { version: 'v2.5', date: '2025-02-15', title: 'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½', description: 'ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.', type: 'ï¿½ï¿½ï¿½ï¿½ï¿½' },
+          { version: 'v2.4', date: '2025-02-10', title: 'ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½', description: 'ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.', type: 'ï¿½ï¿½ï¿½ï¿½' },
+          { version: 'v2.3', date: '2025-02-01', title: 'ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½', description: 'ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.', type: 'ï¿½ï¿½ï¿½ï¿½' },
         ]);
       })
       .catch(console.error);
@@ -2027,7 +2027,7 @@ function UpdatesView() {
                 <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">
                   {update.version}
                 </span>
-                <span className={`px-2 py-0.5 rounded-full text-xs font-medium border ${update.type === 'ÌÏíÏ' ? 'bg-green-500/20 text-green-400 border-green-500/30' : update.type === 'ÅÕáÇÍ' ? 'bg-red-500/20 text-red-400 border-red-500/30' : 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30'}`}>
+                <span className={`px-2 py-0.5 rounded-full text-xs font-medium border ${update.type === 'ï¿½ï¿½ï¿½ï¿½' ? 'bg-green-500/20 text-green-400 border-green-500/30' : update.type === 'ï¿½ï¿½ï¿½ï¿½ï¿½' ? 'bg-red-500/20 text-red-400 border-red-500/30' : 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30'}`}>
                   {update.type}
                 </span>
               </div>

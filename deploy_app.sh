@@ -55,21 +55,23 @@ node seed.js
 cd "$APP_DIR"
 
 echo ">>> 8. Configuring Nginx..."
+
+# Create TWO separate server blocks: one for IP, one for domain
+# This prevents Certbot from breaking IP access when it modifies the domain block
 cat > /etc/nginx/sites-available/$DOMAIN <<EOF
+# Server block for IP access (HTTP only — always works)
 server {
     listen 80 default_server;
     listen [::]:80 default_server;
-    server_name $DOMAIN www.$DOMAIN $SERVER_IP;
+    server_name $SERVER_IP;
 
     root $APP_DIR/dist;
     index index.html;
-
     client_max_body_size 100M;
 
     location / {
         try_files \$uri \$uri/ /index.html;
     }
-
     location /api/ {
         proxy_pass http://127.0.0.1:5000/api/;
         proxy_http_version 1.1;
@@ -80,7 +82,36 @@ server {
         proxy_read_timeout 300s;
         proxy_send_timeout 300s;
     }
+    location /uploads/ {
+        proxy_pass http://127.0.0.1:5000/uploads/;
+        proxy_http_version 1.1;
+        proxy_set_header Host \$host;
+    }
+}
 
+# Server block for domain (Certbot will modify this to add SSL)
+server {
+    listen 80;
+    listen [::]:80;
+    server_name $DOMAIN www.$DOMAIN;
+
+    root $APP_DIR/dist;
+    index index.html;
+    client_max_body_size 100M;
+
+    location / {
+        try_files \$uri \$uri/ /index.html;
+    }
+    location /api/ {
+        proxy_pass http://127.0.0.1:5000/api/;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade \$http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host \$host;
+        proxy_cache_bypass \$http_upgrade;
+        proxy_read_timeout 300s;
+        proxy_send_timeout 300s;
+    }
     location /uploads/ {
         proxy_pass http://127.0.0.1:5000/uploads/;
         proxy_http_version 1.1;

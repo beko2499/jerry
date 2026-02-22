@@ -8,7 +8,7 @@ set -e
 REPO="https://github.com/beko2499/jerry.git"
 APP_DIR="/var/www/followerjerry.com"
 DOMAIN="followerjerry.com"
-SERVER_IP="77.42.65.87"
+SERVER_IP="173.212.206.92"
 
 # ===== .env configuration (embedded so no manual file needed) =====
 ENV_CONTENT='MONGO_URI=mongodb://localhost:27017/jerry

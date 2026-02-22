@@ -689,248 +689,248 @@ function ServiceDetailsView({ serviceId, serviceData, onBack }: ServiceDetailsVi
 
 // Settings View Component
 function SettingsView({ defaultTab = 'referral' }: { defaultTab?: 'settings' | 'referral' | 'api' }) {
-    const { t } = useLanguage();
-    const { user, refreshUser } = useAuth();
-    const [tab, setTab] = useState<'settings' | 'referral' | 'api'>(defaultTab);
-    const [email, setEmail] = useState(user?.email || '');
-    const [currentPassword, setCurrentPassword] = useState('');
-    const [newPassword, setNewPassword] = useState('');
-    const [confirmPassword, setConfirmPassword] = useState('');
-    const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
-    const [saving, setSaving] = useState(false);
-    // Referral states
-    const [refStats, setRefStats] = useState<{ referralCode: string; totalReferrals: number; totalEarnings: number; commissionRate: number } | null>(null);
-    const [copied, setCopied] = useState(false);
-    // API states
-    const [apiKey, setApiKey] = useState('');
-    const [showApiKey, setShowApiKey] = useState(false);
-    const [apiCopied, setApiCopied] = useState(false);
-    const [regenerating, setRegenerating] = useState(false);
+  const { t } = useLanguage();
+  const { user, refreshUser } = useAuth();
+  const [tab, setTab] = useState<'settings' | 'referral' | 'api'>(defaultTab);
+  const [email, setEmail] = useState(user?.email || '');
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [saving, setSaving] = useState(false);
+  // Referral states
+  const [refStats, setRefStats] = useState<{ referralCode: string; totalReferrals: number; totalEarnings: number; commissionRate: number } | null>(null);
+  const [copied, setCopied] = useState(false);
+  // API states
+  const [apiKey, setApiKey] = useState('');
+  const [showApiKey, setShowApiKey] = useState(false);
+  const [apiCopied, setApiCopied] = useState(false);
+  const [regenerating, setRegenerating] = useState(false);
 
-    useEffect(() => {
-        if (user?._id) {
-            apiFetch(`/referrals/stats/${user._id}`)
-                .then(r => r.json())
-                .then(data => { if (data.referralCode) setRefStats(data); })
-                .catch(console.error);
-            apiFetch(`/v2/key/${user._id}`)
-                .then(r => r.json())
-                .then(data => { if (data.apiKey) setApiKey(data.apiKey); })
-                .catch(console.error);
-        }
-    }, [user?._id]);
+  useEffect(() => {
+    if (user?._id) {
+      apiFetch(`/referrals/stats/${user._id}`)
+        .then(r => r.json())
+        .then(data => { if (data.referralCode) setRefStats(data); })
+        .catch(console.error);
+      apiFetch(`/v2/key/${user._id}`)
+        .then(r => r.json())
+        .then(data => { if (data.apiKey) setApiKey(data.apiKey); })
+        .catch(console.error);
+    }
+  }, [user?._id]);
 
-    const handleSave = async () => {
-        setMessage(null);
-        if (newPassword && newPassword !== confirmPassword) { setMessage({ type: 'error', text: 'كلمة المرور غير متطابقة' }); return; }
-        if (newPassword && !currentPassword) { setMessage({ type: 'error', text: 'يرجى إدخال كلمة المرور الحالية' }); return; }
-        if (!email && !newPassword) { setMessage({ type: 'error', text: 'لم يتم تغيير شيء' }); return; }
-        setSaving(true);
-        try {
-            const body: any = {};
-            if (email !== user?.email) body.email = email;
-            if (newPassword) { body.newPassword = newPassword; body.currentPassword = currentPassword; }
-            else if (currentPassword) body.currentPassword = currentPassword;
-            if (Object.keys(body).length === 0) { setMessage({ type: 'error', text: 'لم يتم تغيير شيء' }); setSaving(false); return; }
-            const res = await apiFetch(`/auth/profile/${user?._id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-            const data = await res.json();
-            if (!res.ok) {
-                const errMap: Record<string, string> = { wrong_password: 'كلمة المرور الحالية غير صحيحة', email_exists: 'البريد الإلكتروني مستخدم بالفعل', current_password_required: 'يرجى إدخال كلمة المرور الحالية' };
-                setMessage({ type: 'error', text: errMap[data.error] || data.error });
-            } else {
-                setMessage({ type: 'success', text: 'تم حفظ التغييرات بنجاح ✅' });
-                setCurrentPassword(''); setNewPassword(''); setConfirmPassword('');
-                await refreshUser();
-            }
-        } catch { setMessage({ type: 'error', text: 'حدث خطأ في الاتصال' }); }
-        setSaving(false);
-    };
+  const handleSave = async () => {
+    setMessage(null);
+    if (newPassword && newPassword !== confirmPassword) { setMessage({ type: 'error', text: 'كلمة المرور غير متطابقة' }); return; }
+    if (newPassword && !currentPassword) { setMessage({ type: 'error', text: 'يرجى إدخال كلمة المرور الحالية' }); return; }
+    if (!email && !newPassword) { setMessage({ type: 'error', text: 'لم يتم تغيير شيء' }); return; }
+    setSaving(true);
+    try {
+      const body: any = {};
+      if (email !== user?.email) body.email = email;
+      if (newPassword) { body.newPassword = newPassword; body.currentPassword = currentPassword; }
+      else if (currentPassword) body.currentPassword = currentPassword;
+      if (Object.keys(body).length === 0) { setMessage({ type: 'error', text: 'لم يتم تغيير شيء' }); setSaving(false); return; }
+      const res = await apiFetch(`/auth/profile/${user?._id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      const data = await res.json();
+      if (!res.ok) {
+        const errMap: Record<string, string> = { wrong_password: 'كلمة المرور الحالية غير صحيحة', email_exists: 'البريد الإلكتروني مستخدم بالفعل', current_password_required: 'يرجى إدخال كلمة المرور الحالية' };
+        setMessage({ type: 'error', text: errMap[data.error] || data.error });
+      } else {
+        setMessage({ type: 'success', text: 'تم حفظ التغييرات بنجاح ✅' });
+        setCurrentPassword(''); setNewPassword(''); setConfirmPassword('');
+        await refreshUser();
+      }
+    } catch { setMessage({ type: 'error', text: 'حدث خطأ في الاتصال' }); }
+    setSaving(false);
+  };
 
-    const siteUrl = window.location.origin;
-    const refLink = refStats ? `${siteUrl}/?ref=${refStats.referralCode}` : '';
+  const siteUrl = window.location.origin;
+  const refLink = refStats ? `${siteUrl}/?ref=${refStats.referralCode}` : '';
 
-    const handleCopy = () => {
-        try {
-            navigator.clipboard.writeText(refLink);
-        } catch {
-            const ta = document.createElement('textarea'); ta.value = refLink; ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
-        }
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-    };
+  const handleCopy = () => {
+    try {
+      navigator.clipboard.writeText(refLink);
+    } catch {
+      const ta = document.createElement('textarea'); ta.value = refLink; ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+    }
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
-    return (
-        <div className="p-4 md:p-8">
-            <h2 className="font-space text-xl md:text-2xl text-white mb-4 tracking-wide">{t.settings}</h2>
+  return (
+    <div className="p-4 md:p-8">
+      <h2 className="font-space text-xl md:text-2xl text-white mb-4 tracking-wide">{t.settings}</h2>
 
-            {/* Tabs */}
-            <div className="flex gap-2 mb-6">
-                <button onClick={() => setTab('referral')} className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${tab === 'referral' ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30' : 'bg-white/5 text-white/50 border border-white/10 hover:bg-white/10'}`}>
-                    نظام الإحالة
-                </button>
-                <button onClick={() => setTab('settings')} className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${tab === 'settings' ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30' : 'bg-white/5 text-white/50 border border-white/10 hover:bg-white/10'}`}>
-                    الإعدادات
-                </button>
-                <button onClick={() => setTab('api')} className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${tab === 'api' ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30' : 'bg-white/5 text-white/50 border border-white/10 hover:bg-white/10'}`}>
-                    API
-                </button>
+      {/* Tabs */}
+      <div className="flex gap-2 mb-6">
+        <button onClick={() => setTab('referral')} className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${tab === 'referral' ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30' : 'bg-white/5 text-white/50 border border-white/10 hover:bg-white/10'}`}>
+          نظام الإحالة
+        </button>
+        <button onClick={() => setTab('settings')} className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${tab === 'settings' ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30' : 'bg-white/5 text-white/50 border border-white/10 hover:bg-white/10'}`}>
+          الإعدادات
+        </button>
+        <button onClick={() => setTab('api')} className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${tab === 'api' ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30' : 'bg-white/5 text-white/50 border border-white/10 hover:bg-white/10'}`}>
+          API
+        </button>
+      </div>
+
+      {tab === 'settings' && (
+        <Card className="p-5 md:p-8 bg-white/5 border-white/10 max-w-lg backdrop-blur-sm">
+          <div className="space-y-5">
+            <div>
+              <label className="block font-body text-white/50 text-sm mb-1.5">{t.username}</label>
+              <div className="px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white/40 text-sm font-mono">@{user?.username}</div>
+            </div>
+            <div>
+              <label className="block font-body text-white/80 text-sm mb-1.5">{t.email}</label>
+              <Input value={email} onChange={e => setEmail(e.target.value)} className="bg-white/5 border-white/10 text-white focus:border-cyan-500/50 h-10" dir="ltr" />
+            </div>
+            <div className="border-t border-white/10 pt-4">
+              <p className="text-white/50 text-xs mb-3">لتغيير كلمة المرور أو البريد، أدخل كلمة المرور الحالية</p>
+            </div>
+            <div>
+              <label className="block font-body text-white/80 text-sm mb-1.5">{t.currentPassword}</label>
+              <Input type="password" value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} className="bg-white/5 border-white/10 text-white focus:border-cyan-500/50 h-10" placeholder="••••••••" />
+            </div>
+            <div>
+              <label className="block font-body text-white/80 text-sm mb-1.5">{t.newPassword}</label>
+              <Input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} className="bg-white/5 border-white/10 text-white focus:border-cyan-500/50 h-10" placeholder="••••••••" />
+            </div>
+            <div>
+              <label className="block font-body text-white/80 text-sm mb-1.5">تأكيد كلمة المرور الجديدة</label>
+              <Input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} className="bg-white/5 border-white/10 text-white focus:border-cyan-500/50 h-10" placeholder="••••••••" />
+            </div>
+            {message && <div className={`p-3 rounded-xl text-sm ${message.type === 'success' ? 'bg-green-500/10 text-green-400 border border-green-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'}`}>{message.text}</div>}
+            <Button onClick={handleSave} disabled={saving} className="w-full bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700 text-white shadow-lg shadow-cyan-500/20 h-11">
+              {saving ? '...' : t.saveChanges}
+            </Button>
+          </div>
+        </Card>
+      )}
+
+      {tab === 'referral' && (
+        <div className="max-w-lg space-y-4">
+          {/* Referral Info */}
+          <Card className="p-5 bg-white/5 border-white/10 backdrop-blur-sm">
+            <div className="flex items-start gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-cyan-500/20 flex items-center justify-center text-lg shrink-0">🔗</div>
+              <div>
+                <h3 className="text-white font-bold text-sm">نظام الإحالة</h3>
+                <p className="text-white/50 text-xs mt-1">شارك رابطك واربح عمولة من المشتريات عبر رابط الإحالة</p>
+              </div>
             </div>
 
-            {tab === 'settings' && (
-                <Card className="p-5 md:p-8 bg-white/5 border-white/10 max-w-lg backdrop-blur-sm">
-                    <div className="space-y-5">
-                        <div>
-                            <label className="block font-body text-white/50 text-sm mb-1.5">{t.username}</label>
-                            <div className="px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white/40 text-sm font-mono">@{user?.username}</div>
-                        </div>
-                        <div>
-                            <label className="block font-body text-white/80 text-sm mb-1.5">{t.email}</label>
-                            <Input value={email} onChange={e => setEmail(e.target.value)} className="bg-white/5 border-white/10 text-white focus:border-cyan-500/50 h-10" dir="ltr" />
-                        </div>
-                        <div className="border-t border-white/10 pt-4">
-                            <p className="text-white/50 text-xs mb-3">لتغيير كلمة المرور أو البريد، أدخل كلمة المرور الحالية</p>
-                        </div>
-                        <div>
-                            <label className="block font-body text-white/80 text-sm mb-1.5">{t.currentPassword}</label>
-                            <Input type="password" value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} className="bg-white/5 border-white/10 text-white focus:border-cyan-500/50 h-10" placeholder="••••••••" />
-                        </div>
-                        <div>
-                            <label className="block font-body text-white/80 text-sm mb-1.5">{t.newPassword}</label>
-                            <Input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} className="bg-white/5 border-white/10 text-white focus:border-cyan-500/50 h-10" placeholder="••••••••" />
-                        </div>
-                        <div>
-                            <label className="block font-body text-white/80 text-sm mb-1.5">تأكيد كلمة المرور الجديدة</label>
-                            <Input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} className="bg-white/5 border-white/10 text-white focus:border-cyan-500/50 h-10" placeholder="••••••••" />
-                        </div>
-                        {message && <div className={`p-3 rounded-xl text-sm ${message.type === 'success' ? 'bg-green-500/10 text-green-400 border border-green-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'}`}>{message.text}</div>}
-                        <Button onClick={handleSave} disabled={saving} className="w-full bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700 text-white shadow-lg shadow-cyan-500/20 h-11">
-                            {saving ? '...' : t.saveChanges}
-                        </Button>
-                    </div>
-                </Card>
-            )}
-
-            {tab === 'referral' && (
-                <div className="max-w-lg space-y-4">
-                    {/* Referral Info */}
-                    <Card className="p-5 bg-white/5 border-white/10 backdrop-blur-sm">
-                        <div className="flex items-start gap-3 mb-4">
-                            <div className="w-10 h-10 rounded-xl bg-cyan-500/20 flex items-center justify-center text-lg shrink-0">🔗</div>
-                            <div>
-                                <h3 className="text-white font-bold text-sm">نظام الإحالة</h3>
-                                <p className="text-white/50 text-xs mt-1">شارك رابطك واربح عمولة من المشتريات عبر رابط الإحالة</p>
-                            </div>
-                        </div>
-
-                        {/* Referral Link */}
-                        <div>
-                            <label className="block text-white/40 text-xs mb-2">رابطك الخاص بك</label>
-                            <div className="flex items-center gap-2">
-                                <div className="flex-1 px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white/70 text-sm font-mono truncate" dir="ltr">
-                                    {refLink || '...'}
-                                </div>
-                                <button onClick={handleCopy} className="px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all shrink-0">
-                                    {copied ? <span className="text-green-400 text-sm">✅</span> : <span className="text-white/40 text-sm">📋</span>}
-                                </button>
-                            </div>
-                        </div>
-                    </Card>
-
-                    {/* Balance */}
-                    <Card className="p-5 bg-white/5 border-white/10 backdrop-blur-sm">
-                        <div className="flex items-center justify-between">
-                            <span className="text-white/50 text-sm">الأرباح من الإحالات</span>
-                            <span className="text-green-400 font-bold text-lg" dir="ltr">${(refStats?.totalEarnings || 0).toFixed(2)}</span>
-                        </div>
-                        <p className="text-white/30 text-xs mt-1">نسبة العمولة: {refStats?.commissionRate || 5}% من كل طلب</p>
-                    </Card>
-
-                    {/* Statistics */}
-                    <h3 className="text-white font-bold text-sm pt-2">الإحصائيات</h3>
-                    <div className="grid grid-cols-2 gap-3">
-                        <Card className="p-4 bg-white/5 border-white/10 text-center">
-                            <p className="text-white/40 text-xs mb-1">الإحالات الناجحة</p>
-                            <p className="text-white font-bold text-2xl">{refStats?.totalReferrals || 0}</p>
-                        </Card>
-                        <Card className="p-4 bg-white/5 border-white/10 text-center">
-                            <p className="text-white/40 text-xs mb-1">الأرباح الكلية</p>
-                            <p className="text-green-400 font-bold text-2xl" dir="ltr">${(refStats?.totalEarnings || 0).toFixed(2)}</p>
-                        </Card>
-                    </div>
+            {/* Referral Link */}
+            <div>
+              <label className="block text-white/40 text-xs mb-2">رابطك الخاص بك</label>
+              <div className="flex items-center gap-2">
+                <div className="flex-1 px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white/70 text-sm font-mono truncate" dir="ltr">
+                  {refLink || '...'}
                 </div>
-            )}
+                <button onClick={handleCopy} className="px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all shrink-0">
+                  {copied ? <span className="text-green-400 text-sm">✅</span> : <span className="text-white/40 text-sm">📋</span>}
+                </button>
+              </div>
+            </div>
+          </Card>
 
-            {tab === 'api' && (() => {
-                const apiBase = window.location.origin.replace(/:\d+$/, '').replace('http://', 'https://') + '/api/v2';
-                return (
-                    <div className="max-w-2xl space-y-4">
-                        {/* API Key Card */}
-                        <Card className="p-5 bg-white/5 border-white/10 backdrop-blur-sm">
-                            <div className="flex items-start gap-3 mb-4">
-                                <div className="w-10 h-10 rounded-xl bg-cyan-500/20 flex items-center justify-center text-lg shrink-0">🔑</div>
-                                <div>
-                                    <h3 className="text-white font-bold text-sm">API</h3>
-                                    <p className="text-white/50 text-xs mt-1">استخدم مفتاح API للوصول للخدمات من خارج</p>
-                                </div>
-                            </div>
-                            <div>
-                                <label className="block text-white/40 text-xs mb-2">مفتاح الـ API</label>
-                                <div className="flex items-center gap-2">
-                                    <div className="flex-1 px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white/70 text-sm font-mono truncate" dir="ltr">
-                                        {apiKey ? (showApiKey ? apiKey : apiKey.substring(0, 10) + '...' + apiKey.substring(apiKey.length - 6)) : '...'}
-                                    </div>
-                                    <button onClick={() => setShowApiKey(!showApiKey)} className="px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all shrink-0">
-                                        <span className="text-white/40 text-sm">{showApiKey ? '🙈' : '👁️'}</span>
-                                    </button>
-                                    <button onClick={() => { try { navigator.clipboard.writeText(apiKey); } catch { const ta = document.createElement('textarea'); ta.value = apiKey; ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); } setApiCopied(true); setTimeout(() => setApiCopied(false), 2000); }} className="px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all shrink-0">
-                                        {apiCopied ? <span className="text-green-400 text-sm">✅</span> : <span className="text-white/40 text-sm">📋</span>}
-                                    </button>
-                                </div>
-                            </div>
-                            <button
-                                onClick={async () => {
-                                    setRegenerating(true);
-                                    try {
-                                        const res = await apiFetch(`/v2/generate-key`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId: user?._id }) });
-                                        const data = await res.json();
-                                        if (data.apiKey) setApiKey(data.apiKey);
-                                    } catch (e) { console.error(e); }
-                                    setRegenerating(false);
-                                }}
-                                disabled={regenerating}
-                                className="mt-3 w-full py-2.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm font-medium hover:bg-red-500/20 transition-all"
-                            >
-                                {regenerating ? '...' : 'إعادة توليد المفتاح'}
-                            </button>
-                        </Card>
+          {/* Balance */}
+          <Card className="p-5 bg-white/5 border-white/10 backdrop-blur-sm">
+            <div className="flex items-center justify-between">
+              <span className="text-white/50 text-sm">الأرباح من الإحالات</span>
+              <span className="text-green-400 font-bold text-lg" dir="ltr">${(refStats?.totalEarnings || 0).toFixed(2)}</span>
+            </div>
+            <p className="text-white/30 text-xs mt-1">نسبة العمولة: {refStats?.commissionRate || 5}% من كل طلب</p>
+          </Card>
 
-                        {/* API Endpoint */}
-                        <Card className="p-5 bg-white/5 border-white/10 backdrop-blur-sm">
-                            <h3 className="text-white font-bold text-sm mb-3">🌐 رابط API</h3>
-                            <div className="px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-cyan-400 text-sm font-mono" dir="ltr">
-                                {apiBase}
-                            </div>
-                            <p className="text-white/30 text-xs mt-2">استخدم هذا الرابط في برنامجك للوصول لخدمات عبر API</p>
-                        </Card>
+          {/* Statistics */}
+          <h3 className="text-white font-bold text-sm pt-2">الإحصائيات</h3>
+          <div className="grid grid-cols-2 gap-3">
+            <Card className="p-4 bg-white/5 border-white/10 text-center">
+              <p className="text-white/40 text-xs mb-1">الإحالات الناجحة</p>
+              <p className="text-white font-bold text-2xl">{refStats?.totalReferrals || 0}</p>
+            </Card>
+            <Card className="p-4 bg-white/5 border-white/10 text-center">
+              <p className="text-white/40 text-xs mb-1">الأرباح الكلية</p>
+              <p className="text-green-400 font-bold text-2xl" dir="ltr">${(refStats?.totalEarnings || 0).toFixed(2)}</p>
+            </Card>
+          </div>
+        </div>
+      )}
 
-                        {/* ====== API DOCUMENTATION ====== */}
-                        <div className="pt-2">
-                            <h3 className="text-white font-bold text-lg mb-4 flex items-center gap-2">📖 توثيق API</h3>
-                        </div>
+      {tab === 'api' && (() => {
+        const apiBase = window.location.origin.replace(/:\d+$/, '').replace('http://', 'https://') + '/api/v2';
+        return (
+          <div className="max-w-2xl space-y-4">
+            {/* API Key Card */}
+            <Card className="p-5 bg-white/5 border-white/10 backdrop-blur-sm">
+              <div className="flex items-start gap-3 mb-4">
+                <div className="w-10 h-10 rounded-xl bg-cyan-500/20 flex items-center justify-center text-lg shrink-0">🔑</div>
+                <div>
+                  <h3 className="text-white font-bold text-sm">API</h3>
+                  <p className="text-white/50 text-xs mt-1">استخدم مفتاح API للوصول للخدمات من خارج</p>
+                </div>
+              </div>
+              <div>
+                <label className="block text-white/40 text-xs mb-2">مفتاح الـ API</label>
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white/70 text-sm font-mono truncate" dir="ltr">
+                    {apiKey ? (showApiKey ? apiKey : apiKey.substring(0, 10) + '...' + apiKey.substring(apiKey.length - 6)) : '...'}
+                  </div>
+                  <button onClick={() => setShowApiKey(!showApiKey)} className="px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all shrink-0">
+                    <span className="text-white/40 text-sm">{showApiKey ? '🙈' : '👁️'}</span>
+                  </button>
+                  <button onClick={() => { try { navigator.clipboard.writeText(apiKey); } catch { const ta = document.createElement('textarea'); ta.value = apiKey; ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); } setApiCopied(true); setTimeout(() => setApiCopied(false), 2000); }} className="px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all shrink-0">
+                    {apiCopied ? <span className="text-green-400 text-sm">✅</span> : <span className="text-white/40 text-sm">📋</span>}
+                  </button>
+                </div>
+              </div>
+              <button
+                onClick={async () => {
+                  setRegenerating(true);
+                  try {
+                    const res = await apiFetch(`/v2/generate-key`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId: user?._id }) });
+                    const data = await res.json();
+                    if (data.apiKey) setApiKey(data.apiKey);
+                  } catch (e) { console.error(e); }
+                  setRegenerating(false);
+                }}
+                disabled={regenerating}
+                className="mt-3 w-full py-2.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm font-medium hover:bg-red-500/20 transition-all"
+              >
+                {regenerating ? '...' : 'إعادة توليد المفتاح'}
+              </button>
+            </Card>
 
-                        {/* Service List */}
-                        <Card className="p-5 bg-white/5 border-white/10 backdrop-blur-sm">
-                            <h4 className="text-cyan-400 font-bold text-sm mb-1 flex items-center gap-2">📋 قائمة الخدمات — Service list</h4>
-                            <p className="text-white/40 text-xs mb-3">استخدم هذا الرابط للحصول على قائمة الخدمات</p>
-                            <div className="mb-3">
-                                <p className="text-white/50 text-xs mb-1">مثال طلب:</p>
-                                <div className="bg-black/40 rounded-lg px-3 py-2 text-xs font-mono text-green-400 break-all" dir="ltr">
-                                    {apiBase}?action=services&key=yourKey
-                                </div>
-                            </div>
-                            <div className="mb-3">
-                                <p className="text-white/50 text-xs mb-1">نتيجة الاستجابة:</p>
-                                <pre className="bg-black/40 rounded-lg px-3 py-2 text-xs font-mono text-yellow-300 overflow-x-auto" dir="ltr">{`[
+            {/* API Endpoint */}
+            <Card className="p-5 bg-white/5 border-white/10 backdrop-blur-sm">
+              <h3 className="text-white font-bold text-sm mb-3">🌐 رابط API</h3>
+              <div className="px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-cyan-400 text-sm font-mono" dir="ltr">
+                {apiBase}
+              </div>
+              <p className="text-white/30 text-xs mt-2">استخدم هذا الرابط في برنامجك للوصول لخدمات عبر API</p>
+            </Card>
+
+            {/* ====== API DOCUMENTATION ====== */}
+            <div className="pt-2">
+              <h3 className="text-white font-bold text-lg mb-4 flex items-center gap-2">📖 توثيق API</h3>
+            </div>
+
+            {/* Service List */}
+            <Card className="p-5 bg-white/5 border-white/10 backdrop-blur-sm">
+              <h4 className="text-cyan-400 font-bold text-sm mb-1 flex items-center gap-2">📋 قائمة الخدمات — Service list</h4>
+              <p className="text-white/40 text-xs mb-3">استخدم هذا الرابط للحصول على قائمة الخدمات</p>
+              <div className="mb-3">
+                <p className="text-white/50 text-xs mb-1">مثال طلب:</p>
+                <div className="bg-black/40 rounded-lg px-3 py-2 text-xs font-mono text-green-400 break-all" dir="ltr">
+                  {apiBase}?action=services&key=yourKey
+                </div>
+              </div>
+              <div className="mb-3">
+                <p className="text-white/50 text-xs mb-1">نتيجة الاستجابة:</p>
+                <pre className="bg-black/40 rounded-lg px-3 py-2 text-xs font-mono text-yellow-300 overflow-x-auto" dir="ltr">{`[
   {
     "service": 1,
     "name": "Followers",
@@ -943,96 +943,96 @@ function SettingsView({ defaultTab = 'referral' }: { defaultTab?: 'settings' | '
     "cancel": false
   }
 ]`}</pre>
-                            </div>
-                            <div className="overflow-x-auto">
-                                <table className="w-full text-xs">
-                                    <thead><tr className="text-white/40 border-b border-white/10"><th className="text-right py-1.5 px-2">الحقل</th><th className="text-right py-1.5 px-2">النوع</th><th className="text-right py-1.5 px-2">الوصف</th></tr></thead>
-                                    <tbody className="text-white/60">
-                                        <tr className="border-b border-white/5"><td className="py-1.5 px-2 font-mono text-cyan-400">service</td><td className="py-1.5 px-2">Integer</td><td className="py-1.5 px-2">معرف الخدمة</td></tr>
-                                        <tr className="border-b border-white/5"><td className="py-1.5 px-2 font-mono text-cyan-400">name</td><td className="py-1.5 px-2">String</td><td className="py-1.5 px-2">اسم الخدمة</td></tr>
-                                        <tr className="border-b border-white/5"><td className="py-1.5 px-2 font-mono text-cyan-400">category</td><td className="py-1.5 px-2">String</td><td className="py-1.5 px-2">التصنيف</td></tr>
-                                        <tr className="border-b border-white/5"><td className="py-1.5 px-2 font-mono text-cyan-400">rate</td><td className="py-1.5 px-2">Double</td><td className="py-1.5 px-2">السعر لكل 1000</td></tr>
-                                        <tr className="border-b border-white/5"><td className="py-1.5 px-2 font-mono text-cyan-400">min</td><td className="py-1.5 px-2">Integer</td><td className="py-1.5 px-2">حد أدنى</td></tr>
-                                        <tr><td className="py-1.5 px-2 font-mono text-cyan-400">max</td><td className="py-1.5 px-2">Integer</td><td className="py-1.5 px-2">حد أقصى</td></tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </Card>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead><tr className="text-white/40 border-b border-white/10"><th className="text-right py-1.5 px-2">الحقل</th><th className="text-right py-1.5 px-2">النوع</th><th className="text-right py-1.5 px-2">الوصف</th></tr></thead>
+                  <tbody className="text-white/60">
+                    <tr className="border-b border-white/5"><td className="py-1.5 px-2 font-mono text-cyan-400">service</td><td className="py-1.5 px-2">Integer</td><td className="py-1.5 px-2">معرف الخدمة</td></tr>
+                    <tr className="border-b border-white/5"><td className="py-1.5 px-2 font-mono text-cyan-400">name</td><td className="py-1.5 px-2">String</td><td className="py-1.5 px-2">اسم الخدمة</td></tr>
+                    <tr className="border-b border-white/5"><td className="py-1.5 px-2 font-mono text-cyan-400">category</td><td className="py-1.5 px-2">String</td><td className="py-1.5 px-2">التصنيف</td></tr>
+                    <tr className="border-b border-white/5"><td className="py-1.5 px-2 font-mono text-cyan-400">rate</td><td className="py-1.5 px-2">Double</td><td className="py-1.5 px-2">السعر لكل 1000</td></tr>
+                    <tr className="border-b border-white/5"><td className="py-1.5 px-2 font-mono text-cyan-400">min</td><td className="py-1.5 px-2">Integer</td><td className="py-1.5 px-2">حد أدنى</td></tr>
+                    <tr><td className="py-1.5 px-2 font-mono text-cyan-400">max</td><td className="py-1.5 px-2">Integer</td><td className="py-1.5 px-2">حد أقصى</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </Card>
 
-                        {/* Add Order */}
-                        <Card className="p-5 bg-white/5 border-white/10 backdrop-blur-sm">
-                            <h4 className="text-green-400 font-bold text-sm mb-1 flex items-center gap-2">🛒 إضافة طلب — Add order</h4>
-                            <p className="text-white/40 text-xs mb-3">استخدم هذا الرابط لإنشاء طلب جديد</p>
-                            <div className="mb-3">
-                                <p className="text-white/50 text-xs mb-1">مثال طلب:</p>
-                                <div className="bg-black/40 rounded-lg px-3 py-2 text-xs font-mono text-green-400 break-all" dir="ltr">
-                                    {apiBase}?action=add&service=1&link=instagram.com/username&quantity=100&key=yourKey
-                                </div>
-                            </div>
-                            <div className="mb-3">
-                                <p className="text-white/50 text-xs mb-1">نتيجة الاستجابة:</p>
-                                <pre className="bg-black/40 rounded-lg px-3 py-2 text-xs font-mono text-yellow-300" dir="ltr">{`{
+            {/* Add Order */}
+            <Card className="p-5 bg-white/5 border-white/10 backdrop-blur-sm">
+              <h4 className="text-green-400 font-bold text-sm mb-1 flex items-center gap-2">🛒 إضافة طلب — Add order</h4>
+              <p className="text-white/40 text-xs mb-3">استخدم هذا الرابط لإنشاء طلب جديد</p>
+              <div className="mb-3">
+                <p className="text-white/50 text-xs mb-1">مثال طلب:</p>
+                <div className="bg-black/40 rounded-lg px-3 py-2 text-xs font-mono text-green-400 break-all" dir="ltr">
+                  {apiBase}?action=add&service=1&link=instagram.com/username&quantity=100&key=yourKey
+                </div>
+              </div>
+              <div className="mb-3">
+                <p className="text-white/50 text-xs mb-1">نتيجة الاستجابة:</p>
+                <pre className="bg-black/40 rounded-lg px-3 py-2 text-xs font-mono text-yellow-300" dir="ltr">{`{
   "order": 10001
 }`}</pre>
-                            </div>
-                            <div className="overflow-x-auto">
-                                <table className="w-full text-xs">
-                                    <thead><tr className="text-white/40 border-b border-white/10"><th className="text-right py-1.5 px-2">البارمتر</th><th className="text-right py-1.5 px-2">النوع</th><th className="text-right py-1.5 px-2">الوصف</th></tr></thead>
-                                    <tbody className="text-white/60">
-                                        <tr className="border-b border-white/5"><td className="py-1.5 px-2 font-mono text-green-400">service</td><td className="py-1.5 px-2">Integer</td><td className="py-1.5 px-2">معرف الخدمة</td></tr>
-                                        <tr className="border-b border-white/5"><td className="py-1.5 px-2 font-mono text-green-400">link</td><td className="py-1.5 px-2">String</td><td className="py-1.5 px-2">رابط الحساب / المنشور</td></tr>
-                                        <tr><td className="py-1.5 px-2 font-mono text-green-400">quantity</td><td className="py-1.5 px-2">Integer</td><td className="py-1.5 px-2">الكمية المطلوبة</td></tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </Card>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead><tr className="text-white/40 border-b border-white/10"><th className="text-right py-1.5 px-2">البارمتر</th><th className="text-right py-1.5 px-2">النوع</th><th className="text-right py-1.5 px-2">الوصف</th></tr></thead>
+                  <tbody className="text-white/60">
+                    <tr className="border-b border-white/5"><td className="py-1.5 px-2 font-mono text-green-400">service</td><td className="py-1.5 px-2">Integer</td><td className="py-1.5 px-2">معرف الخدمة</td></tr>
+                    <tr className="border-b border-white/5"><td className="py-1.5 px-2 font-mono text-green-400">link</td><td className="py-1.5 px-2">String</td><td className="py-1.5 px-2">رابط الحساب / المنشور</td></tr>
+                    <tr><td className="py-1.5 px-2 font-mono text-green-400">quantity</td><td className="py-1.5 px-2">Integer</td><td className="py-1.5 px-2">الكمية المطلوبة</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </Card>
 
-                        {/* Order Status */}
-                        <Card className="p-5 bg-white/5 border-white/10 backdrop-blur-sm">
-                            <h4 className="text-purple-400 font-bold text-sm mb-1 flex items-center gap-2">📊 حالة الطلب — Order status</h4>
-                            <p className="text-white/40 text-xs mb-3">استخدم هذا الرابط لمعرفة حالة طلبك الحالي</p>
-                            <div className="mb-3">
-                                <p className="text-white/50 text-xs mb-1">مثال طلب:</p>
-                                <div className="bg-black/40 rounded-lg px-3 py-2 text-xs font-mono text-green-400 break-all" dir="ltr">
-                                    {apiBase}?action=status&order=10001&key=yourKey
-                                </div>
-                            </div>
-                            <div className="mb-3">
-                                <p className="text-white/50 text-xs mb-1">نتيجة الاستجابة:</p>
-                                <pre className="bg-black/40 rounded-lg px-3 py-2 text-xs font-mono text-yellow-300" dir="ltr">{`{
+            {/* Order Status */}
+            <Card className="p-5 bg-white/5 border-white/10 backdrop-blur-sm">
+              <h4 className="text-purple-400 font-bold text-sm mb-1 flex items-center gap-2">📊 حالة الطلب — Order status</h4>
+              <p className="text-white/40 text-xs mb-3">استخدم هذا الرابط لمعرفة حالة طلبك الحالي</p>
+              <div className="mb-3">
+                <p className="text-white/50 text-xs mb-1">مثال طلب:</p>
+                <div className="bg-black/40 rounded-lg px-3 py-2 text-xs font-mono text-green-400 break-all" dir="ltr">
+                  {apiBase}?action=status&order=10001&key=yourKey
+                </div>
+              </div>
+              <div className="mb-3">
+                <p className="text-white/50 text-xs mb-1">نتيجة الاستجابة:</p>
+                <pre className="bg-black/40 rounded-lg px-3 py-2 text-xs font-mono text-yellow-300" dir="ltr">{`{
   "charge": "0.27819",
   "start_count": "0",
   "status": "In progress",
   "remains": "0",
   "currency": "USD"
 }`}</pre>
-                            </div>
-                            <div className="overflow-x-auto">
-                                <table className="w-full text-xs">
-                                    <thead><tr className="text-white/40 border-b border-white/10"><th className="text-right py-1.5 px-2">الحقل</th><th className="text-right py-1.5 px-2">النوع</th><th className="text-right py-1.5 px-2">الوصف</th></tr></thead>
-                                    <tbody className="text-white/60">
-                                        <tr className="border-b border-white/5"><td className="py-1.5 px-2 font-mono text-purple-400">charge</td><td className="py-1.5 px-2">Double</td><td className="py-1.5 px-2">التكلفة المحسوبة</td></tr>
-                                        <tr className="border-b border-white/5"><td className="py-1.5 px-2 font-mono text-purple-400">status</td><td className="py-1.5 px-2">String</td><td className="py-1.5 px-2">In progress, Completed, Awaiting, Canceled, Partial</td></tr>
-                                        <tr className="border-b border-white/5"><td className="py-1.5 px-2 font-mono text-purple-400">remains</td><td className="py-1.5 px-2">Integer</td><td className="py-1.5 px-2">الكمية المتبقية</td></tr>
-                                        <tr><td className="py-1.5 px-2 font-mono text-purple-400">currency</td><td className="py-1.5 px-2">String</td><td className="py-1.5 px-2">العملة</td></tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </Card>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead><tr className="text-white/40 border-b border-white/10"><th className="text-right py-1.5 px-2">الحقل</th><th className="text-right py-1.5 px-2">النوع</th><th className="text-right py-1.5 px-2">الوصف</th></tr></thead>
+                  <tbody className="text-white/60">
+                    <tr className="border-b border-white/5"><td className="py-1.5 px-2 font-mono text-purple-400">charge</td><td className="py-1.5 px-2">Double</td><td className="py-1.5 px-2">التكلفة المحسوبة</td></tr>
+                    <tr className="border-b border-white/5"><td className="py-1.5 px-2 font-mono text-purple-400">status</td><td className="py-1.5 px-2">String</td><td className="py-1.5 px-2">In progress, Completed, Awaiting, Canceled, Partial</td></tr>
+                    <tr className="border-b border-white/5"><td className="py-1.5 px-2 font-mono text-purple-400">remains</td><td className="py-1.5 px-2">Integer</td><td className="py-1.5 px-2">الكمية المتبقية</td></tr>
+                    <tr><td className="py-1.5 px-2 font-mono text-purple-400">currency</td><td className="py-1.5 px-2">String</td><td className="py-1.5 px-2">العملة</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </Card>
 
-                        {/* Multiple Status */}
-                        <Card className="p-5 bg-white/5 border-white/10 backdrop-blur-sm">
-                            <h4 className="text-purple-400 font-bold text-sm mb-1 flex items-center gap-2">📊 حالة طلبات متعددة — Multiple status</h4>
-                            <p className="text-white/40 text-xs mb-3">استخدم هذا الرابط لمعرفة حالة أكثر من طلب</p>
-                            <div className="mb-3">
-                                <p className="text-white/50 text-xs mb-1">مثال طلب:</p>
-                                <div className="bg-black/40 rounded-lg px-3 py-2 text-xs font-mono text-green-400 break-all" dir="ltr">
-                                    {apiBase}?action=status&orders=10001,10002,10003&key=yourKey
-                                </div>
-                            </div>
-                            <div>
-                                <p className="text-white/50 text-xs mb-1">نتيجة الاستجابة:</p>
-                                <pre className="bg-black/40 rounded-lg px-3 py-2 text-xs font-mono text-yellow-300 overflow-x-auto" dir="ltr">{`{
+            {/* Multiple Status */}
+            <Card className="p-5 bg-white/5 border-white/10 backdrop-blur-sm">
+              <h4 className="text-purple-400 font-bold text-sm mb-1 flex items-center gap-2">📊 حالة طلبات متعددة — Multiple status</h4>
+              <p className="text-white/40 text-xs mb-3">استخدم هذا الرابط لمعرفة حالة أكثر من طلب</p>
+              <div className="mb-3">
+                <p className="text-white/50 text-xs mb-1">مثال طلب:</p>
+                <div className="bg-black/40 rounded-lg px-3 py-2 text-xs font-mono text-green-400 break-all" dir="ltr">
+                  {apiBase}?action=status&orders=10001,10002,10003&key=yourKey
+                </div>
+              </div>
+              <div>
+                <p className="text-white/50 text-xs mb-1">نتيجة الاستجابة:</p>
+                <pre className="bg-black/40 rounded-lg px-3 py-2 text-xs font-mono text-yellow-300 overflow-x-auto" dir="ltr">{`{
   "10001": {
     "charge": "0.27",
     "start_count": "0",
@@ -1042,68 +1042,68 @@ function SettingsView({ defaultTab = 'referral' }: { defaultTab?: 'settings' | '
   },
   "10002": "Incorrect order ID"
 }`}</pre>
-                            </div>
-                        </Card>
+              </div>
+            </Card>
 
-                        {/* Balance */}
-                        <Card className="p-5 bg-white/5 border-white/10 backdrop-blur-sm">
-                            <h4 className="text-yellow-400 font-bold text-sm mb-1 flex items-center gap-2">💰 الرصيد — Balance</h4>
-                            <p className="text-white/40 text-xs mb-3">استخدم هذا الرابط للاستعلام عن رصيدك</p>
-                            <div className="mb-3">
-                                <p className="text-white/50 text-xs mb-1">مثال طلب:</p>
-                                <div className="bg-black/40 rounded-lg px-3 py-2 text-xs font-mono text-green-400 break-all" dir="ltr">
-                                    {apiBase}?action=balance&key=yourKey
-                                </div>
-                            </div>
-                            <div>
-                                <p className="text-white/50 text-xs mb-1">نتيجة الاستجابة:</p>
-                                <pre className="bg-black/40 rounded-lg px-3 py-2 text-xs font-mono text-yellow-300" dir="ltr">{`{
+            {/* Balance */}
+            <Card className="p-5 bg-white/5 border-white/10 backdrop-blur-sm">
+              <h4 className="text-yellow-400 font-bold text-sm mb-1 flex items-center gap-2">💰 الرصيد — Balance</h4>
+              <p className="text-white/40 text-xs mb-3">استخدم هذا الرابط للاستعلام عن رصيدك</p>
+              <div className="mb-3">
+                <p className="text-white/50 text-xs mb-1">مثال طلب:</p>
+                <div className="bg-black/40 rounded-lg px-3 py-2 text-xs font-mono text-green-400 break-all" dir="ltr">
+                  {apiBase}?action=balance&key=yourKey
+                </div>
+              </div>
+              <div>
+                <p className="text-white/50 text-xs mb-1">نتيجة الاستجابة:</p>
+                <pre className="bg-black/40 rounded-lg px-3 py-2 text-xs font-mono text-yellow-300" dir="ltr">{`{
   "balance": "99.80",
   "currency": "USD"
 }`}</pre>
-                            </div>
-                        </Card>
+              </div>
+            </Card>
 
-                        {/* Refill */}
-                        <Card className="p-5 bg-white/5 border-white/10 backdrop-blur-sm">
-                            <h4 className="text-blue-400 font-bold text-sm mb-1 flex items-center gap-2">🔄 إعادة تعبئة — Refill</h4>
-                            <p className="text-white/40 text-xs mb-3">استخدم هذا الرابط لطلب إعادة تعبئة الطلب</p>
-                            <div className="mb-3">
-                                <p className="text-white/50 text-xs mb-1">مثال طلب:</p>
-                                <div className="bg-black/40 rounded-lg px-3 py-2 text-xs font-mono text-green-400 break-all" dir="ltr">
-                                    {apiBase}?action=refill&order=10001&key=yourKey
-                                </div>
-                            </div>
-                            <div>
-                                <p className="text-white/50 text-xs mb-1">نتيجة الاستجابة:</p>
-                                <pre className="bg-black/40 rounded-lg px-3 py-2 text-xs font-mono text-yellow-300" dir="ltr">{`{
+            {/* Refill */}
+            <Card className="p-5 bg-white/5 border-white/10 backdrop-blur-sm">
+              <h4 className="text-blue-400 font-bold text-sm mb-1 flex items-center gap-2">🔄 إعادة تعبئة — Refill</h4>
+              <p className="text-white/40 text-xs mb-3">استخدم هذا الرابط لطلب إعادة تعبئة الطلب</p>
+              <div className="mb-3">
+                <p className="text-white/50 text-xs mb-1">مثال طلب:</p>
+                <div className="bg-black/40 rounded-lg px-3 py-2 text-xs font-mono text-green-400 break-all" dir="ltr">
+                  {apiBase}?action=refill&order=10001&key=yourKey
+                </div>
+              </div>
+              <div>
+                <p className="text-white/50 text-xs mb-1">نتيجة الاستجابة:</p>
+                <pre className="bg-black/40 rounded-lg px-3 py-2 text-xs font-mono text-yellow-300" dir="ltr">{`{
   "refill": 1
 }`}</pre>
-                            </div>
-                        </Card>
+              </div>
+            </Card>
 
-                        {/* Cancel */}
-                        <Card className="p-5 bg-white/5 border-white/10 backdrop-blur-sm">
-                            <h4 className="text-red-400 font-bold text-sm mb-1 flex items-center gap-2">❌ إلغاء الطلب — Cancel</h4>
-                            <p className="text-white/40 text-xs mb-3">استخدم هذا الرابط لإلغاء طلب الانتظار فقط</p>
-                            <div className="mb-3">
-                                <p className="text-white/50 text-xs mb-1">مثال طلب:</p>
-                                <div className="bg-black/40 rounded-lg px-3 py-2 text-xs font-mono text-green-400 break-all" dir="ltr">
-                                    {apiBase}?action=cancel&order=10001&key=yourKey
-                                </div>
-                            </div>
-                            <div>
-                                <p className="text-white/50 text-xs mb-1">نتيجة الاستجابة:</p>
-                                <pre className="bg-black/40 rounded-lg px-3 py-2 text-xs font-mono text-yellow-300" dir="ltr">{`{
+            {/* Cancel */}
+            <Card className="p-5 bg-white/5 border-white/10 backdrop-blur-sm">
+              <h4 className="text-red-400 font-bold text-sm mb-1 flex items-center gap-2">❌ إلغاء الطلب — Cancel</h4>
+              <p className="text-white/40 text-xs mb-3">استخدم هذا الرابط لإلغاء طلب الانتظار فقط</p>
+              <div className="mb-3">
+                <p className="text-white/50 text-xs mb-1">مثال طلب:</p>
+                <div className="bg-black/40 rounded-lg px-3 py-2 text-xs font-mono text-green-400 break-all" dir="ltr">
+                  {apiBase}?action=cancel&order=10001&key=yourKey
+                </div>
+              </div>
+              <div>
+                <p className="text-white/50 text-xs mb-1">نتيجة الاستجابة:</p>
+                <pre className="bg-black/40 rounded-lg px-3 py-2 text-xs font-mono text-yellow-300" dir="ltr">{`{
   "ok": true
 }`}</pre>
-                            </div>
-                        </Card>
-                    </div>
-                );
-            })()}
-        </div>
-    );
+              </div>
+            </Card>
+          </div>
+        );
+      })()}
+    </div>
+  );
 }
 
 // Add Funds View Component
@@ -1829,7 +1829,7 @@ function SupportView() {
   const [sendingTicket, setSendingTicket] = useState(false);
   const [ticketMsg, setTicketMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
-  const topics = ['����� �� ���', '����� �� �����', '����� �� ������', '������� ���', '������ �� ������'];
+  const topics = ['مشكلة في طلب', 'مشكلة في الدفع', 'مشكلة في الحساب', 'استفسار عام', 'اقتراح أو شكوى'];
 
   useEffect(() => {
     fetch(`${API_URL}/settings/public/support`).then(r => r.json()).then(data => { if (data) setConfig(data); }).catch(console.error).finally(() => setLoading(false));
@@ -1842,13 +1842,13 @@ function SupportView() {
   useEffect(() => { fetchTickets(); }, [user?._id]);
 
   const handleSubmitTicket = async () => {
-    if (!ticketTopic || !ticketMessage.trim()) { setTicketMsg({ type: 'error', text: '���� ������ ������� ������ �������' }); return; }
+    if (!ticketTopic || !ticketMessage.trim()) { setTicketMsg({ type: 'error', text: 'يرجى اختيار الموضوع وكتابة الرسالة' }); return; }
     setSendingTicket(true); setTicketMsg(null);
     try {
       const res = await apiFetch(`/tickets`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId: user?._id, topic: ticketTopic, message: ticketMessage }) });
-      if (res.ok) { setTicketMsg({ type: 'success', text: '�� ����� ������� ����� ?' }); setTicketTopic(''); setTicketMessage(''); fetchTickets(); }
-      else { setTicketMsg({ type: 'error', text: '��� ����� �������' }); }
-    } catch { setTicketMsg({ type: 'error', text: '��� �� �������' }); }
+      if (res.ok) { setTicketMsg({ type: 'success', text: 'تم إرسال التذكرة بنجاح ✅' }); setTicketTopic(''); setTicketMessage(''); fetchTickets(); }
+      else { setTicketMsg({ type: 'error', text: 'فشل إرسال التذكرة' }); }
+    } catch { setTicketMsg({ type: 'error', text: 'خطأ في الاتصال' }); }
     setSendingTicket(false);
   };
 
@@ -1868,7 +1868,7 @@ function SupportView() {
             <div className="w-12 h-12 rounded-xl bg-green-500/20 flex items-center justify-center">
               <svg viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6 text-green-400"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" /><path d="M12 2C6.477 2 2 6.477 2 12c0 1.89.525 3.66 1.438 5.168L2 22l4.832-1.438A9.955 9.955 0 0012 22c5.523 0 10-4.477 10-10S17.523 2 12 2zm0 18c-1.66 0-3.203-.51-4.484-1.375l-.32-.191-2.872.855.855-2.872-.191-.32A7.963 7.963 0 014 12c0-4.411 3.589-8 8-8s8 3.589 8 8-3.589 8-8 8z" /></svg>
             </div>
-            <div className="flex-1 text-start"><p className="text-white font-bold text-sm">{lang === 'ar' ? '������' : 'WhatsApp'}</p><p className="text-white/40 text-xs" dir="ltr">{config.whatsapp}</p></div>
+            <div className="flex-1 text-start"><p className="text-white font-bold text-sm">{lang === 'ar' ? 'واتساب' : 'WhatsApp'}</p><p className="text-white/40 text-xs" dir="ltr">{config.whatsapp}</p></div>
           </button>
         )}
         {config.telegram && (
@@ -1876,25 +1876,25 @@ function SupportView() {
             <div className="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center">
               <svg viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6 text-blue-400"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .24z" /></svg>
             </div>
-            <div className="flex-1 text-start"><p className="text-white font-bold text-sm">{lang === 'ar' ? '������' : 'Telegram'}</p><p className="text-white/40 text-xs">{config.telegram}</p></div>
+            <div className="flex-1 text-start"><p className="text-white font-bold text-sm">{lang === 'ar' ? 'تلغرام' : 'Telegram'}</p><p className="text-white/40 text-xs">{config.telegram}</p></div>
           </button>
         )}
         {config.email && (
           <button onClick={() => window.open(`mailto:${config.email}`, '_blank')} className="w-full flex items-center gap-4 p-4 rounded-2xl bg-purple-500/10 border border-purple-500/30 hover:bg-purple-500/20 transition-all">
             <div className="w-12 h-12 rounded-xl bg-purple-500/20 flex items-center justify-center"><span className="text-2xl">??</span></div>
-            <div className="flex-1 text-start"><p className="text-white font-bold text-sm">{lang === 'ar' ? '������ ����������' : 'Email'}</p><p className="text-white/40 text-xs">{config.email}</p></div>
+            <div className="flex-1 text-start"><p className="text-white font-bold text-sm">{lang === 'ar' ? 'البريد الإلكتروني' : 'Email'}</p><p className="text-white/40 text-xs">{config.email}</p></div>
           </button>
         )}
         {!loading && !config.whatsapp && !config.telegram && !config.email && (
-          <Card className="p-6 bg-white/5 border-white/10 text-center"><p className="text-white/40 text-sm">{lang === 'ar' ? '�� ���� ����� ����� ����� ������' : 'No contact channels available'}</p></Card>
+          <Card className="p-6 bg-white/5 border-white/10 text-center"><p className="text-white/40 text-sm">{lang === 'ar' ? 'لا توجد قنوات تواصل متاحة حالياً' : 'No contact channels available'}</p></Card>
         )}
       </div>
 
       {/* Ticket Form */}
       <Card className="p-5 bg-white/5 border-white/10 backdrop-blur-sm space-y-4">
-        <h3 className="text-white font-bold text-base flex items-center gap-2">?? ����� ����� ���</h3>
+        <h3 className="text-white font-bold text-base flex items-center gap-2">📩 إرسال تذكرة دعم</h3>
         <div>
-          <label className="block text-white/60 text-sm mb-2">{t.ticketSubject || '����� �������'}</label>
+          <label className="block text-white/60 text-sm mb-2">{t.ticketSubject || 'موضوع التذكرة'}</label>
           <div className="relative">
             <select
               value={ticketTopic}
@@ -1902,7 +1902,7 @@ function SupportView() {
               className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-cyan-500/50 appearance-none"
               style={{ paddingInlineEnd: '2.5rem' }}
             >
-              <option value="" disabled className="bg-[#0a0a1a] text-white/50">{lang === 'ar' ? '���� �������...' : 'Select a topic...'}</option>
+              <option value="" disabled className="bg-[#0a0a1a] text-white/50">{lang === 'ar' ? 'اختر الموضوع...' : 'Select a topic...'}</option>
               {topics.map(tp => (
                 <option key={tp} value={tp} className="bg-[#0a0a1a] text-white">
                   {tp}
@@ -1915,34 +1915,34 @@ function SupportView() {
           </div>
         </div>
         <div>
-          <label className="block text-white/60 text-sm mb-2">����� ��������</label>
-          <textarea value={ticketMessage} onChange={e => setTicketMessage(e.target.value)} placeholder="���� ������ ���..." rows={4} className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-white/30 text-sm resize-none focus:outline-none focus:border-cyan-500/50" />
+          <label className="block text-white/60 text-sm mb-2">تفاصيل المشكلة</label>
+          <textarea value={ticketMessage} onChange={e => setTicketMessage(e.target.value)} placeholder="اكتب مشكلتك هنا..." rows={4} className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-white/30 text-sm resize-none focus:outline-none focus:border-cyan-500/50" />
         </div>
         {ticketMsg && <div className={`p-3 rounded-xl text-sm ${ticketMsg.type === 'success' ? 'bg-green-500/10 text-green-400 border border-green-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'}`}>{ticketMsg.text}</div>}
         <Button onClick={handleSubmitTicket} disabled={sendingTicket || !ticketTopic || !ticketMessage.trim()} className="w-full bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700 text-white h-11 disabled:opacity-50">
-          {sendingTicket ? '...' : '?? ����� �������'}
+          {sendingTicket ? '...' : '📩 إرسال التذكرة'}
         </Button>
       </Card>
 
       {/* Tickets List */}
       {tickets.length > 0 && (
         <div className="space-y-3">
-          <h3 className="text-white font-bold text-base">?? ������</h3>
+          <h3 className="text-white font-bold text-base">📋 تذاكري</h3>
           {tickets.map(ticket => (
             <Card key={ticket._id} className="p-4 bg-white/5 border-white/10 space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-white font-medium text-sm">{ticket.topic}</span>
                 <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium border ${ticket.status === 'closed' ? 'bg-green-500/10 text-green-400 border-green-500/30' : 'bg-yellow-500/10 text-yellow-400 border-yellow-500/30'}`}>
-                  {ticket.status === 'closed' ? '�� ���� ?' : '��� �������� ?'}
+                  {ticket.status === 'closed' ? 'تم الحل ✅' : 'قيد الانتظار ⏳'}
                 </span>
               </div>
               <div className="bg-white/5 rounded-xl p-3 border border-white/5">
-                <p className="text-white/40 text-[10px] mb-1">������:</p>
+                <p className="text-white/40 text-[10px] mb-1">رسالتك:</p>
                 <p className="text-white/80 text-sm leading-relaxed">{ticket.message}</p>
               </div>
               {ticket.adminReply && (
                 <div className="bg-gradient-to-r from-cyan-500/10 to-purple-500/10 rounded-xl p-3 border border-cyan-500/20">
-                  <p className="text-cyan-400 text-[10px] mb-1 font-bold">�� ������:</p>
+                  <p className="text-cyan-400 text-[10px] mb-1 font-bold">رد الإدارة:</p>
                   <p className="text-white text-sm leading-relaxed">{ticket.adminReply}</p>
                   {ticket.repliedAt && <p className="text-white/25 text-[10px] mt-2">{new Date(ticket.repliedAt).toLocaleString('ar-IQ')}</p>}
                 </div>
@@ -1969,11 +1969,11 @@ function TermsView() {
       .then(data => {
         if (data && Array.isArray(data) && data.length > 0) setSections(data);
         else setSections([
-          { title: '1. ������ �������', body: '��������� ����� Jerry� ���� ����� ��� ���� ������ �������� �������� �����. ���� ������� ������ ��� ������� �� ����.' },
-          { title: '2. ������� �������', body: '���� ����� ������� ������ ��� �� ��� ����� ��������� ���������� ��������� ��� ����� ������� ��������� ��������.' },
-          { title: '3. ����� ���������', body: '�� ���� ������� ������� ��� ��� ����� �����. �� ���� ��� ������ ����ȡ ���� ����� ������ ������� ��� �����.' },
-          { title: '4. ���������', body: '�� ����� ������ �� ������� �� �� ������� ������ ����� ������� ��������� ���� ������� ����� ������� �������.' },
-          { title: '5. ��������', body: '����� ������� ��� ����� ������� ������� �� �� ��� ����. ��� ������� ������� ��� ������ ������� ��������.' },
+          { title: '1. الشروط العامة', body: 'باستخدامك لمتجر Jerry، فإنك توافق على هذه الشروط والأحكام المذكورة أدناه. يرجى مراجعة الشروط قبل المتابعة في الشراء.' },
+          { title: '2. الخدمات المقدمة', body: 'يقدم المتجر خدمات التواصل على أساس التوفر والاستخدام والمتطلبات عبر موفري الخدمات المعتمدين والموثوقين.' },
+          { title: '3. سياسة الاسترجاع', body: 'لا يمكن استرجاع المبالغ بعد بدء معالجة الطلب. في حالة عدم التنفيذ كاملاً، يتم إعادة الرصيد المتبقي إلى حسابك.' },
+          { title: '4. المسؤولية', body: 'لا نتحمل مسؤولية أي تغييرات في سياسات المنصات الخارجية التي قد تؤثر على الخدمات المقدمة.' },
+          { title: '5. الخصوصية', body: 'نحترم خصوصية كل مستخدم ونلتزم بحماية بياناتك في كل وقت. قد نستخدم بياناتك فقط لتحسين الخدمات المقدمة.' },
         ]);
       })
       .catch(console.error);
@@ -2007,9 +2007,9 @@ function UpdatesView() {
       .then(data => {
         if (data && Array.isArray(data) && data.length > 0) setUpdates(data);
         else setUpdates([
-          { version: 'v2.5', date: '2025-02-15', title: '������� ����� ��������', description: '����� ������� ����� ������ ����� ������ ����� �������� �� ����� ���� �������.', type: '�����' },
-          { version: 'v2.4', date: '2025-02-10', title: '����� ����� �������', description: '��� ����� ����� ����� �������� ���� ������� ���������� ������� ������.', type: '����' },
-          { version: 'v2.3', date: '2025-02-01', title: '���� ����� �����', description: '����� ����� ����� �� ������� �������� ������ �� ������ ������.', type: '����' },
+          { version: 'v2.5', date: '2025-02-15', title: 'تحسينات واجهة المستخدم', description: 'تحسين التصميم وإضافة تأثيرات بصرية جديدة لتحسين تجربة المستخدم في جميع أقسام المتجر.', type: 'تحسين' },
+          { version: 'v2.4', date: '2025-02-10', title: 'إضافة نظام التذاكر', description: 'أصبح بإمكانك إرسال تذاكر الدعم الفني ومتابعة الردود والتحديثات مباشرة.', type: 'جديد' },
+          { version: 'v2.3', date: '2025-02-01', title: 'دعم طرق دفع جديدة', description: 'إضافة خيارات دفع جديدة عبر العملات الرقمية وتحسين آلية شحن الرصيد.', type: 'جديد' },
         ]);
       })
       .catch(console.error);
@@ -2027,7 +2027,7 @@ function UpdatesView() {
                 <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">
                   {update.version}
                 </span>
-                <span className={`px-2 py-0.5 rounded-full text-xs font-medium border ${update.type === '����' ? 'bg-green-500/20 text-green-400 border-green-500/30' : update.type === '�����' ? 'bg-red-500/20 text-red-400 border-red-500/30' : 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30'}`}>
+                <span className={`px-2 py-0.5 rounded-full text-xs font-medium border ${update.type === 'جديد' ? 'bg-green-500/20 text-green-400 border-green-500/30' : update.type === 'تحسين' ? 'bg-red-500/20 text-red-400 border-red-500/30' : 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30'}`}>
                   {update.type}
                 </span>
               </div>

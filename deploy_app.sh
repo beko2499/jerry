@@ -49,7 +49,12 @@ pm2 save
 pm2 startup systemd -u root --hp /root 2>/dev/null || true
 cd ..
 
-echo ">>> 7. Configuring Nginx..."
+echo ">>> 7. Seeding Admin Account & Default Data..."
+cd "$APP_DIR/server"
+node seed.js
+cd "$APP_DIR"
+
+echo ">>> 8. Configuring Nginx..."
 cat > /etc/nginx/sites-available/$DOMAIN <<EOF
 server {
     listen 80 default_server;
@@ -88,8 +93,8 @@ ln -sf /etc/nginx/sites-available/$DOMAIN /etc/nginx/sites-enabled/
 rm -f /etc/nginx/sites-enabled/default
 nginx -t && systemctl reload nginx
 
-echo ">>> 8. Securing with SSL (Certbot)..."
-certbot --nginx -d $DOMAIN -d www.$DOMAIN --non-interactive --agree-tos -m maram24900@gmail.com || echo ">>> Cannot apply SSL yet (domain not pointing to IP). Skipping SSL for now. <<<"
+echo ">>> 9. Securing with SSL (Certbot)..."
+certbot --nginx -d $DOMAIN -d www.$DOMAIN --non-interactive --agree-tos -m maram24900@gmail.com || echo ">>> Cannot apply SSL yet (domain not pointing to IP). Skipping. <<<"
 
 systemctl restart nginx
 

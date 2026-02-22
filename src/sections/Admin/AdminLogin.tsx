@@ -29,6 +29,7 @@ export default function AdminLogin({ onLogin }: AdminLoginProps) {
             if (res.ok) {
                 const data = await res.json();
                 if (data.token) setAdminToken(data.token);
+                if (data.user) localStorage.setItem('jerry_admin_user', JSON.stringify(data.user));
                 onLogin();
             } else {
                 const data = await res.json();

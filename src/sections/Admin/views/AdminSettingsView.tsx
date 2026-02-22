@@ -1,6 +1,5 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { useAuth } from '@/contexts/AuthContext';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -23,11 +22,14 @@ interface RefAdminStats {
 
 export default function AdminSettingsView() {
     const { t } = useLanguage();
-    const { user, refreshUser } = useAuth();
+    const [adminUser, setAdminUser] = useState<any>(() => {
+        const stored = localStorage.getItem('jerry_admin_user');
+        return stored ? JSON.parse(stored) : null;
+    });
     const [tab, setTab] = useState<'settings' | 'referral' | 'backup'>('settings');
 
     // Settings states
-    const [username, setUsername] = useState(user?.username || '');
+    const [username, setUsername] = useState(adminUser?.username || '');
     const [currentPassword, setCurrentPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
@@ -47,6 +49,14 @@ export default function AdminSettingsView() {
     const [restoreResults, setRestoreResults] = useState<Record<string, number> | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
+
+    const refreshAdminUser = useCallback((newUsername?: string) => {
+        if (newUsername && adminUser) {
+            const updated = { ...adminUser, username: newUsername };
+            setAdminUser(updated);
+            localStorage.setItem('jerry_admin_user', JSON.stringify(updated));
+        }
+    }, [adminUser]);
 
     useEffect(() => {
         if (tab === 'referral') {
@@ -69,11 +79,11 @@ export default function AdminSettingsView() {
         setSaving(true);
         try {
             const body: any = {};
-            if (username !== user?.username) body.username = username;
+            if (username !== adminUser?.username) body.username = username;
             if (newPassword) { body.newPassword = newPassword; body.currentPassword = currentPassword; }
             else if (currentPassword) body.currentPassword = currentPassword;
             if (Object.keys(body).length === 0) { setMessage({ type: 'error', text: 'لا توجد تغييرات لحفظها' }); setSaving(false); return; }
-            const res = await adminFetch(`/auth/profile/${user?._id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+            const res = await adminFetch(`/auth/profile/${adminUser?._id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
             const data = await res.json();
             if (!res.ok) {
                 const errMap: Record<string, string> = { wrong_password: 'كلمة المرور الحالية غير صحيحة', username_exists: 'اسم المستخدم مستخدم بالفعل', current_password_required: 'يرجى إدخال كلمة المرور الحالية' };
@@ -81,7 +91,7 @@ export default function AdminSettingsView() {
             } else {
                 setMessage({ type: 'success', text: 'تم حفظ التغييرات بنجاح ✅' });
                 setCurrentPassword(''); setNewPassword(''); setConfirmPassword('');
-                await refreshUser();
+                if (body.username) refreshAdminUser(body.username);
             }
         } catch { setMessage({ type: 'error', text: 'حدث خطأ في الاتصال' }); }
         setSaving(false);

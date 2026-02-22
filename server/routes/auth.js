@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
-const { sendVerificationEmail } = require('../utils/email');
+const { sendVerificationEmail, sendPasswordResetEmail } = require('../utils/email');
 const { generateToken, requireAuth, requireAdmin } = require('../middleware/authMiddleware');
 
 // Generate 6-digit code
@@ -166,6 +166,62 @@ router.post('/login', async (req, res) => {
 
         const token = generateToken(user);
         res.json({ token, user: { _id: user._id, username: user.username, firstName: user.firstName, lastName: user.lastName, phone: user.phone, email: user.email, balance: user.balance, role: user.role } });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Forgot Password — sends reset code to email
+router.post('/forgot-password', async (req, res) => {
+    try {
+        const { email } = req.body;
+        if (!email) return res.status(400).json({ error: 'email_required' });
+
+        const user = await User.findOne({ email: email.trim().toLowerCase() });
+        if (!user) return res.status(404).json({ error: 'user_not_found' });
+
+        const code = generateCode();
+        user.verificationCode = code;
+        user.verificationCodeExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 min
+        await user.save();
+
+        try {
+            await sendPasswordResetEmail(user.email, code);
+        } catch (emailErr) {
+            console.error('❌ Password reset email failed:', emailErr.message);
+            return res.status(500).json({ error: 'email_failed' });
+        }
+
+        res.json({ message: 'reset_code_sent', userId: user._id, email: user.email });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Reset Password — verifies code and sets new password
+router.post('/reset-password', async (req, res) => {
+    try {
+        const { userId, code, newPassword } = req.body;
+        if (!userId || !code || !newPassword) return res.status(400).json({ error: 'missing_fields' });
+        if (newPassword.length < 4) return res.status(400).json({ error: 'password_too_short' });
+
+        const user = await User.findById(userId);
+        if (!user) return res.status(404).json({ error: 'user_not_found' });
+
+        if (user.verificationCode !== code) {
+            return res.status(400).json({ error: 'invalid_code' });
+        }
+
+        if (user.verificationCodeExpires && new Date() > user.verificationCodeExpires) {
+            return res.status(400).json({ error: 'code_expired' });
+        }
+
+        user.password = newPassword;
+        user.verificationCode = null;
+        user.verificationCodeExpires = null;
+        await user.save();
+
+        res.json({ message: 'password_reset_success' });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }

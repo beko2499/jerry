@@ -1,14 +1,15 @@
 import { useState, useRef } from 'react';
+import { API_URL } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import Starfield from '@/components/Starfield';
-import { User, Lock, Mail, Phone, UserPlus, LogIn, Eye, EyeOff, AlertCircle, CheckCircle2, Globe, ArrowRight, RefreshCw } from 'lucide-react';
+import { User, Lock, Mail, Phone, UserPlus, LogIn, Eye, EyeOff, AlertCircle, CheckCircle2, Globe, ArrowRight, RefreshCw, KeyRound } from 'lucide-react';
 import { Logo } from '@/components/Logo';
 
-type Step = 'login' | 'register' | 'verify' | 'success';
+type Step = 'login' | 'register' | 'verify' | 'success' | 'forgot-password' | 'reset-code' | 'new-password';
 
 export default function AuthPage() {
     const [step, setStep] = useState<Step>('login');
@@ -40,6 +41,20 @@ export default function AuthPage() {
     const [isResending, setIsResending] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const codeInputRefs = useRef<(HTMLInputElement | null)[]>([]);
+
+    // Forgot password state
+    const [forgotEmail, setForgotEmail] = useState('');
+    const [forgotError, setForgotError] = useState('');
+    const [forgotUserId, setForgotUserId] = useState('');
+    const [forgotUserEmail, setForgotUserEmail] = useState('');
+    const [resetCode, setResetCode] = useState(['', '', '', '', '', '']);
+    const [resetCodeError, setResetCodeError] = useState('');
+    const [resetNewPass, setResetNewPass] = useState('');
+    const [resetConfirmPass, setResetConfirmPass] = useState('');
+    const [showResetPass, setShowResetPass] = useState(false);
+    const [resetError, setResetError] = useState('');
+    const [resetSuccess, setResetSuccess] = useState(false);
+    const resetCodeRefs = useRef<(HTMLInputElement | null)[]>([]);
 
     // Handle code input
     const handleCodeChange = (index: number, value: string) => {
@@ -171,6 +186,110 @@ export default function AuthPage() {
         setStep('login');
         setVerifyCode(['', '', '', '', '', '']);
         setVerifyError('');
+        setForgotError('');
+        setResetCodeError('');
+        setResetError('');
+        setResetSuccess(false);
+    };
+
+    // Forgot password handlers
+    const handleForgotPassword = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setForgotError('');
+        if (!forgotEmail) { setForgotError(t.fillAllFields || 'يرجى إدخال البريد الإلكتروني'); return; }
+        setIsLoading(true);
+        try {
+            const res = await fetch(`${API_URL}/auth/forgot-password`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: forgotEmail }),
+            });
+            const data = await res.json();
+            if (res.ok) {
+                setForgotUserId(data.userId);
+                setForgotUserEmail(data.email);
+                setStep('reset-code');
+            } else {
+                const errMap: Record<string, string> = {
+                    user_not_found: 'لا يوجد حساب مرتبط بهذا البريد الإلكتروني',
+                    email_failed: 'فشل في إرسال البريد الإلكتروني، حاول لاحقاً',
+                };
+                setForgotError(errMap[data.error] || 'حدث خطأ');
+            }
+        } catch { setForgotError('حدث خطأ في الاتصال'); }
+        setIsLoading(false);
+    };
+
+    const handleResetCodeChange = (index: number, value: string) => {
+        if (!/^\d*$/.test(value)) return;
+        const newCode = [...resetCode];
+        newCode[index] = value.slice(-1);
+        setResetCode(newCode);
+        if (value && index < 5) resetCodeRefs.current[index + 1]?.focus();
+    };
+
+    const handleResetCodeKeyDown = (index: number, e: React.KeyboardEvent) => {
+        if (e.key === 'Backspace' && !resetCode[index] && index > 0) resetCodeRefs.current[index - 1]?.focus();
+    };
+
+    const handleResetCodePaste = (e: React.ClipboardEvent) => {
+        e.preventDefault();
+        const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
+        const newCode = [...resetCode];
+        for (let i = 0; i < 6; i++) newCode[i] = pasted[i] || '';
+        setResetCode(newCode);
+        const nextEmpty = newCode.findIndex(c => !c);
+        resetCodeRefs.current[nextEmpty === -1 ? 5 : nextEmpty]?.focus();
+    };
+
+    const handleVerifyResetCode = async () => {
+        setResetCodeError('');
+        const code = resetCode.join('');
+        if (code.length !== 6) { setResetCodeError('يرجى إدخال الكود المكون من 6 أرقام'); return; }
+        // Just move to new password step — code will be verified on server when setting password
+        setStep('new-password');
+    };
+
+    const handleResetPassword = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setResetError('');
+        if (!resetNewPass || !resetConfirmPass) { setResetError('يرجى ملء جميع الحقول'); return; }
+        if (resetNewPass.length < 4) { setResetError('كلمة المرور يجب أن تكون 4 أحرف على الأقل'); return; }
+        if (resetNewPass !== resetConfirmPass) { setResetError('كلمات المرور غير متطابقة'); return; }
+        setIsLoading(true);
+        try {
+            const res = await fetch(`${API_URL}/auth/reset-password`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId: forgotUserId, code: resetCode.join(''), newPassword: resetNewPass }),
+            });
+            const data = await res.json();
+            if (res.ok) {
+                setResetSuccess(true);
+            } else {
+                const errMap: Record<string, string> = {
+                    invalid_code: 'الكود غير صحيح',
+                    code_expired: 'انتهت صلاحية الكود، أعد المحاولة',
+                    password_too_short: 'كلمة المرور قصيرة جداً',
+                };
+                setResetError(errMap[data.error] || 'حدث خطأ');
+            }
+        } catch { setResetError('حدث خطأ في الاتصال'); }
+        setIsLoading(false);
+    };
+
+    const handleResendResetCode = async () => {
+        setIsResending(true);
+        try {
+            await fetch(`${API_URL}/auth/forgot-password`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: forgotUserEmail }),
+            });
+            setResetCode(['', '', '', '', '', '']);
+            setResetCodeError('');
+        } catch { /* ignore */ }
+        setIsResending(false);
     };
 
     return (
@@ -288,6 +407,16 @@ export default function AuthPage() {
                                             </>
                                         )}
                                     </Button>
+                                    {/* Forgot Password Link */}
+                                    <div className="text-center">
+                                        <button
+                                            type="button"
+                                            onClick={() => { setStep('forgot-password' as Step); setForgotError(''); setForgotEmail(''); }}
+                                            className="text-cyan-400/70 hover:text-cyan-400 text-sm font-body transition-colors"
+                                        >
+                                            {lang === 'ar' ? 'نسيت كلمة المرور؟' : 'Forgot Password?'}
+                                        </button>
+                                    </div>
                                 </form>
                             </Card>
                         )}
@@ -526,6 +655,235 @@ export default function AuthPage() {
                             >
                                 <ArrowRight className="w-5 h-5 mr-2" />
                                 {t.continueToLogin || 'متابعة لتسجيل الدخول'}
+                            </Button>
+                        </div>
+                    </Card>
+                )}
+
+                {/* ===== STEP: FORGOT PASSWORD ===== */}
+                {step === 'forgot-password' && (
+                    <Card className="p-8 bg-white/5 border-white/10 backdrop-blur-md animate-in fade-in slide-in-from-bottom-4 duration-500">
+                        <div className="text-center mb-6">
+                            <div className="w-16 h-16 mx-auto rounded-full bg-gradient-to-br from-orange-500/20 to-red-600/20 border-2 border-orange-500/40 flex items-center justify-center mb-4">
+                                <KeyRound className="w-8 h-8 text-orange-400" />
+                            </div>
+                            <h3 className="text-white text-xl font-bold font-space mb-2">
+                                {lang === 'ar' ? 'نسيت كلمة المرور؟' : 'Forgot Password?'}
+                            </h3>
+                            <p className="text-white/50 text-sm font-body">
+                                {lang === 'ar' ? 'أدخل بريدك الإلكتروني وسنرسل لك كود لإعادة تعيين كلمة المرور' : 'Enter your email and we\'ll send you a reset code'}
+                            </p>
+                        </div>
+
+                        <form onSubmit={handleForgotPassword} className="space-y-5">
+                            <div>
+                                <label className={`block font-body text-white/70 mb-2 text-sm ${isRTL ? 'text-right' : 'text-left'}`}>
+                                    {t.email || 'البريد الإلكتروني'}
+                                </label>
+                                <div className="relative">
+                                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
+                                    <Input
+                                        type="email"
+                                        value={forgotEmail}
+                                        onChange={(e) => setForgotEmail(e.target.value)}
+                                        placeholder="example@email.com"
+                                        className="pl-10 bg-black/30 border-white/10 text-white focus:border-orange-500/50 h-12 font-body placeholder:text-white/20"
+                                        dir="ltr"
+                                    />
+                                </div>
+                            </div>
+
+                            {forgotError && (
+                                <div className="flex items-center gap-2 p-3 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400 text-sm">
+                                    <AlertCircle className="w-4 h-4 shrink-0" />
+                                    <span className="font-body">{forgotError}</span>
+                                </div>
+                            )}
+
+                            <Button
+                                type="submit"
+                                disabled={isLoading}
+                                className="w-full h-12 bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white text-base font-bold shadow-lg shadow-orange-500/20 rounded-xl transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50"
+                            >
+                                {isLoading ? <RefreshCw className="w-5 h-5 animate-spin" /> : (
+                                    <>
+                                        <Mail className={`w-5 h-5 ${isRTL ? 'ml-2' : 'mr-2'}`} />
+                                        {lang === 'ar' ? 'إرسال كود الاسترداد' : 'Send Reset Code'}
+                                    </>
+                                )}
+                            </Button>
+
+                            <div className="text-center">
+                                <button type="button" onClick={goToLogin} className="text-cyan-400/70 hover:text-cyan-400 text-sm font-body transition-colors">
+                                    {lang === 'ar' ? 'العودة لتسجيل الدخول' : 'Back to Login'}
+                                </button>
+                            </div>
+                        </form>
+                    </Card>
+                )}
+
+                {/* ===== STEP: RESET CODE ===== */}
+                {step === 'reset-code' && (
+                    <Card className="p-8 bg-white/5 border-white/10 backdrop-blur-md animate-in fade-in slide-in-from-bottom-4 duration-500">
+                        <div className="text-center space-y-6">
+                            <div className="w-16 h-16 mx-auto rounded-full bg-gradient-to-br from-orange-500/20 to-red-600/20 border-2 border-orange-500/40 flex items-center justify-center">
+                                <Mail className="w-8 h-8 text-orange-400" />
+                            </div>
+
+                            <div>
+                                <h3 className="text-white text-xl font-bold font-space mb-2">
+                                    {lang === 'ar' ? 'تحقق من بريدك' : 'Check Your Email'}
+                                </h3>
+                                <p className="text-white/50 text-sm font-body">
+                                    {lang === 'ar' ? `أرسلنا كود إلى ${forgotUserEmail}` : `We sent a code to ${forgotUserEmail}`}
+                                </p>
+                            </div>
+
+                            {/* Code Inputs */}
+                            <div className="flex justify-center gap-3" dir="ltr">
+                                {resetCode.map((digit, i) => (
+                                    <input
+                                        key={i}
+                                        ref={(el) => { resetCodeRefs.current[i] = el; }}
+                                        type="text"
+                                        inputMode="numeric"
+                                        maxLength={1}
+                                        value={digit}
+                                        onChange={(e) => handleResetCodeChange(i, e.target.value)}
+                                        onKeyDown={(e) => handleResetCodeKeyDown(i, e)}
+                                        onPaste={i === 0 ? handleResetCodePaste : undefined}
+                                        className="w-12 h-14 text-center text-2xl font-bold bg-black/40 border-2 border-white/10 rounded-xl text-white focus:border-orange-500 focus:outline-none transition-all duration-200"
+                                    />
+                                ))}
+                            </div>
+
+                            {resetCodeError && (
+                                <div className="flex items-center justify-center gap-2 p-3 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400 text-sm">
+                                    <AlertCircle className="w-4 h-4 shrink-0" />
+                                    <span className="font-body">{resetCodeError}</span>
+                                </div>
+                            )}
+
+                            <Button
+                                onClick={handleVerifyResetCode}
+                                className="w-full h-12 bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white text-base font-bold shadow-lg shadow-orange-500/20 rounded-xl transition-all hover:scale-[1.02] active:scale-[0.98]"
+                            >
+                                <CheckCircle2 className="w-5 h-5 mr-2" />
+                                {lang === 'ar' ? 'تأكيد الكود' : 'Verify Code'}
+                            </Button>
+
+                            <div className="flex items-center justify-center gap-1 text-sm">
+                                <span className="text-white/40 font-body">{lang === 'ar' ? 'لم يصلك الكود؟' : "Didn't receive?"}</span>
+                                <button
+                                    onClick={handleResendResetCode}
+                                    disabled={isResending}
+                                    className="text-orange-400 hover:text-orange-300 font-bold font-body transition-colors disabled:opacity-50"
+                                >
+                                    {isResending ? (lang === 'ar' ? 'جاري الإرسال...' : 'Sending...') : (lang === 'ar' ? 'إعادة الإرسال' : 'Resend')}
+                                </button>
+                            </div>
+                        </div>
+                    </Card>
+                )}
+
+                {/* ===== STEP: NEW PASSWORD ===== */}
+                {step === 'new-password' && !resetSuccess && (
+                    <Card className="p-8 bg-white/5 border-white/10 backdrop-blur-md animate-in fade-in slide-in-from-bottom-4 duration-500">
+                        <div className="text-center mb-6">
+                            <div className="w-16 h-16 mx-auto rounded-full bg-gradient-to-br from-green-500/20 to-emerald-600/20 border-2 border-green-500/40 flex items-center justify-center mb-4">
+                                <Lock className="w-8 h-8 text-green-400" />
+                            </div>
+                            <h3 className="text-white text-xl font-bold font-space mb-2">
+                                {lang === 'ar' ? 'تعيين كلمة مرور جديدة' : 'Set New Password'}
+                            </h3>
+                        </div>
+
+                        <form onSubmit={handleResetPassword} className="space-y-5">
+                            <div>
+                                <label className={`block font-body text-white/70 mb-2 text-sm ${isRTL ? 'text-right' : 'text-left'}`}>
+                                    {lang === 'ar' ? 'كلمة المرور الجديدة' : 'New Password'}
+                                </label>
+                                <div className="relative">
+                                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
+                                    <Input
+                                        type={showResetPass ? 'text' : 'password'}
+                                        value={resetNewPass}
+                                        onChange={(e) => setResetNewPass(e.target.value)}
+                                        placeholder="••••••••"
+                                        className="pl-10 pr-10 bg-black/30 border-white/10 text-white focus:border-green-500/50 h-12 font-body placeholder:text-white/20"
+                                        dir="ltr"
+                                    />
+                                    <button type="button" onClick={() => setShowResetPass(!showResetPass)} className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60">
+                                        {showResetPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className={`block font-body text-white/70 mb-2 text-sm ${isRTL ? 'text-right' : 'text-left'}`}>
+                                    {lang === 'ar' ? 'تأكيد كلمة المرور' : 'Confirm Password'}
+                                </label>
+                                <div className="relative">
+                                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
+                                    <Input
+                                        type={showResetPass ? 'text' : 'password'}
+                                        value={resetConfirmPass}
+                                        onChange={(e) => setResetConfirmPass(e.target.value)}
+                                        placeholder="••••••••"
+                                        className="pl-10 bg-black/30 border-white/10 text-white focus:border-green-500/50 h-12 font-body placeholder:text-white/20"
+                                        dir="ltr"
+                                    />
+                                </div>
+                            </div>
+
+                            {resetError && (
+                                <div className="flex items-center gap-2 p-3 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400 text-sm">
+                                    <AlertCircle className="w-4 h-4 shrink-0" />
+                                    <span className="font-body">{resetError}</span>
+                                </div>
+                            )}
+
+                            <Button
+                                type="submit"
+                                disabled={isLoading}
+                                className="w-full h-12 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white text-base font-bold shadow-lg shadow-green-500/20 rounded-xl transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50"
+                            >
+                                {isLoading ? <RefreshCw className="w-5 h-5 animate-spin" /> : (
+                                    <>
+                                        <CheckCircle2 className={`w-5 h-5 ${isRTL ? 'ml-2' : 'mr-2'}`} />
+                                        {lang === 'ar' ? 'تعيين كلمة المرور' : 'Reset Password'}
+                                    </>
+                                )}
+                            </Button>
+                        </form>
+                    </Card>
+                )}
+
+                {/* ===== STEP: RESET SUCCESS ===== */}
+                {step === 'new-password' && resetSuccess && (
+                    <Card className="p-8 bg-white/5 border-white/10 backdrop-blur-md animate-in fade-in zoom-in-95 duration-500">
+                        <div className="text-center space-y-6">
+                            <div className="w-24 h-24 mx-auto rounded-full bg-gradient-to-br from-green-500/20 to-emerald-600/20 border-2 border-green-500/40 flex items-center justify-center animate-in zoom-in-50 duration-700">
+                                <CheckCircle2 className="w-12 h-12 text-green-400" />
+                            </div>
+
+                            <div>
+                                <h3 className="text-white text-2xl font-bold font-space mb-3">
+                                    {lang === 'ar' ? 'تم تغيير كلمة المرور بنجاح! 🎉' : 'Password Reset Successfully! 🎉'}
+                                </h3>
+                                <p className="text-white/60 text-base font-body leading-relaxed">
+                                    {lang === 'ar' ? 'يمكنك الآن تسجيل الدخول بكلمة المرور الجديدة.' : 'You can now login with your new password.'}
+                                </p>
+                            </div>
+
+                            <div className="text-6xl">🔐</div>
+
+                            <Button
+                                onClick={goToLogin}
+                                className="w-full h-12 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white text-base font-bold shadow-lg shadow-green-500/20 rounded-xl transition-all hover:scale-[1.02] active:scale-[0.98]"
+                            >
+                                <ArrowRight className="w-5 h-5 mr-2" />
+                                {lang === 'ar' ? 'العودة لتسجيل الدخول' : 'Back to Login'}
                             </Button>
                         </div>
                     </Card>

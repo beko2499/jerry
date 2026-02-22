@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card } from '@/components/ui/card';
@@ -24,7 +24,7 @@ interface RefAdminStats {
 export default function AdminSettingsView() {
     const { t } = useLanguage();
     const { user, refreshUser } = useAuth();
-    const [tab, setTab] = useState<'settings' | 'referral'>('settings');
+    const [tab, setTab] = useState<'settings' | 'referral' | 'backup'>('settings');
 
     // Settings states
     const [username, setUsername] = useState(user?.username || '');
@@ -39,6 +39,14 @@ export default function AdminSettingsView() {
     const [newRate, setNewRate] = useState('');
     const [rateMsg, setRateMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
     const [savingRate, setSavingRate] = useState(false);
+
+    // Backup states
+    const [downloading, setDownloading] = useState(false);
+    const [restoring, setRestoring] = useState(false);
+    const [backupMsg, setBackupMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+    const [restoreResults, setRestoreResults] = useState<Record<string, number> | null>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
     useEffect(() => {
         if (tab === 'referral') {
@@ -100,6 +108,65 @@ export default function AdminSettingsView() {
         setSavingRate(false);
     };
 
+    // Backup handlers
+    const handleDownloadBackup = async () => {
+        setDownloading(true);
+        setBackupMsg(null);
+        try {
+            const res = await adminFetch('/backup/download');
+            if (!res.ok) { setBackupMsg({ type: 'error', text: 'فشل تنزيل النسخة الاحتياطية' }); setDownloading(false); return; }
+            const blob = await res.blob();
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            const date = new Date().toISOString().slice(0, 10);
+            a.href = url;
+            a.download = `jerry_backup_${date}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            setBackupMsg({ type: 'success', text: 'تم تنزيل النسخة الاحتياطية بنجاح ✅' });
+        } catch { setBackupMsg({ type: 'error', text: 'خطأ في الاتصال' }); }
+        setDownloading(false);
+    };
+
+    const handleRestoreBackup = async () => {
+        if (!selectedFile) { setBackupMsg({ type: 'error', text: 'يرجى اختيار ملف النسخة الاحتياطية' }); return; }
+        if (!confirm('⚠️ تحذير: سيتم حذف جميع البيانات الحالية واستبدالها بالنسخة الاحتياطية. هل أنت متأكد؟')) return;
+        setRestoring(true);
+        setBackupMsg(null);
+        setRestoreResults(null);
+        try {
+            const formData = new FormData();
+            formData.append('backup', selectedFile);
+            const res = await adminFetch('/backup/restore', { method: 'POST', body: formData });
+            const data = await res.json();
+            if (res.ok && data.success) {
+                setBackupMsg({ type: 'success', text: 'تم استرداد النسخة الاحتياطية بنجاح ✅' });
+                setRestoreResults(data.results);
+                setSelectedFile(null);
+                if (fileInputRef.current) fileInputRef.current.value = '';
+            } else {
+                setBackupMsg({ type: 'error', text: data.message || 'فشل الاسترداد' });
+            }
+        } catch { setBackupMsg({ type: 'error', text: 'خطأ في الاتصال' }); }
+        setRestoring(false);
+    };
+
+    const collectionNames: Record<string, string> = {
+        users: 'المستخدمين',
+        orders: 'الطلبات',
+        services: 'الخدمات',
+        categories: 'التصنيفات',
+        providers: 'الموفرين',
+        gateways: 'بوابات الدفع',
+        settings: 'الإعدادات',
+        coupons: 'الكوبونات',
+        notifications: 'الإشعارات',
+        tickets: 'التذاكر',
+        transactions: 'المعاملات',
+    };
+
     return (
         <div className="p-4 md:p-8">
             <h2 className="font-space text-xl md:text-2xl text-white mb-4 tracking-wide">{t.settings || 'الإعدادات'}</h2>
@@ -111,6 +178,9 @@ export default function AdminSettingsView() {
                 </button>
                 <button onClick={() => setTab('referral')} className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${tab === 'referral' ? 'bg-red-500/20 text-red-400 border border-red-500/30' : 'bg-white/5 text-white/50 border border-white/10 hover:bg-white/10'}`}>
                     نظام الانتساب
+                </button>
+                <button onClick={() => setTab('backup')} className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${tab === 'backup' ? 'bg-red-500/20 text-red-400 border border-red-500/30' : 'bg-white/5 text-white/50 border border-white/10 hover:bg-white/10'}`}>
+                    نسخ احتياطي
                 </button>
             </div>
 
@@ -222,6 +292,103 @@ export default function AdminSettingsView() {
                             <p className="text-white/30 text-sm text-center py-6">لا توجد إحالات بعد</p>
                         )}
                     </Card>
+                </div>
+            )}
+
+            {/* Backup Tab */}
+            {tab === 'backup' && (
+                <div className="max-w-lg space-y-4">
+                    {/* Download Backup */}
+                    <Card className="p-5 bg-white/5 border-white/10 backdrop-blur-sm">
+                        <div className="flex items-start gap-3 mb-4">
+                            <div className="w-10 h-10 rounded-xl bg-green-500/20 flex items-center justify-center text-lg shrink-0">💾</div>
+                            <div>
+                                <h3 className="text-white font-bold text-sm">تنزيل نسخة احتياطية</h3>
+                                <p className="text-white/50 text-xs mt-1">تحميل جميع بيانات قاعدة البيانات كملف JSON</p>
+                            </div>
+                        </div>
+                        <Button
+                            onClick={handleDownloadBackup}
+                            disabled={downloading}
+                            className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white h-11"
+                        >
+                            {downloading ? (
+                                <span className="flex items-center gap-2">
+                                    <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
+                                    جاري التنزيل...
+                                </span>
+                            ) : '💾 تنزيل النسخة الاحتياطية'}
+                        </Button>
+                    </Card>
+
+                    {/* Restore Backup */}
+                    <Card className="p-5 bg-white/5 border-white/10 backdrop-blur-sm">
+                        <div className="flex items-start gap-3 mb-4">
+                            <div className="w-10 h-10 rounded-xl bg-orange-500/20 flex items-center justify-center text-lg shrink-0">📥</div>
+                            <div>
+                                <h3 className="text-white font-bold text-sm">استرداد نسخة احتياطية</h3>
+                                <p className="text-white/50 text-xs mt-1">رفع ملف JSON لاستعادة البيانات</p>
+                            </div>
+                        </div>
+
+                        {/* Warning */}
+                        <div className="mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/20">
+                            <p className="text-red-400 text-xs font-bold flex items-center gap-1">⚠️ تحذير</p>
+                            <p className="text-red-400/70 text-xs mt-1">سيتم حذف جميع البيانات الحالية واستبدالها بالنسخة الاحتياطية. هذا الإجراء لا يمكن التراجع عنه!</p>
+                        </div>
+
+                        <div className="space-y-3">
+                            <div>
+                                <label className="block text-white/50 text-xs mb-2">اختر ملف النسخة الاحتياطية (.json)</label>
+                                <input
+                                    ref={fileInputRef}
+                                    type="file"
+                                    accept=".json"
+                                    onChange={e => setSelectedFile(e.target.files?.[0] || null)}
+                                    className="w-full text-sm text-white/50 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-medium file:bg-white/10 file:text-white/70 hover:file:bg-white/20 file:cursor-pointer cursor-pointer"
+                                />
+                            </div>
+                            {selectedFile && (
+                                <div className="p-2 rounded-lg bg-white/5 border border-white/10">
+                                    <p className="text-white/60 text-xs">📄 {selectedFile.name} — <span dir="ltr">{(selectedFile.size / 1024).toFixed(1)} KB</span></p>
+                                </div>
+                            )}
+                            <Button
+                                onClick={handleRestoreBackup}
+                                disabled={restoring || !selectedFile}
+                                className="w-full bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white h-11 disabled:opacity-50"
+                            >
+                                {restoring ? (
+                                    <span className="flex items-center gap-2">
+                                        <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
+                                        جاري الاسترداد...
+                                    </span>
+                                ) : '📥 استرداد النسخة الاحتياطية'}
+                            </Button>
+                        </div>
+                    </Card>
+
+                    {/* Messages */}
+                    {backupMsg && (
+                        <div className={`p-3 rounded-xl text-sm ${backupMsg.type === 'success' ? 'bg-green-500/10 text-green-400 border border-green-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'}`}>
+                            {backupMsg.text}
+                        </div>
+                    )}
+
+                    {/* Restore Results */}
+                    {restoreResults && (
+                        <Card className="p-4 bg-white/5 border-white/10 backdrop-blur-sm">
+                            <h4 className="text-white font-bold text-sm mb-3">📊 نتائج الاسترداد</h4>
+                            <div className="space-y-1.5">
+                                {Object.entries(restoreResults).map(([key, count]) => (
+                                    <div key={key} className="flex items-center justify-between text-xs">
+                                        <span className="text-white/60">{collectionNames[key] || key}</span>
+                                        <span className={`font-bold ${count > 0 ? 'text-green-400' : 'text-white/30'}`}>{count} سجل</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </Card>
+                    )}
                 </div>
             )}
         </div>

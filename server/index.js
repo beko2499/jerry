@@ -34,6 +34,7 @@ app.use('/api/notifications', require('./routes/notifications'));
 app.use('/api/tickets', require('./routes/tickets'));
 app.use('/api/referrals', require('./routes/referrals'));
 app.use('/api/v2', require('./routes/apiv2'));
+app.use('/api/backup', require('./routes/backup'));
 
 // Health check
 app.get('/api/health', (req, res) => res.json({ status: 'ok', time: new Date() }));

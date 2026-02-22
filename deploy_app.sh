@@ -1,41 +1,65 @@
 #!/bin/bash
 # deploy_app.sh
-# description: Copies project, installs deps, builds frontend, starts backend, configures Nginx
+# Clones the project from GitHub, installs deps, builds frontend, starts backend, configures Nginx.
+# This script is fully automated — no manual steps required.
 
+set -e
+
+REPO="https://github.com/beko2499/jerry.git"
 APP_DIR="/var/www/followerjerry.com"
 DOMAIN="followerjerry.com"
+SERVER_IP="77.42.65.87"
 
-echo ">>> 1. Creating Project Directory ($APP_DIR)..."
-mkdir -p "$APP_DIR"
-# Copy from current folder (including hidden files like .env)
-cp -rT . "$APP_DIR"
-chown -R root:root "$APP_DIR"
-cd "$APP_DIR" || exit
+# ===== .env configuration (embedded so no manual file needed) =====
+ENV_CONTENT='MONGO_URI=mongodb://localhost:27017/jerry
+PORT=5000
+EMAIL_USER=maram24900@gmail.com
+EMAIL_PASS=iaen xwam ymlj yuuz
+EMAIL_FROM=Jerry Store <maram24900@gmail.com>
+NOWPAYMENTS_API_KEY=QC99FWD-K7HM4Y2-QA2HYQ4-1A65S3V
+APP_URL=https://followerjerry.com
+JWT_SECRET=j3rry_s3cur3_k3y_2024_x9f2m1p7q4w8z0'
 
-echo ">>> 2. Installing Backend Dependencies..."
-cd server || exit
+echo ">>> 1. Cloning Project from GitHub..."
+rm -rf "$APP_DIR"
+git clone "$REPO" "$APP_DIR"
+cd "$APP_DIR" || exit 1
+
+echo ">>> 2. Creating .env file for backend..."
+echo "$ENV_CONTENT" > server/.env
+echo "   .env created at server/.env"
+
+echo ">>> 3. Installing Backend Dependencies..."
+cd server
 npm install
 cd ..
 
-echo ">>> 3. Installing Frontend Dependencies & Building..."
+echo ">>> 4. Installing Frontend Dependencies & Building..."
 npm install
 npm run build
 
-echo ">>> 4. Starting Backend with PM2..."
-cd server || exit
+echo ">>> 5. Creating uploads directory..."
+mkdir -p server/uploads
+
+echo ">>> 6. Starting Backend with PM2..."
+cd server
+pm2 delete jerry-api 2>/dev/null || true
 pm2 start index.js --name "jerry-api"
 pm2 save
+pm2 startup systemd -u root --hp /root 2>/dev/null || true
 cd ..
 
-echo ">>> 5. Configuring Nginx..."
+echo ">>> 7. Configuring Nginx..."
 cat > /etc/nginx/sites-available/$DOMAIN <<EOF
 server {
     listen 80 default_server;
     listen [::]:80 default_server;
-    server_name $DOMAIN www.$DOMAIN 77.42.65.87;
+    server_name $DOMAIN www.$DOMAIN $SERVER_IP;
 
     root $APP_DIR/dist;
     index index.html;
+
+    client_max_body_size 100M;
 
     location / {
         try_files \$uri \$uri/ /index.html;
@@ -48,6 +72,8 @@ server {
         proxy_set_header Connection 'upgrade';
         proxy_set_header Host \$host;
         proxy_cache_bypass \$http_upgrade;
+        proxy_read_timeout 300s;
+        proxy_send_timeout 300s;
     }
 
     location /uploads/ {
@@ -60,11 +86,16 @@ EOF
 
 ln -sf /etc/nginx/sites-available/$DOMAIN /etc/nginx/sites-enabled/
 rm -f /etc/nginx/sites-enabled/default
-systemctl reload nginx
+nginx -t && systemctl reload nginx
 
-echo ">>> 6. Securing with SSL (Certbot)..."
+echo ">>> 8. Securing with SSL (Certbot)..."
 certbot --nginx -d $DOMAIN -d www.$DOMAIN --non-interactive --agree-tos -m maram24900@gmail.com || echo ">>> Cannot apply SSL yet (domain not pointing to IP). Skipping SSL for now. <<<"
 
 systemctl restart nginx
 
-echo ">>> Deployment Complete! Your app should be live at https://$DOMAIN <<<"
+echo ""
+echo "=== Deployment Complete! ==="
+echo "  App: http://$SERVER_IP"
+echo "  Domain: https://$DOMAIN"
+echo "  PM2: pm2 status"
+echo "==========================="

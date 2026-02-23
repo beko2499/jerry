@@ -24,7 +24,10 @@ import {
 function OrdersView() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const { t } = useLanguage();
+  const [selectedOrder, setSelectedOrder] = useState<any>(null);
+  const [providerDetails, setProviderDetails] = useState<any>(null);
+  const [loadingDetails, setLoadingDetails] = useState(false);
+  const { t, lang } = useLanguage();
   const { user } = useAuth();
 
   const filters = [
@@ -42,7 +45,7 @@ function OrdersView() {
   };
 
   const statusLabelMap: Record<string, string> = {
-    completed: t.completed, pending: t.pending, processing: t.processing || 'Processing', cancelled: t.cancelled,
+    completed: t.completed, pending: t.pending, processing: t.processing || 'Processing', cancelled: t.cancelled, partial: lang === 'ar' ? 'جزئي' : 'Partial',
   };
 
   const [allOrders, setAllOrders] = useState<any[]>([]);
@@ -54,14 +57,19 @@ function OrdersView() {
       .then(r => r.json())
       .then(orders => {
         setAllOrders(orders.map((o: any) => ({
+          _id: o._id,
           id: o.orderId,
           service: o.serviceName,
-          quantity: String(o.quantity),
-          price: `$${o.price.toFixed(2)}`,
+          serviceId: o.serviceId,
+          quantity: o.quantity,
+          price: o.price,
           rawStatus: o.status,
           status: statusLabelMap[o.status] || o.status,
-          date: new Date(o.createdAt).toISOString().split('T')[0],
+          date: new Date(o.createdAt).toLocaleDateString(lang === 'ar' ? 'ar-IQ' : 'en-US', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }),
           statusColor: statusColorMap[o.status] || statusColorMap.pending,
+          link: o.link || '',
+          externalOrderId: o.externalOrderId || '',
+          providerCharge: o.providerCharge || 0,
         })));
       })
       .catch(console.error);
@@ -74,6 +82,20 @@ function OrdersView() {
     }
     return true;
   });
+
+  const openOrderDetails = async (order: any) => {
+    setSelectedOrder(order);
+    setProviderDetails(null);
+    if (order._id && order.externalOrderId) {
+      setLoadingDetails(true);
+      try {
+        const res = await apiFetch(`/orders/${order._id}/check-status`);
+        const data = await res.json();
+        setProviderDetails(data);
+      } catch { /* ignore */ }
+      setLoadingDetails(false);
+    }
+  };
 
   return (
     <div className="p-4 md:p-8 space-y-4">
@@ -123,17 +145,17 @@ function OrdersView() {
             <p className="text-sm">{t.noResults || '�� ���� �����'}</p>
           </div>
         ) : filteredOrders.map((order) => (
-          <Card key={order.id} className="p-3 bg-white/5 border-white/10">
+          <Card key={order.id} className="p-3 bg-white/5 border-white/10 cursor-pointer hover:bg-white/10 transition-all active:scale-[0.98]" onClick={() => openOrderDetails(order)}>
             <div className="flex items-start justify-between gap-2">
               <div className="flex-1 min-w-0">
                 <p className="text-white text-sm font-medium truncate">{order.service}</p>
                 <div className="flex items-center gap-2 mt-1 text-xs text-white/40">
-                  <span className="text-cyan-400 font-mono">{order.id}</span>
-                  <span>�{order.quantity}</span>
+                  <span className="text-cyan-400 font-mono">#{order.id}</span>
+                  <span>◆{order.quantity}</span>
                 </div>
               </div>
               <div className="flex flex-col items-end gap-1 shrink-0">
-                <span className="text-green-400 font-mono font-bold text-sm">{order.price}</span>
+                <span className="text-green-400 font-mono font-bold text-sm">${order.price.toFixed(2)}</span>
                 <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium border ${order.statusColor}`}>
                   {order.status}
                 </span>
@@ -160,11 +182,11 @@ function OrdersView() {
             </thead>
             <tbody>
               {filteredOrders.map((order) => (
-                <tr key={order.id} className="border-b border-white/5 hover:bg-white/5 transition-colors group">
-                  <td className="px-6 py-4 font-space text-cyan-400 group-hover:text-cyan-300 transition-colors text-sm">{order.id}</td>
+                <tr key={order.id} className="border-b border-white/5 hover:bg-white/5 transition-colors group cursor-pointer" onClick={() => openOrderDetails(order)}>
+                  <td className="px-6 py-4 font-space text-cyan-400 group-hover:text-cyan-300 transition-colors text-sm">#{order.id}</td>
                   <td className="px-6 py-4 font-body text-white text-sm">{order.service}</td>
                   <td className="px-6 py-4 font-body text-white/80 text-sm">{order.quantity}</td>
-                  <td className="px-6 py-4 font-space text-white text-sm">{order.price}</td>
+                  <td className="px-6 py-4 font-space text-white text-sm">${order.price.toFixed(2)}</td>
                   <td className="px-6 py-4">
                     <span className={`px-3 py-1 rounded-full text-xs font-medium border ${order.statusColor} whitespace-nowrap`}>
                       {order.status}
@@ -177,6 +199,72 @@ function OrdersView() {
           </table>
         </div>
       </Card>
+
+      {/* Order Details Modal */}
+      {selectedOrder && (
+        <div className="fixed inset-0 z-[60] bg-black/80 backdrop-blur-sm flex items-end md:items-center justify-center" onClick={() => setSelectedOrder(null)}>
+          <div className="bg-[#0d1117] border-t md:border border-white/10 md:rounded-2xl w-full md:max-w-lg md:mx-4 animate-in slide-in-from-bottom-4 duration-300" onClick={e => e.stopPropagation()}>
+            {/* Header */}
+            <div className="p-4 md:p-6 border-b border-white/10">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex-1 min-w-0">
+                  <p className="text-white font-bold text-base md:text-lg leading-relaxed">{selectedOrder.service}</p>
+                  <span className={`inline-block mt-2 px-3 py-1 rounded-full text-xs font-medium border ${selectedOrder.statusColor}`}>
+                    {selectedOrder.status}
+                  </span>
+                </div>
+                <button onClick={() => setSelectedOrder(null)} className="text-white/40 hover:text-white p-1">
+                  <XCircle className="w-6 h-6" />
+                </button>
+              </div>
+            </div>
+
+            {/* Details */}
+            <div className="p-4 md:p-6 space-y-0">
+              {[
+                { label: lang === 'ar' ? 'رقم الطلب' : 'Order ID', value: `#${selectedOrder.id}`, mono: true },
+                selectedOrder.externalOrderId ? { label: lang === 'ar' ? 'رقم طلب المزود' : 'Provider Order ID', value: selectedOrder.externalOrderId, mono: true } : null,
+                { label: lang === 'ar' ? 'التاريخ' : 'Date', value: selectedOrder.date },
+                { label: lang === 'ar' ? 'الكمية' : 'Quantity', value: String(selectedOrder.quantity) },
+                { label: lang === 'ar' ? 'التكلفة' : 'Cost', value: `$${selectedOrder.price.toFixed(2)}`, highlight: true },
+                providerDetails?.startCount != null ? { label: lang === 'ar' ? 'عدد البداء' : 'Start Count', value: String(providerDetails.startCount) } : null,
+                providerDetails?.remains != null ? { label: lang === 'ar' ? 'المتبقي' : 'Remaining', value: String(providerDetails.remains) } : null,
+              ].filter(Boolean).map((item: any, i) => (
+                <div key={i} className="flex items-center justify-between py-3 border-b border-white/5 last:border-0">
+                  <span className="text-white/50 text-sm font-body">{item.label}</span>
+                  <span className={`text-sm font-body ${item.highlight ? 'text-green-400 font-bold' : item.mono ? 'text-cyan-400 font-mono' : 'text-white'}`}>{item.value}</span>
+                </div>
+              ))}
+
+              {/* Loading provider details */}
+              {loadingDetails && (
+                <div className="flex items-center justify-center gap-2 py-3 text-white/40 text-sm">
+                  <Clock className="w-4 h-4 animate-spin" />
+                  <span>{lang === 'ar' ? 'جاري جلب التفاصيل...' : 'Loading details...'}</span>
+                </div>
+              )}
+
+              {/* Link */}
+              {selectedOrder.link && (
+                <div className="pt-3 border-t border-white/5">
+                  <span className="text-white/50 text-sm font-body block mb-2">{lang === 'ar' ? 'الرابط' : 'Link'}</span>
+                  <a href={selectedOrder.link} target="_blank" rel="noopener noreferrer"
+                    className="text-cyan-400 hover:text-cyan-300 text-sm font-mono break-all underline underline-offset-2 decoration-cyan-500/30">
+                    {selectedOrder.link}
+                  </a>
+                </div>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="p-4 md:p-6 border-t border-white/10">
+              <Button onClick={() => setSelectedOrder(null)} className="w-full bg-white/10 hover:bg-white/20 text-white h-11 rounded-xl">
+                {lang === 'ar' ? 'إغلاق' : 'Close'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

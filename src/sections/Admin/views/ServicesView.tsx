@@ -25,6 +25,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 const BACKEND_URL = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace('/api', '');
 
 import { adminFetch, API_URL } from '@/lib/api';
+import { $price } from '@/lib/formatPrice';
 
 interface Category {
     _id: string;
@@ -376,7 +377,7 @@ export default function ServicesView() {
                                         <h4 className="text-white font-medium text-sm md:text-base truncate">{service.name}</h4>
                                         {service.description && <p className="text-white/40 text-xs md:text-sm mt-0.5 line-clamp-2">{service.description}</p>}
                                         <div className="flex flex-wrap gap-x-3 gap-y-1 mt-2 text-[10px] md:text-xs">
-                                            <span className="text-green-400 flex items-center gap-1"><DollarSign className="w-3 h-3" /> ${service.price?.toFixed(2)}</span>
+                                            <span className="text-green-400 flex items-center gap-1"><DollarSign className="w-3 h-3" /> {$price(service.price)}</span>
                                             <span className="text-white/40">{t.minMax}: {service.min} — {service.max}</span>
                                             {service.speed && <span className="text-yellow-400 flex items-center gap-1"><Zap className="w-3 h-3" /> {service.speed}</span>}
                                             {service.dropRate && <span className="text-red-400 flex items-center gap-1"><TrendingDown className="w-3 h-3" /> {service.dropRate}</span>}

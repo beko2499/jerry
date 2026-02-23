@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 import { adminFetch } from '@/lib/api';
+import { formatPrice, $price } from '@/lib/formatPrice';
 
 type DetailView = null | 'users' | 'orders' | 'revenue' | 'rechargeRevenue' | 'active';
 
@@ -208,15 +209,15 @@ export default function StatsView() {
                                 key={user._id}
                                 onClick={() => openUserModal(user)}
                                 className={`p-4 border cursor-pointer transition-all hover:scale-[1.01] active:scale-[0.99] ${user.banned
-                                        ? 'bg-red-500/5 border-red-500/20 hover:border-red-500/40'
-                                        : 'bg-white/5 border-white/10 hover:border-cyan-500/30'
+                                    ? 'bg-red-500/5 border-red-500/20 hover:border-red-500/40'
+                                    : 'bg-white/5 border-white/10 hover:border-cyan-500/30'
                                     }`}
                             >
                                 <div className="flex items-center gap-4">
                                     {/* Avatar */}
                                     <div className={`w-11 h-11 rounded-full border flex items-center justify-center text-white font-bold text-sm shrink-0 ${user.banned
-                                            ? 'bg-red-500/20 border-red-500/30'
-                                            : 'bg-gradient-to-br from-cyan-500/30 to-purple-500/30 border-white/10'
+                                        ? 'bg-red-500/20 border-red-500/30'
+                                        : 'bg-gradient-to-br from-cyan-500/30 to-purple-500/30 border-white/10'
                                         }`}>
                                         {user.banned ? <Ban className="w-5 h-5 text-red-400" /> : <>{user.firstName?.charAt(0) || '?'}{user.lastName?.charAt(0) || ''}</>}
                                     </div>
@@ -249,7 +250,7 @@ export default function StatsView() {
 
                                     {/* Balance */}
                                     <div className="text-right shrink-0">
-                                        <p className="text-green-400 font-bold font-mono text-sm">${user.balance?.toFixed(2) || '0.00'}</p>
+                                        <p className="text-green-400 font-bold font-mono text-sm">{$price(user.balance)}</p>
                                         <p className="text-white/30 text-[10px]">{t.balance || 'الرصيد'}</p>
                                     </div>
                                 </div>
@@ -337,7 +338,7 @@ export default function StatsView() {
                                                 {[
                                                     { icon: <Mail className="w-4 h-4 text-cyan-400" />, label: 'البريد', value: selectedUser.email },
                                                     { icon: <Phone className="w-4 h-4 text-green-400" />, label: 'الهاتف', value: selectedUser.phone || '—' },
-                                                    { icon: <DollarSign className="w-4 h-4 text-yellow-400" />, label: 'الرصيد', value: `$${selectedUser.balance?.toFixed(2) || '0.00'}` },
+                                                    { icon: <DollarSign className="w-4 h-4 text-yellow-400" />, label: 'الرصيد', value: $price(selectedUser.balance) },
                                                     { icon: <Calendar className="w-4 h-4 text-purple-400" />, label: 'تاريخ التسجيل', value: new Date(selectedUser.createdAt).toLocaleDateString('ar-IQ', { year: 'numeric', month: 'long', day: 'numeric' }) },
                                                     { icon: <Clock className="w-4 h-4 text-blue-400" />, label: 'آخر تحديث', value: new Date(selectedUser.updatedAt).toLocaleDateString('ar-IQ', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' }) },
                                                 ].map((item, i) => (
@@ -417,7 +418,7 @@ export default function StatsView() {
                                     </div>
 
                                     <div className="flex flex-col items-end gap-1 shrink-0">
-                                        <span className="text-green-400 font-bold font-mono text-sm">${order.price?.toFixed(2)}</span>
+                                        <span className="text-green-400 font-bold font-mono text-sm">{$price(order.price)}</span>
                                         <span className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border ${statusColor(order.status)}`}>
                                             {statusIcon(order.status)}
                                             {order.status}
@@ -476,7 +477,7 @@ export default function StatsView() {
                                         <span className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] border ${statusColor(order.status)}`}>
                                             {statusIcon(order.status)} {order.status}
                                         </span>
-                                        <span className="text-green-400 font-mono font-bold text-sm">${order.price?.toFixed(2)}</span>
+                                        <span className="text-green-400 font-mono font-bold text-sm">{$price(order.price)}</span>
                                     </div>
                                 </div>
                             </Card>

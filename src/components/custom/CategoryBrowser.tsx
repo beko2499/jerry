@@ -6,6 +6,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 
 const API_URL = import.meta.env.VITE_API_URL || '/api';
 const BACKEND_URL = API_URL.replace('/api', '');
+import { $price } from '@/lib/formatPrice';
 
 interface Category {
     _id: string;
@@ -168,7 +169,7 @@ export default function CategoryBrowser({ initialCategoryId, initialCategoryName
 
                                     <div className="flex items-end justify-between mb-4">
                                         <div className="flex items-baseline gap-1">
-                                            <span className="text-2xl font-space font-bold text-cyan-400">${Number(service.price).toFixed(2)}</span>
+                                            <span className="text-2xl font-space font-bold text-cyan-400">{$price(Number(service.price))}</span>
                                             <span className="text-white/60 text-xs">/ {t.perUnit || 'لكل وحدة'}</span>
                                         </div>
                                         <div className={`${isRTL ? 'text-left' : 'text-right'}`}>

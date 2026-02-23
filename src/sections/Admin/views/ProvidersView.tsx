@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 import { adminFetch } from '@/lib/api';
+import { formatPrice } from '@/lib/formatPrice';
 
 interface Provider {
     _id: string;
@@ -99,7 +100,7 @@ export default function ProvidersView({ onModalChange }: { onModalChange?: (open
             const res = await adminFetch(`/providers/${id}/balance`);
             const data = await res.json();
             if (data.balance) {
-                setProviders(prev => prev.map(p => p._id === id ? { ...p, balance: `$${parseFloat(data.balance).toFixed(2)}` } : p));
+                setProviders(prev => prev.map(p => p._id === id ? { ...p, balance: `$${formatPrice(parseFloat(data.balance))}` } : p));
             }
         } catch (err) {
             console.error(err);
@@ -335,7 +336,7 @@ export default function ProvidersView({ onModalChange }: { onModalChange?: (open
                                                 <div className="flex items-center gap-2 mt-1 flex-wrap">
                                                     <span className="text-white/30 text-xs">{svc.category}</span>
                                                     <span className="text-white/10">•</span>
-                                                    <span className="text-green-400 font-mono text-xs font-bold">${parseFloat(svc.rate).toFixed(2)}</span>
+                                                    <span className="text-green-400 font-mono text-xs font-bold">${formatPrice(parseFloat(svc.rate))}</span>
                                                     <span className="text-white/10">•</span>
                                                     <span className="text-white/30 text-xs">{svc.min}-{svc.max}</span>
                                                     <span className="text-white/20 font-mono text-xs">#{svc.service}</span>

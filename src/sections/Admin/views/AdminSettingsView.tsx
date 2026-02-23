@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
 import { adminFetch } from '@/lib/api';
+import { formatPrice } from '@/lib/formatPrice';
 
 interface TopReferrer {
     username: string;
@@ -262,7 +263,7 @@ export default function AdminSettingsView() {
                         </Card>
                         <Card className="p-4 bg-white/5 border-white/10 text-center">
                             <p className="text-white/40 text-xs mb-1">إجمالي العمولات المدفوعة</p>
-                            <p className="text-red-400 font-bold text-2xl" dir="ltr">${refStats?.totalPaid?.toFixed(2) ?? '0.00'}</p>
+                            <p className="text-red-400 font-bold text-2xl" dir="ltr">${formatPrice(refStats?.totalPaid ?? 0)}</p>
                         </Card>
                         <Card className="p-4 bg-white/5 border-white/10 text-center">
                             <p className="text-white/40 text-xs mb-1">نسبة العمولة</p>
@@ -292,7 +293,7 @@ export default function AdminSettingsView() {
                                                 <td className="py-2.5 px-2 text-white font-mono text-xs">@{r.username}</td>
                                                 <td className="py-2.5 px-2 text-white/70">{r.name}</td>
                                                 <td className="py-2.5 px-2 text-center text-cyan-400 font-bold">{r.referrals}</td>
-                                                <td className="py-2.5 px-2 text-left text-green-400 font-bold" dir="ltr">${r.earnings.toFixed(2)}</td>
+                                                <td className="py-2.5 px-2 text-left text-green-400 font-bold" dir="ltr">${formatPrice(r.earnings)}</td>
                                             </tr>
                                         ))}
                                     </tbody>

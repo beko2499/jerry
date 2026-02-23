@@ -1,5 +1,6 @@
 ﻿import { useState, useEffect } from 'react';
 import { apiFetch, API_URL } from '@/lib/api';
+import { formatPrice, $price } from '@/lib/formatPrice';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import Sidebar from '@/components/custom/Sidebar';
@@ -173,7 +174,7 @@ function OrdersView() {
                 </div>
               </div>
               <div className="flex flex-col items-end gap-1 shrink-0">
-                <span className="text-green-400 font-mono font-bold text-sm">${order.price.toFixed(2)}</span>
+                <span className="text-green-400 font-mono font-bold text-sm">${formatPrice(order.price)}</span>
                 <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium border ${order.statusColor}`}>
                   {order.status}
                 </span>
@@ -204,7 +205,7 @@ function OrdersView() {
                   <td className="px-6 py-4 font-space text-cyan-400 group-hover:text-cyan-300 transition-colors text-sm">#{order.id}</td>
                   <td className="px-6 py-4 font-body text-white text-sm">{order.service}</td>
                   <td className="px-6 py-4 font-body text-white/80 text-sm">{order.quantity}</td>
-                  <td className="px-6 py-4 font-space text-white text-sm">${order.price.toFixed(2)}</td>
+                  <td className="px-6 py-4 font-space text-white text-sm">${formatPrice(order.price)}</td>
                   <td className="px-6 py-4">
                     <span className={`px-3 py-1 rounded-full text-xs font-medium border ${order.statusColor} whitespace-nowrap`}>
                       {order.status}
@@ -244,7 +245,7 @@ function OrdersView() {
                 selectedOrder.externalOrderId ? { label: lang === 'ar' ? 'رقم طلب المزود' : 'Provider Order ID', value: selectedOrder.externalOrderId, mono: true } : null,
                 { label: lang === 'ar' ? 'التاريخ' : 'Date', value: selectedOrder.date },
                 { label: lang === 'ar' ? 'الكمية' : 'Quantity', value: String(selectedOrder.quantity) },
-                { label: lang === 'ar' ? 'التكلفة' : 'Cost', value: `$${selectedOrder.price.toFixed(2)}`, highlight: true },
+                { label: lang === 'ar' ? 'التكلفة' : 'Cost', value: $price(selectedOrder.price), highlight: true },
                 providerDetails?.startCount != null ? { label: lang === 'ar' ? 'عدد البداء' : 'Start Count', value: String(providerDetails.startCount) } : null,
                 providerDetails?.remains != null ? { label: lang === 'ar' ? 'المتبقي' : 'Remaining', value: String(providerDetails.remains) } : null,
               ].filter(Boolean).map((item: any, i) => (
@@ -396,7 +397,7 @@ function SearchView({ onNavigate: _onNavigate, onServiceSelect, onCategorySelect
                         <h4 className="text-white font-medium text-sm truncate">{svc.name}</h4>
                         <div className="flex items-center gap-2 mt-0.5">
                           <span className="text-white/40 text-xs truncate">{svc.description || ''}</span>
-                          <span className="text-cyan-400 text-xs font-bold shrink-0" dir="ltr">${svc.price?.toFixed(2)}</span>
+                          <span className="text-cyan-400 text-xs font-bold shrink-0" dir="ltr">{$price(svc.price)}</span>
                         </div>
                       </div>
                     </div>
@@ -756,8 +757,8 @@ function ServiceDetailsView({ serviceId, serviceData, onBack }: ServiceDetailsVi
                 <div className="border-t border-cyan-500/20 pt-2 flex justify-between items-center">
                   <span className="text-cyan-200 font-bold">{t.totalCost}</span>
                   <div className="flex items-end gap-2">
-                    <span className="text-xs text-cyan-300/50 line-through mb-1">${(totalPrice * 1.01).toFixed(2)}</span>
-                    <span className="text-2xl font-bold text-cyan-400 font-mono">${totalPrice.toFixed(2)}</span>
+                    <span className="text-xs text-cyan-300/50 line-through mb-1">{$price(totalPrice * 1.01)}</span>
+                    <span className="text-2xl font-bold text-cyan-400 font-mono">{$price(totalPrice)}</span>
                   </div>
                 </div>
               </div>
@@ -946,7 +947,7 @@ function SettingsView({ defaultTab = 'referral' }: { defaultTab?: 'settings' | '
           <Card className="p-5 bg-white/5 border-white/10 backdrop-blur-sm">
             <div className="flex items-center justify-between">
               <span className="text-white/50 text-sm">الأرباح من الإحالات</span>
-              <span className="text-green-400 font-bold text-lg" dir="ltr">${(refStats?.totalEarnings || 0).toFixed(2)}</span>
+              <span className="text-green-400 font-bold text-lg" dir="ltr">${formatPrice(refStats?.totalEarnings || 0)}</span>
             </div>
             <p className="text-white/30 text-xs mt-1">نسبة العمولة: {refStats?.commissionRate || 5}% من كل طلب</p>
           </Card>
@@ -960,7 +961,7 @@ function SettingsView({ defaultTab = 'referral' }: { defaultTab?: 'settings' | '
             </Card>
             <Card className="p-4 bg-white/5 border-white/10 text-center">
               <p className="text-white/40 text-xs mb-1">الأرباح الكلية</p>
-              <p className="text-green-400 font-bold text-2xl" dir="ltr">${(refStats?.totalEarnings || 0).toFixed(2)}</p>
+              <p className="text-green-400 font-bold text-2xl" dir="ltr">${formatPrice(refStats?.totalEarnings || 0)}</p>
             </Card>
           </div>
         </div>

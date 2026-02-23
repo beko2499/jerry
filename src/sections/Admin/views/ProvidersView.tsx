@@ -361,7 +361,18 @@ export default function ProvidersView({ onModalChange }: { onModalChange?: (open
                                         <select value={importCategoryId} onChange={e => setImportCategoryId(e.target.value)}
                                             className="w-full bg-black/30 border border-white/10 text-white rounded-lg px-3 h-10 text-sm">
                                             <option value="">{lang === 'ar' ? 'اختر القسم...' : 'Select category...'}</option>
-                                            {categories.map(c => <option key={c._id} value={c._id}>{c.name || c.nameKey}</option>)}
+                                            {categories.filter(c => !c.parentId).map(parent => {
+                                                const children = categories.filter(c => c.parentId === parent._id);
+                                                return (
+                                                    <optgroup key={parent._id} label={parent.name || parent.nameKey}>
+                                                        {children.length > 0 ? children.map(child => (
+                                                            <option key={child._id} value={child._id}>{child.name || child.nameKey}</option>
+                                                        )) : (
+                                                            <option value={parent._id}>{parent.name || parent.nameKey}</option>
+                                                        )}
+                                                    </optgroup>
+                                                );
+                                            })}
                                         </select>
                                     </div>
                                     {/* Price multiplier */}

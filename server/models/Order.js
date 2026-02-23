@@ -8,7 +8,7 @@ const orderSchema = new mongoose.Schema({
     quantity: { type: Number, required: true },
     price: { type: Number, required: true },
     link: { type: String, default: '' },
-    status: { type: String, enum: ['pending', 'processing', 'completed', 'cancelled', 'partial'], default: 'pending' },
+    status: { type: String, enum: ['pending', 'processing', 'inprogress', 'completed', 'cancelled', 'partial', 'refunded', 'error'], default: 'pending' },
     providerId: { type: String, default: '' },
     externalOrderId: { type: String, default: '' },
     providerCharge: { type: Number, default: 0 },

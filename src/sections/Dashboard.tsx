@@ -15,7 +15,12 @@ import {
   Clock,
   CheckCircle,
   XCircle,
-  Search
+  Search,
+  Loader,
+  PlayCircle,
+  AlertTriangle,
+  RefreshCcw,
+  AlertCircle
 } from 'lucide-react';
 
 
@@ -31,21 +36,37 @@ function OrdersView() {
   const { user } = useAuth();
 
   const filters = [
-    { id: 'all', label: t.allOrders, icon: ShoppingCart, color: 'text-cyan-400', activeBg: 'bg-cyan-500/20 border-cyan-500/50 text-cyan-400' },
-    { id: 'pending', label: t.pending, icon: Clock, color: 'text-yellow-400', activeBg: 'bg-yellow-500/20 border-yellow-500/50 text-yellow-400' },
-    { id: 'completed', label: t.completed, icon: CheckCircle, color: 'text-green-400', activeBg: 'bg-green-500/20 border-green-500/50 text-green-400' },
-    { id: 'cancelled', label: t.cancelled, icon: XCircle, color: 'text-red-400', activeBg: 'bg-red-500/20 border-red-500/50 text-red-400' },
+    { id: 'all', label: lang === 'ar' ? 'الكل' : 'All', icon: ShoppingCart, activeBg: 'bg-cyan-500/20 border-cyan-500/50 text-cyan-400' },
+    { id: 'pending', label: lang === 'ar' ? 'الانتظار' : 'Pending', icon: Clock, activeBg: 'bg-yellow-500/20 border-yellow-500/50 text-yellow-400' },
+    { id: 'inprogress', label: lang === 'ar' ? 'التنفيذ' : 'In Progress', icon: PlayCircle, activeBg: 'bg-blue-500/20 border-blue-500/50 text-blue-400' },
+    { id: 'completed', label: lang === 'ar' ? 'مكتمل' : 'Completed', icon: CheckCircle, activeBg: 'bg-green-500/20 border-green-500/50 text-green-400' },
+    { id: 'partial', label: lang === 'ar' ? 'جزئي' : 'Partial', icon: AlertTriangle, activeBg: 'bg-orange-500/20 border-orange-500/50 text-orange-400' },
+    { id: 'processing', label: lang === 'ar' ? 'المعالجة' : 'Processing', icon: Loader, activeBg: 'bg-purple-500/20 border-purple-500/50 text-purple-400' },
+    { id: 'cancelled', label: lang === 'ar' ? 'ملغي' : 'Cancelled', icon: XCircle, activeBg: 'bg-red-500/20 border-red-500/50 text-red-400' },
+    { id: 'refunded', label: lang === 'ar' ? 'الاسترداد' : 'Refunded', icon: RefreshCcw, activeBg: 'bg-teal-500/20 border-teal-500/50 text-teal-400' },
+    { id: 'error', label: lang === 'ar' ? 'الدعم الفني' : 'Error', icon: AlertCircle, activeBg: 'bg-rose-500/20 border-rose-500/50 text-rose-400' },
   ];
 
   const statusColorMap: Record<string, string> = {
-    completed: 'text-green-400 bg-green-500/20 border-green-500/30',
     pending: 'text-yellow-400 bg-yellow-500/20 border-yellow-500/30',
-    processing: 'text-blue-400 bg-blue-500/20 border-blue-500/30',
+    inprogress: 'text-blue-400 bg-blue-500/20 border-blue-500/30',
+    completed: 'text-green-400 bg-green-500/20 border-green-500/30',
+    partial: 'text-orange-400 bg-orange-500/20 border-orange-500/30',
+    processing: 'text-purple-400 bg-purple-500/20 border-purple-500/30',
     cancelled: 'text-red-400 bg-red-500/20 border-red-500/30',
+    refunded: 'text-teal-400 bg-teal-500/20 border-teal-500/30',
+    error: 'text-rose-400 bg-rose-500/20 border-rose-500/30',
   };
 
   const statusLabelMap: Record<string, string> = {
-    completed: t.completed, pending: t.pending, processing: t.processing || 'Processing', cancelled: t.cancelled, partial: lang === 'ar' ? 'جزئي' : 'Partial',
+    pending: lang === 'ar' ? 'الانتظار' : 'Pending',
+    inprogress: lang === 'ar' ? 'التنفيذ' : 'In Progress',
+    completed: lang === 'ar' ? 'مكتمل' : 'Completed',
+    partial: lang === 'ar' ? 'جزئي' : 'Partial',
+    processing: lang === 'ar' ? 'المعالجة' : 'Processing',
+    cancelled: lang === 'ar' ? 'ملغي' : 'Cancelled',
+    refunded: lang === 'ar' ? 'الاسترداد' : 'Refunded',
+    error: lang === 'ar' ? 'الدعم الفني' : 'Error',
   };
 
   const [allOrders, setAllOrders] = useState<any[]>([]);

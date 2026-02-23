@@ -127,12 +127,14 @@ router.get('/:id/check-status', async (req, res) => {
         // Map provider status to our status
         const statusMap = {
             'Completed': 'completed',
-            'In progress': 'processing',
+            'In progress': 'inprogress',
             'Processing': 'processing',
             'Pending': 'pending',
             'Partial': 'partial',
             'Canceled': 'cancelled',
             'Cancelled': 'cancelled',
+            'Refunded': 'refunded',
+            'Error': 'error',
         };
 
         order.providerStatus = result.status || '';
@@ -158,7 +160,7 @@ router.get('/:id/check-status', async (req, res) => {
 router.post('/bulk-check-status', async (req, res) => {
     try {
         const orders = await Order.find({
-            status: { $in: ['pending', 'processing'] },
+            status: { $in: ['pending', 'processing', 'inprogress'] },
             externalOrderId: { $ne: '' },
             providerId: { $ne: '' },
         });
@@ -175,12 +177,14 @@ router.post('/bulk-check-status', async (req, res) => {
         let updated = 0;
         const statusMap = {
             'Completed': 'completed',
-            'In progress': 'processing',
+            'In progress': 'inprogress',
             'Processing': 'processing',
             'Pending': 'pending',
             'Partial': 'partial',
             'Canceled': 'cancelled',
             'Cancelled': 'cancelled',
+            'Refunded': 'refunded',
+            'Error': 'error',
         };
 
         for (const [providerId, provOrders] of Object.entries(grouped)) {

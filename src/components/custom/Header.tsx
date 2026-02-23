@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { formatPrice } from '@/lib/formatPrice';
 
 const API_URL = import.meta.env.VITE_API_URL || '/api';
 
@@ -113,7 +114,7 @@ export default function Header({ onAddFundsClick, onNavigate, showMobileMenu, se
             className="h-9 md:h-11 px-2.5 md:px-5 rounded-lg md:rounded-xl border-green-500/30 bg-green-500/10 text-green-400 hover:bg-green-500/20 hover:text-green-300 hover:border-green-500/50 transition-all shadow-[0_0_10px_rgba(34,197,94,0.1)]"
           >
             <Plus className="w-3.5 h-3.5 md:w-4 md:h-4 md:ml-2" />
-            <span className="font-space font-bold text-xs md:text-base">${user?.balance?.toFixed(0) || '0'}</span>
+            <span className="font-space font-bold text-xs md:text-base">${formatPrice(user?.balance)}</span>
             <span className="hidden md:inline font-body mr-2 text-sm">{t.addFunds}</span>
           </Button>
 

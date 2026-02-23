@@ -425,7 +425,7 @@ export default function ProvidersView({ onModalChange }: { onModalChange?: (open
                                                     {showCategoryPicker && (
                                                         <>
                                                             <div className="fixed inset-0 z-40" onClick={() => setShowCategoryPicker(false)} />
-                                                            <div className="absolute top-full left-0 right-0 mt-1 z-50 bg-[#1a1a2e] border border-white/10 rounded-xl shadow-2xl max-h-72 overflow-y-auto custom-scrollbar p-1">
+                                                            <div className="absolute bottom-full left-0 right-0 mb-1 z-50 bg-[#1a1a2e] border border-white/10 rounded-xl shadow-2xl max-h-72 overflow-y-auto custom-scrollbar p-1">
                                                                 {roots.map(root => renderNode(root, 0))}
                                                             </div>
                                                         </>

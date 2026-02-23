@@ -1,26 +1,20 @@
 /**
- * Format a price with full precision for small values.
- * - Values >= 0.01 → 2 decimal places (e.g. 1.50, 0.69)
- * - Values < 0.01 → show all significant digits (e.g. 0.0016, 0.00032)
+ * Format a price with full meaningful precision.
+ * - Always shows at least 2 decimal places
+ * - Preserves extra decimals when they are non-zero (e.g. 9.9976, 0.0024)
+ * - Trims trailing zeros beyond 2 decimal places
+ * Examples: 10 → "10.00", 9.9976 → "9.9976", 0.0024 → "0.0024", 1.50 → "1.50"
  */
 export function formatPrice(value: number | undefined | null): string {
     if (value == null || isNaN(value)) return '0.00';
     if (value === 0) return '0.00';
 
-    const abs = Math.abs(value);
-
-    if (abs >= 0.01) {
-        return value.toFixed(2);
-    }
-
-    // For small values, show up to 6 decimal places, trimming trailing zeros
-    const str = value.toFixed(6).replace(/0+$/, '');
-    // Make sure we have at least 2 decimal places
-    const parts = str.split('.');
-    if (!parts[1] || parts[1].length < 2) {
-        return value.toFixed(2);
-    }
-    return str;
+    // Format to 6 decimal places, then trim unnecessary trailing zeros
+    const full = value.toFixed(6);
+    const parts = full.split('.');
+    let decimals = parts[1].replace(/0+$/, '');
+    if (decimals.length < 2) decimals = decimals.padEnd(2, '0');
+    return `${parts[0]}.${decimals}`;
 }
 
 /**

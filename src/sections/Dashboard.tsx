@@ -564,11 +564,11 @@ function ServiceDetailsView({ serviceId, serviceData, onBack }: ServiceDetailsVi
   // Use dynamic service data from API if available, fallback to hardcoded
   const hardcodedService = allTelegramServices.find(s => s.id === serviceId);
   const serviceName = serviceData?.name || hardcodedService?.name || '';
-  const servicePrice = Math.round(((serviceData?.price ?? hardcodedService?.pricePer1000 ?? 0)) * 100) / 100;
+  const servicePrice = serviceData?.price ?? hardcodedService?.pricePer1000 ?? 0;
   const serviceMin = serviceData?.min ?? hardcodedService?.min ?? 100;
   const serviceMax = serviceData?.max ?? hardcodedService?.max ?? 10000;
   const serviceDesc = serviceData?.description || hardcodedService?.description || '';
-  const totalPrice = Math.round((quantity / 1000) * servicePrice * 100) / 100;
+  const totalPrice = Math.round((quantity / 1000) * servicePrice * 1000000) / 1000000;
 
   const handleSubmitOrder = async () => {
     if (!user) return;
@@ -751,7 +751,7 @@ function ServiceDetailsView({ serviceId, serviceData, onBack }: ServiceDetailsVi
                 </div>
                 <div className="flex justify-between items-center text-sm">
                   <span className="text-white/60">{t.pricePer1000}</span>
-                  <span className="text-white font-mono">${servicePrice}</span>
+                  <span className="text-white font-mono">{$price(servicePrice)}</span>
                 </div>
                 <div className="border-t border-cyan-500/20 pt-2 flex justify-between items-center">
                   <span className="text-cyan-200 font-bold">{t.totalCost}</span>

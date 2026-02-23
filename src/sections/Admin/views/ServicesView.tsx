@@ -14,7 +14,8 @@ import {
     Pencil,
     Upload,
     X,
-    ImageIcon
+    ImageIcon,
+    Lock
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -60,6 +61,7 @@ export default function ServicesView() {
     // Data
     const [subCategories, setSubCategories] = useState<Category[]>([]);
     const [services, setServices] = useState<Service[]>([]);
+    const [providers, setProviders] = useState<{ _id: string; name: string }[]>([]);
 
     // UI State
     const [isAddingFolder, setIsAddingFolder] = useState(false);
@@ -114,6 +116,11 @@ export default function ServicesView() {
         };
         fetchData();
     }, [currentParentId]);
+
+    // Fetch providers once
+    useEffect(() => {
+        adminFetch(`/providers`).then(r => r.json()).then(setProviders).catch(console.error);
+    }, []);
 
     // Helpers
     const getCategoryName = (cat: Category) => {
@@ -302,10 +309,16 @@ export default function ServicesView() {
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                         <Input placeholder={t.serviceName} value={newService.name || ''} onChange={e => setNewService(p => ({ ...p, name: e.target.value }))} className="bg-black/30 border-white/10 text-white text-sm" />
                         <Input type="number" placeholder={t.price} value={newService.price || ''} onChange={e => setNewService(p => ({ ...p, price: parseFloat(e.target.value) || 0 }))} className="bg-black/30 border-white/10 text-white text-sm" dir="ltr" />
-                        <Input placeholder={t.providerInstructions} value={newService.providerId || ''} onChange={e => setNewService(p => ({ ...p, providerId: e.target.value }))} className="bg-black/30 border-white/10 text-white text-sm" dir="ltr" />
+                        <select value={newService.providerId || ''} onChange={e => setNewService(p => ({ ...p, providerId: e.target.value }))} className="bg-black/30 border border-white/10 text-white rounded-lg px-3 h-10 text-sm">
+                            <option value="">{t.providerInstructions || 'معرف المزود'}</option>
+                            {providers.map(p => <option key={p._id} value={p._id}>{p.name}</option>)}
+                        </select>
                         <Input type="number" placeholder={t.minMax?.split('/')[0]?.trim() || 'Min'} value={newService.min || ''} onChange={e => setNewService(p => ({ ...p, min: parseInt(e.target.value) || 0 }))} className="bg-black/30 border-white/10 text-white text-sm" dir="ltr" />
                         <Input type="number" placeholder={t.minMax?.split('/')[1]?.trim() || 'Max'} value={newService.max || ''} onChange={e => setNewService(p => ({ ...p, max: parseInt(e.target.value) || 0 }))} className="bg-black/30 border-white/10 text-white text-sm" dir="ltr" />
-                        <Input placeholder={t.autoId} value={newService.autoId || ''} onChange={e => setNewService(p => ({ ...p, autoId: e.target.value }))} className="bg-black/30 border-white/10 text-white text-sm" dir="ltr" />
+                        <div className="relative">
+                            <Input placeholder={t.autoId} value={newService.autoId || ''} disabled className="bg-black/30 border-white/10 text-white/40 text-sm cursor-not-allowed" dir="ltr" />
+                            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/20" />
+                        </div>
                         <Input placeholder={`⚡ ${t.speed || 'Speed'}`} value={newService.speed || ''} onChange={e => setNewService(p => ({ ...p, speed: e.target.value }))} className="bg-black/30 border-white/10 text-white text-sm" />
                         <Input placeholder={`📉 ${t.dropRate || 'Drop rate'}`} value={newService.dropRate || ''} onChange={e => setNewService(p => ({ ...p, dropRate: e.target.value }))} className="bg-black/30 border-white/10 text-white text-sm" />
                         <Input placeholder={`🛡️ ${t.guarantee || 'Guarantee'}`} value={newService.guarantee || ''} onChange={e => setNewService(p => ({ ...p, guarantee: e.target.value }))} className="bg-black/30 border-white/10 text-white text-sm" />

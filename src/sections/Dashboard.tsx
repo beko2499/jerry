@@ -44,7 +44,6 @@ function OrdersView() {
     { id: 'processing', label: lang === 'ar' ? 'المعالجة' : 'Processing', icon: Loader, activeBg: 'bg-purple-500/20 border-purple-500/50 text-purple-400' },
     { id: 'cancelled', label: lang === 'ar' ? 'ملغي' : 'Cancelled', icon: XCircle, activeBg: 'bg-red-500/20 border-red-500/50 text-red-400' },
     { id: 'refunded', label: lang === 'ar' ? 'الاسترداد' : 'Refunded', icon: RefreshCcw, activeBg: 'bg-teal-500/20 border-teal-500/50 text-teal-400' },
-    { id: 'error', label: lang === 'ar' ? 'الدعم الفني' : 'Error', icon: AlertCircle, activeBg: 'bg-rose-500/20 border-rose-500/50 text-rose-400' },
   ];
 
   const statusColorMap: Record<string, string> = {
@@ -55,7 +54,6 @@ function OrdersView() {
     processing: 'text-purple-400 bg-purple-500/20 border-purple-500/30',
     cancelled: 'text-red-400 bg-red-500/20 border-red-500/30',
     refunded: 'text-teal-400 bg-teal-500/20 border-teal-500/30',
-    error: 'text-rose-400 bg-rose-500/20 border-rose-500/30',
   };
 
   const statusLabelMap: Record<string, string> = {
@@ -66,7 +64,6 @@ function OrdersView() {
     processing: lang === 'ar' ? 'المعالجة' : 'Processing',
     cancelled: lang === 'ar' ? 'ملغي' : 'Cancelled',
     refunded: lang === 'ar' ? 'الاسترداد' : 'Refunded',
-    error: lang === 'ar' ? 'الدعم الفني' : 'Error',
   };
 
   const [allOrders, setAllOrders] = useState<any[]>([]);

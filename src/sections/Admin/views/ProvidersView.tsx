@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Trash2, Edit2, Globe, RefreshCw, Download, Check, X, Search, Save } from 'lucide-react';
+import { Plus, Trash2, Edit2, Globe, RefreshCw, Download, Check, X, Search, Save, ChevronDown, ChevronRight } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -57,6 +57,8 @@ export default function ProvidersView({ onModalChange }: { onModalChange?: (open
     const [searchFilter, setSearchFilter] = useState('');
     const [categoryFilter, setCategoryFilter] = useState('');
     const [balanceLoading, setBalanceLoading] = useState<string | null>(null);
+    const [expandedCatIds, setExpandedCatIds] = useState<Set<string>>(new Set());
+    const [showCategoryPicker, setShowCategoryPicker] = useState(false);
 
     useEffect(() => {
         adminFetch(`/providers`).then(r => r.json()).then(setProviders).catch(console.error);
@@ -359,22 +361,78 @@ export default function ProvidersView({ onModalChange }: { onModalChange?: (open
                                     {/* Category to import into */}
                                     <div>
                                         <label className="text-white/50 text-xs mb-1 block">{lang === 'ar' ? 'استيراد إلى قسم' : 'Import to Category'}</label>
-                                        <select value={importCategoryId} onChange={e => setImportCategoryId(e.target.value)}
-                                            className="w-full bg-black/30 border border-white/10 text-white rounded-lg px-3 h-10 text-sm">
-                                            <option value="">{lang === 'ar' ? 'اختر القسم...' : 'Select category...'}</option>
-                                            {categories.filter(c => !c.parentId).map(parent => {
-                                                const children = categories.filter(c => c.parentId === parent._id);
+                                        {(() => {
+                                            const selectedCat = categories.find(c => c._id === importCategoryId);
+
+                                            const toggleExpand = (id: string) => {
+                                                setExpandedCatIds(prev => {
+                                                    const next = new Set(prev);
+                                                    if (next.has(id)) next.delete(id); else next.add(id);
+                                                    return next;
+                                                });
+                                            };
+
+                                            const renderNode = (cat: Category, depth: number = 0): React.ReactNode => {
+                                                const children = categories.filter(c => c.parentId === cat._id);
+                                                const isExpanded = expandedCatIds.has(cat._id);
+                                                const isSelected = importCategoryId === cat._id;
+                                                const hasChildren = children.length > 0;
+
                                                 return (
-                                                    <optgroup key={parent._id} label={parent.name || parent.nameKey}>
-                                                        {children.length > 0 ? children.map(child => (
-                                                            <option key={child._id} value={child._id}>{child.name || child.nameKey}</option>
-                                                        )) : (
-                                                            <option value={parent._id}>{parent.name || parent.nameKey}</option>
+                                                    <div key={cat._id}>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                if (hasChildren) {
+                                                                    toggleExpand(cat._id);
+                                                                } else {
+                                                                    setImportCategoryId(cat._id);
+                                                                    setShowCategoryPicker(false);
+                                                                }
+                                                            }}
+                                                            className={`w-full flex items-center gap-2 px-3 py-2.5 text-sm transition-all rounded-lg ${isSelected ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30' : 'text-white/80 hover:bg-white/5'}`}
+                                                            style={{ paddingInlineStart: `${depth * 20 + 12}px` }}
+                                                        >
+                                                            {hasChildren ? (
+                                                                isExpanded ? <ChevronDown className="w-4 h-4 text-white/40 shrink-0" /> : <ChevronRight className="w-4 h-4 text-white/40 shrink-0" />
+                                                            ) : (
+                                                                <span className={`w-2 h-2 rounded-full shrink-0 ${isSelected ? 'bg-cyan-400' : 'bg-white/20'}`} />
+                                                            )}
+                                                            <span className="truncate">{cat.name || cat.nameKey}</span>
+                                                            {hasChildren && <span className="text-white/20 text-[10px] ml-auto">{children.length}</span>}
+                                                        </button>
+                                                        {hasChildren && isExpanded && (
+                                                            <div>{children.map(child => renderNode(child, depth + 1))}</div>
                                                         )}
-                                                    </optgroup>
+                                                    </div>
                                                 );
-                                            })}
-                                        </select>
+                                            };
+
+                                            const roots = categories.filter(c => !c.parentId);
+
+                                            return (
+                                                <div className="relative">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setShowCategoryPicker(!showCategoryPicker)}
+                                                        className="w-full bg-black/30 border border-white/10 text-white rounded-lg px-3 h-10 text-sm flex items-center justify-between"
+                                                    >
+                                                        <span className={selectedCat ? 'text-white' : 'text-white/40'}>
+                                                            {selectedCat ? (selectedCat.name || selectedCat.nameKey) : (lang === 'ar' ? 'اختر القسم...' : 'Select category...')}
+                                                        </span>
+                                                        <ChevronDown className={`w-4 h-4 text-white/40 transition-transform ${showCategoryPicker ? 'rotate-180' : ''}`} />
+                                                    </button>
+                                                    {showCategoryPicker && (
+                                                        <>
+                                                            <div className="fixed inset-0 z-40" onClick={() => setShowCategoryPicker(false)} />
+                                                            <div className="absolute top-full left-0 right-0 mt-1 z-50 bg-[#1a1a2e] border border-white/10 rounded-xl shadow-2xl max-h-72 overflow-y-auto custom-scrollbar p-1">
+                                                                {roots.map(root => renderNode(root, 0))}
+                                                            </div>
+                                                        </>
+                                                    )}
+                                                </div>
+                                            );
+                                        })()}
                                     </div>
                                     {/* Price multiplier */}
                                     <div>

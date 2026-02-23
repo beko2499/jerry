@@ -7,7 +7,9 @@ import {
   Search,
   ChevronLeft,
   ChevronRight,
-  Code
+  Code,
+  FileText,
+  Megaphone
 } from 'lucide-react';
 import { Logo } from '@/components/Logo';
 import { Button } from '@/components/ui/button';
@@ -30,6 +32,8 @@ export default function Sidebar({ activeItem, onItemClick, hideBottomBar }: Side
     { id: 'api', label: 'API', icon: Code, color: 'text-green-400' },
     { id: 'settings', label: t.settings, icon: Settings, color: 'text-pink-400' },
     { id: 'support', label: t.support, icon: MessageCircle, color: 'text-yellow-400' },
+    { id: 'terms', label: t.termsOfService || 'شروط الاستخدام', icon: FileText, color: 'text-blue-400' },
+    { id: 'updates', label: t.updates || 'التحديثات', icon: Megaphone, color: 'text-purple-400' },
   ];
 
   return (

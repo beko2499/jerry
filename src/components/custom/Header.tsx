@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Search, Bell, Plus, LogOut, Menu, X, Wallet, MessageCircle, FileText, Megaphone, Globe, ShoppingBag, ClipboardList } from 'lucide-react';
+import { Search, Bell, Plus, LogOut, Menu, X, Wallet, MessageCircle, FileText, Megaphone, Globe, ShoppingBag, ClipboardList, Code, Settings } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -70,6 +70,8 @@ export default function Header({ onAddFundsClick, onNavigate, showMobileMenu, se
     { id: 'new-order', label: t.newOrder || 'خدماتنا', icon: ShoppingBag, color: 'text-cyan-400' },
     { id: 'orders', label: t.myOrders || 'سجل الطلبات', icon: ClipboardList, color: 'text-orange-400' },
     { id: 'add-funds', label: t.addFunds || 'شحن الرصيد', icon: Wallet, color: 'text-green-400' },
+    { id: 'api', label: 'API', icon: Code, color: 'text-green-400' },
+    { id: 'settings', label: t.settings || 'الاعدادات', icon: Settings, color: 'text-pink-400' },
     { id: 'support', label: t.support || 'الدعم', icon: MessageCircle, color: 'text-yellow-400' },
     { id: 'terms', label: t.termsOfService || 'شروط الاستخدام', icon: FileText, color: 'text-blue-400' },
     { id: 'updates', label: t.updates || 'التحديثات', icon: Megaphone, color: 'text-purple-400' },

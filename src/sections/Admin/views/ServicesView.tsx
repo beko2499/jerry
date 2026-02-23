@@ -310,7 +310,7 @@ export default function ServicesView() {
                     <h3 className="text-white font-bold text-sm md:text-base">{editingServiceId ? `✏️ ${t.editService}` : `📄 ${t.newServiceTitle}`}</h3>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                         <Input placeholder={t.serviceName} value={newService.name || ''} onChange={e => setNewService(p => ({ ...p, name: e.target.value }))} className="bg-black/30 border-white/10 text-white text-sm" />
-                        <Input type="number" placeholder={t.price} value={newService.price || ''} onChange={e => setNewService(p => ({ ...p, price: parseFloat(e.target.value) || 0 }))} className="bg-black/30 border-white/10 text-white text-sm" dir="ltr" />
+                        <Input type="text" inputMode="decimal" placeholder={t.price} value={newService.price === 0 ? '' : String(newService.price ?? '')} onChange={e => { const v = e.target.value; if (v === '' || /^\d*\.?\d*$/.test(v)) setNewService(p => ({ ...p, price: v === '' ? 0 : (v as any) })); }} onBlur={e => setNewService(p => ({ ...p, price: parseFloat(e.target.value) || 0 }))} className="bg-black/30 border-white/10 text-white text-sm" dir="ltr" />
                         <select value={newService.providerId || ''} onChange={e => setNewService(p => ({ ...p, providerId: e.target.value }))} className="bg-black/30 border border-white/10 text-white rounded-lg px-3 h-10 text-sm">
                             <option value="">{t.providerInstructions || 'معرف المزود'}</option>
                             {providers.map(p => <option key={p._id} value={p._id}>{p.name}</option>)}
@@ -322,9 +322,6 @@ export default function ServicesView() {
                             <Input placeholder={lang === 'ar' ? 'معرف تلقائي' : 'Service #'} value={newService.serviceNumber ? `#${newService.serviceNumber}` : (lang === 'ar' ? 'تلقائي' : 'Auto')} disabled className="bg-black/30 border-white/10 text-white/40 text-sm cursor-not-allowed" dir="ltr" />
                             <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/20" />
                         </div>
-                        <Input placeholder={`⚡ ${t.speed || 'Speed'}`} value={newService.speed || ''} onChange={e => setNewService(p => ({ ...p, speed: e.target.value }))} className="bg-black/30 border-white/10 text-white text-sm" />
-                        <Input placeholder={`📉 ${t.dropRate || 'Drop rate'}`} value={newService.dropRate || ''} onChange={e => setNewService(p => ({ ...p, dropRate: e.target.value }))} className="bg-black/30 border-white/10 text-white text-sm" />
-                        <Input placeholder={`🛡️ ${t.guarantee || 'Guarantee'}`} value={newService.guarantee || ''} onChange={e => setNewService(p => ({ ...p, guarantee: e.target.value }))} className="bg-black/30 border-white/10 text-white text-sm" />
                     </div>
                     <Input placeholder={t.description || 'Description'} value={newService.description || ''} onChange={e => setNewService(p => ({ ...p, description: e.target.value }))} className="bg-black/30 border-white/10 text-white text-sm" />
                     <div className="flex gap-3">

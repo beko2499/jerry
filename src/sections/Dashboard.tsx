@@ -20,8 +20,7 @@ import {
   Loader,
   PlayCircle,
   AlertTriangle,
-  RefreshCcw,
-  AlertCircle
+  RefreshCcw
 } from 'lucide-react';
 
 

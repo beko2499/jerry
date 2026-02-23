@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 import { adminFetch } from '@/lib/api';
-import { formatPrice, $price } from '@/lib/formatPrice';
+import { $price } from '@/lib/formatPrice';
 
 type DetailView = null | 'users' | 'orders' | 'revenue' | 'rechargeRevenue' | 'active';
 

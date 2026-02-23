@@ -97,10 +97,10 @@ router.post('/:id/import-services', requireAdmin, async (req, res) => {
 
         const imported = [];
         for (const svc of services) {
-            // Check if already imported (same provider + autoId)
+            // Check if already imported (same provider + providerServiceId)
             const exists = await Service.findOne({
                 providerId: provider._id.toString(),
-                autoId: String(svc.service),
+                providerServiceId: String(svc.service),
             });
             if (exists) continue;
 
@@ -112,7 +112,7 @@ router.post('/:id/import-services', requireAdmin, async (req, res) => {
                 max: parseInt(svc.max) || 10000,
                 description: svc.category || '',
                 providerId: provider._id.toString(),
-                autoId: String(svc.service),
+                providerServiceId: String(svc.service),
             });
             await newService.save();
             imported.push(newService);

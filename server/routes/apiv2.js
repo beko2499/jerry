@@ -66,8 +66,8 @@ router.all('/', async (req, res) => {
         // ========== SERVICES ==========
         if (action === 'services') {
             const services = await Service.find().populate('categoryId', 'name');
-            const result = services.map((s, i) => ({
-                service: i + 1,
+            const result = services.map(s => ({
+                service: s.serviceNumber || 0,
                 serviceId: s._id.toString(),
                 name: s.name,
                 type: 'default',
@@ -97,14 +97,14 @@ router.all('/', async (req, res) => {
             const quantity = parseInt(qtyParam);
             if (isNaN(quantity) || quantity < 1) return res.json({ error: 'Invalid quantity' });
 
-            // Find service by index or ID
+            // Find service by serviceNumber or MongoDB _id
             let svc = null;
-            const allServices = await Service.find();
-            const serviceIndex = parseInt(serviceParam);
-            if (!isNaN(serviceIndex) && serviceIndex >= 1 && serviceIndex <= allServices.length) {
-                svc = allServices[serviceIndex - 1];
-            } else {
-                svc = allServices.find(s => s._id.toString() === serviceParam);
+            const serviceNum = parseInt(serviceParam);
+            if (!isNaN(serviceNum)) {
+                svc = await Service.findOne({ serviceNumber: serviceNum });
+            }
+            if (!svc) {
+                svc = await Service.findById(serviceParam).catch(() => null);
             }
 
             if (!svc) return res.json({ error: 'Invalid service ID' });
@@ -137,12 +137,12 @@ router.all('/', async (req, res) => {
             });
 
             // Auto-send to provider
-            if (svc.providerId && svc.autoId) {
+            if (svc.providerId && svc.providerServiceId) {
                 const provider = await Provider.findById(svc.providerId);
                 if (provider && provider.status === 'active') {
                     try {
                         const api = new SmmApi(provider.url, provider.apiKey);
-                        const result = await api.addOrder(svc.autoId, link, quantity);
+                        const result = await api.addOrder(svc.providerServiceId, link, quantity);
                         order.providerId = provider._id.toString();
                         order.externalOrderId = String(result.order);
                         order.status = 'processing';

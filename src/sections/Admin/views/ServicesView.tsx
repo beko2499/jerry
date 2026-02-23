@@ -45,7 +45,8 @@ interface Service {
     max: number;
     description: string;
     providerId: string;
-    autoId: string;
+    providerServiceId: string;
+    serviceNumber?: number;
     speed?: string;
     dropRate?: string;
     guarantee?: string;
@@ -53,7 +54,7 @@ interface Service {
 }
 
 export default function ServicesView() {
-    const { t, isRTL } = useLanguage();
+    const { t, isRTL, lang } = useLanguage();
 
     // Navigation: stack of category IDs
     const [pathStack, setPathStack] = useState<{ id: string; name: string }[]>([]);
@@ -75,7 +76,7 @@ export default function ServicesView() {
     const folderImageRef = useRef<HTMLInputElement>(null);
     const [newService, setNewService] = useState<Partial<Service>>({
         name: '', price: 0, min: 100, max: 1000, description: '',
-        providerId: '', autoId: '', speed: '', dropRate: '', guarantee: '', startTime: ''
+        providerId: '', providerServiceId: '', speed: '', dropRate: '', guarantee: '', startTime: ''
     });
 
     // Image upload handler
@@ -211,7 +212,7 @@ export default function ServicesView() {
         }
 
         setIsAddingFile(false);
-        setNewService({ name: '', price: 0, min: 100, max: 1000, description: '', providerId: '', autoId: '', speed: '', dropRate: '', guarantee: '', startTime: '' });
+        setNewService({ name: '', price: 0, min: 100, max: 1000, description: '', providerId: '', providerServiceId: '', speed: '', dropRate: '', guarantee: '', startTime: '' });
     };
 
     const handleDeleteService = async (serviceId: string) => {
@@ -253,7 +254,7 @@ export default function ServicesView() {
                         <Plus className="w-3.5 h-3.5" /> {t.addFolder}
                     </Button>
                     {currentParentId && (
-                        <Button onClick={() => { setIsAddingFile(true); setEditingServiceId(null); setNewService({ name: '', price: 0, min: 100, max: 1000, description: '', providerId: '', autoId: '', speed: '', dropRate: '', guarantee: '', startTime: '' }); }} className="flex-1 md:flex-none bg-cyan-600 hover:bg-cyan-700 text-white gap-2 text-xs md:text-sm">
+                        <Button onClick={() => { setIsAddingFile(true); setEditingServiceId(null); setNewService({ name: '', price: 0, min: 100, max: 1000, description: '', providerId: '', providerServiceId: '', speed: '', dropRate: '', guarantee: '', startTime: '' }); }} className="flex-1 md:flex-none bg-cyan-600 hover:bg-cyan-700 text-white gap-2 text-xs md:text-sm">
                             <Plus className="w-3.5 h-3.5" /> {t.addService}
                         </Button>
                     )}
@@ -316,8 +317,9 @@ export default function ServicesView() {
                         </select>
                         <Input type="number" placeholder={t.minMax?.split('/')[0]?.trim() || 'Min'} value={newService.min || ''} onChange={e => setNewService(p => ({ ...p, min: parseInt(e.target.value) || 0 }))} className="bg-black/30 border-white/10 text-white text-sm" dir="ltr" />
                         <Input type="number" placeholder={t.minMax?.split('/')[1]?.trim() || 'Max'} value={newService.max || ''} onChange={e => setNewService(p => ({ ...p, max: parseInt(e.target.value) || 0 }))} className="bg-black/30 border-white/10 text-white text-sm" dir="ltr" />
+                        <Input placeholder={lang === 'ar' ? 'رقم الخدمة عند المزود' : 'Provider Service ID'} value={newService.providerServiceId || ''} onChange={e => setNewService(p => ({ ...p, providerServiceId: e.target.value }))} className="bg-black/30 border-white/10 text-white text-sm" dir="ltr" />
                         <div className="relative">
-                            <Input placeholder={t.autoId} value={newService.autoId || ''} disabled className="bg-black/30 border-white/10 text-white/40 text-sm cursor-not-allowed" dir="ltr" />
+                            <Input placeholder={lang === 'ar' ? 'معرف تلقائي' : 'Service #'} value={newService.serviceNumber ? `#${newService.serviceNumber}` : (lang === 'ar' ? 'تلقائي' : 'Auto')} disabled className="bg-black/30 border-white/10 text-white/40 text-sm cursor-not-allowed" dir="ltr" />
                             <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/20" />
                         </div>
                         <Input placeholder={`⚡ ${t.speed || 'Speed'}`} value={newService.speed || ''} onChange={e => setNewService(p => ({ ...p, speed: e.target.value }))} className="bg-black/30 border-white/10 text-white text-sm" />

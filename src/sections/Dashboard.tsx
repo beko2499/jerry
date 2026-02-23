@@ -547,7 +547,7 @@ const allTelegramServices = [
 // Service Details View Component
 interface ServiceDetailsViewProps {
   serviceId: string;
-  serviceData?: { name: string; price: number; min: number; max: number; description?: string; speed?: string; dropRate?: string; guarantee?: string; startTime?: string; autoId?: string };
+  serviceData?: { name: string; price: number; min: number; max: number; description?: string; speed?: string; dropRate?: string; guarantee?: string; startTime?: string; serviceNumber?: number };
   onBack: () => void;
 }
 
@@ -621,7 +621,7 @@ function ServiceDetailsView({ serviceId, serviceData, onBack }: ServiceDetailsVi
           <Card className="p-6 bg-white/5 border-white/10 backdrop-blur-sm">
             <div className="flex justify-between items-start mb-4">
               <h2 className="text-xl font-bold text-white font-body leading-relaxed flex-1">{serviceName}</h2>
-              <span className="px-3 py-1 bg-cyan-500/20 text-cyan-400 rounded-lg text-sm font-mono border border-cyan-500/30 shrink-0">#{serviceData?.autoId || serviceId.slice(-4)}</span>
+              <span className="px-3 py-1 bg-cyan-500/20 text-cyan-400 rounded-lg text-sm font-mono border border-cyan-500/30 shrink-0">#{serviceData?.serviceNumber || '...'}</span>
             </div>
 
             {/* Price Badge */}

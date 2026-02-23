@@ -50,12 +50,12 @@ router.post('/', requireAuth, async (req, res) => {
 
         // Auto-send to provider if service has provider mapping
         const service = serviceId ? await Service.findById(serviceId) : null;
-        if (service && service.providerId && service.autoId) {
+        if (service && service.providerId && service.providerServiceId) {
             const provider = await Provider.findById(service.providerId);
             if (provider && provider.status === 'active') {
                 try {
                     const api = new SmmApi(provider.url, provider.apiKey);
-                    const result = await api.addOrder(service.autoId, link, quantity);
+                    const result = await api.addOrder(service.providerServiceId, link, quantity);
 
                     order.providerId = provider._id.toString();
                     order.externalOrderId = String(result.order);

@@ -160,7 +160,7 @@ function OrdersView() {
         {filteredOrders.length === 0 ? (
           <div className="text-center py-12 text-white/30">
             <ShoppingCart className="w-10 h-10 mx-auto mb-2 opacity-50" />
-            <p className="text-sm">{t.noResults || '�� ���� �����'}</p>
+            <p className="text-sm">{t.noResults || 'لا توجد نتائج'}</p>
           </div>
         ) : filteredOrders.map((order) => (
           <Card key={order.id} className="p-3 bg-white/5 border-white/10 cursor-pointer hover:bg-white/10 transition-all active:scale-[0.98]" onClick={() => openOrderDetails(order)}>
@@ -342,7 +342,7 @@ function SearchView({ onNavigate: _onNavigate, onServiceSelect, onCategorySelect
         />
       </div>
 
-      {loading && <p className="text-white/40 text-sm text-center py-8">���� �������...</p>}
+      {loading && <p className="text-white/40 text-sm text-center py-8">جاري التحميل...</p>}
 
       {/* Results */}
       {query.length > 0 && !loading && (
@@ -350,7 +350,7 @@ function SearchView({ onNavigate: _onNavigate, onServiceSelect, onCategorySelect
           {/* Categories */}
           {filteredCategories.length > 0 && (
             <div>
-              <p className="text-white/40 text-xs mb-2 font-medium">�������</p>
+              <p className="text-white/40 text-xs mb-2 font-medium">الأقسام</p>
               <div className="space-y-2">
                 {filteredCategories.map(cat => (
                   <Card
@@ -366,7 +366,7 @@ function SearchView({ onNavigate: _onNavigate, onServiceSelect, onCategorySelect
                       </div>
                       <div className="overflow-hidden">
                         <h4 className="text-white font-medium text-sm truncate">{cat.name}</h4>
-                        <p className="text-white/40 text-xs">���</p>
+                        <p className="text-white/40 text-xs">قسم</p>
                       </div>
                     </div>
                   </Card>
@@ -378,7 +378,7 @@ function SearchView({ onNavigate: _onNavigate, onServiceSelect, onCategorySelect
           {/* Services */}
           {filteredServices.length > 0 && (
             <div>
-              <p className="text-white/40 text-xs mb-2 font-medium">������� ({filteredServices.length})</p>
+              <p className="text-white/40 text-xs mb-2 font-medium">الخدمات ({filteredServices.length})</p>
               <div className="space-y-2">
                 {filteredServices.slice(0, 20).map(svc => (
                   <Card
@@ -403,7 +403,7 @@ function SearchView({ onNavigate: _onNavigate, onServiceSelect, onCategorySelect
                   </Card>
                 ))}
                 {filteredServices.length > 20 && (
-                  <p className="text-white/30 text-xs text-center">+{filteredServices.length - 20} ����� ����</p>
+                  <p className="text-white/30 text-xs text-center">+{filteredServices.length - 20} خدمة أخرى</p>
                 )}
               </div>
             </div>
@@ -412,7 +412,7 @@ function SearchView({ onNavigate: _onNavigate, onServiceSelect, onCategorySelect
           {filteredServices.length === 0 && filteredCategories.length === 0 && (
             <div className="text-center py-12">
               <Search className="w-12 h-12 text-white/10 mx-auto mb-4" />
-              <p className="text-white/40 text-sm">�� ���� �����</p>
+              <p className="text-white/40 text-sm">لا توجد نتائج</p>
             </div>
           )}
         </div>
@@ -573,11 +573,11 @@ function ServiceDetailsView({ serviceId, serviceData, onBack }: ServiceDetailsVi
   const handleSubmitOrder = async () => {
     if (!user) return;
     if (quantity < serviceMin || quantity > serviceMax) {
-      setOrderResult({ success: false, message: t.invalidQuantity || `������ ��� �� ���� ��� ${serviceMin} � ${serviceMax}` });
+      setOrderResult({ success: false, message: t.invalidQuantity || `الكمية يجب أن تكون بين ${serviceMin} و ${serviceMax}` });
       return;
     }
     if ((user.balance || 0) < totalPrice) {
-      setOrderResult({ success: false, message: t.insufficientBalance || '����� ��� ����' });
+      setOrderResult({ success: false, message: t.insufficientBalance || 'الرصيد غير كافي' });
       return;
     }
 
@@ -598,13 +598,13 @@ function ServiceDetailsView({ serviceId, serviceData, onBack }: ServiceDetailsVi
       });
       const data = await res.json();
       if (!res.ok) {
-        setOrderResult({ success: false, message: data.error || '��� ���' });
+        setOrderResult({ success: false, message: data.error || 'حدث خطأ' });
       } else {
-        setOrderResult({ success: true, message: t.orderSuccess || '�� ����� �����! ?', orderId: data.orderId });
+        setOrderResult({ success: true, message: t.orderSuccess || 'تم تقديم الطلب! ✅', orderId: data.orderId });
         await refreshUser();
       }
     } catch {
-      setOrderResult({ success: false, message: t.connectionError || '��� �� �������' });
+      setOrderResult({ success: false, message: t.connectionError || 'خطأ في الاتصال' });
     }
     setOrderLoading(false);
   };
@@ -628,7 +628,7 @@ function ServiceDetailsView({ serviceId, serviceData, onBack }: ServiceDetailsVi
             <div className="flex items-center gap-3 mb-6 p-3 bg-gradient-to-r from-cyan-500/10 to-purple-500/10 rounded-xl border border-cyan-500/20">
               <div className="flex items-baseline gap-1">
                 <span className="text-3xl font-bold text-cyan-400 font-space">${servicePrice}</span>
-                <span className="text-white/40 text-sm">/ {t.perUnit || '��� ����'}</span>
+                <span className="text-white/40 text-sm">/ {t.perUnit || 'لكل ألف'}</span>
               </div>
             </div>
 
@@ -778,9 +778,9 @@ function ServiceDetailsView({ serviceId, serviceData, onBack }: ServiceDetailsVi
                 className="w-full h-14 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white text-lg font-bold shadow-lg shadow-cyan-500/20 rounded-xl transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {orderLoading ? (
-                  <span className="flex items-center gap-2"><span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> {t.processing || '���� ��������...'}</span>
+                  <span className="flex items-center gap-2"><span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> {t.processing || 'جاري المعالجة...'}</span>
                 ) : orderResult?.success ? (
-                  t.orderPlaced || '? �� �����'
+                  t.orderPlaced || '✅ تم الطلب'
                 ) : (
                   t.confirmOrder
                 )}
@@ -1406,7 +1406,7 @@ function AddFundsView() {
                       className={`w-full h-12 font-bold gap-2 ${selectedMethodData.contactType === 'whatsapp' ? 'bg-green-600 hover:bg-green-700' : 'bg-blue-500 hover:bg-blue-600'} text-white`}
                       onClick={() => {
                         const msg = lang === 'ar'
-                          ? `��� ��� ����\n?? ��������: ${user?.username || ''}\n?? ����� �����: ${selectedMethodData?.name || ''}\n?? ������ ������: ${manualAmount || '0'}$\n?? ��� ������: ${selectedMethodData?.accountNumber || ''}`
+                          ? `طلب شحن رصيد\n👤 المستخدم: ${user?.username || ''}\n💳 طريقة الدفع: ${selectedMethodData?.name || ''}\n💰 المبلغ المحول: ${manualAmount || '0'}$\n🔢 رقم الحساب: ${selectedMethodData?.accountNumber || ''}`
                           : `Balance top-up request\n?? Username: ${user?.username || ''}\n?? Payment method: ${selectedMethodData?.name || ''}\n?? Amount transferred: $${manualAmount || '0'}\n?? Account: ${selectedMethodData?.accountNumber || ''}`;
                         const encodedMsg = encodeURIComponent(msg);
                         if (selectedMethodData.contactType === 'whatsapp') {
@@ -1521,7 +1521,7 @@ function AddFundsView() {
                         {paymentLoading ? (
                           <span className="flex items-center gap-2">
                             <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                            {lang === 'ar' ? '���� ����� ����� �����...' : 'Creating payment...'}
+                            {lang === 'ar' ? 'جاري إنشاء عملية الدفع...' : 'Creating payment...'}
                           </span>
                         ) : (
                           t.continuePayment
@@ -1539,10 +1539,10 @@ function AddFundsView() {
                           : 'bg-cyan-500/20 border border-cyan-500/30 text-cyan-300'
                         }`}>
                         {paymentStatus === 'finished' || paymentStatus === 'confirmed' || paymentStatus === 'partially_paid'
-                          ? (lang === 'ar' ? '? �� ������ ������! �� ����� ������' : '? Payment received! Balance added')
+                          ? (lang === 'ar' ? '✅ تم استلام الدفعة! تم إضافة الرصيد' : '✅ Payment received! Balance added')
                           : paymentStatus === 'sending' || paymentStatus === 'confirming'
-                            ? (lang === 'ar' ? '? ���� ����� ��������...' : '? Confirming transaction...')
-                            : (lang === 'ar' ? '? �� ������ �����...' : '? Waiting for payment...')}
+                            ? (lang === 'ar' ? '⏳ جاري تأكيد المعاملة...' : '⏳ Confirming transaction...')
+                            : (lang === 'ar' ? '⏳ في انتظار الدفع...' : '⏳ Waiting for payment...')}
                       </div>
 
                       {/* Payment Details */}
@@ -1550,7 +1550,7 @@ function AddFundsView() {
                         <>
                           <div className="p-4 rounded-xl bg-yellow-500/10 border border-yellow-500/30">
                             <p className="text-yellow-200 font-body mb-1 text-sm">
-                              {lang === 'ar' ? '���� ������:' : 'Send exactly:'}
+                              {lang === 'ar' ? 'أرسل بالضبط:' : 'Send exactly:'}
                             </p>
                             <div className="flex items-center justify-center gap-2" dir="ltr">
                               <code className="text-2xl font-mono bg-black/30 px-4 py-2 rounded text-white font-bold">
@@ -1562,7 +1562,7 @@ function AddFundsView() {
 
                           <div className="p-4 rounded-xl bg-white/5 border border-white/10">
                             <p className="text-white/60 font-body mb-2 text-sm">
-                              {lang === 'ar' ? '?? ����� ��������:' : '?? Payment address:'}
+                              {lang === 'ar' ? '📋 عنوان الدفع:' : '📋 Payment address:'}
                             </p>
                             <div className="flex items-center gap-2" dir="ltr">
                               <code className="flex-1 text-xs font-mono bg-black/30 px-3 py-2 rounded text-cyan-300 break-all select-all">
@@ -1574,7 +1574,7 @@ function AddFundsView() {
                                 onClick={() => copyText(cryptoPayment.payAddress)}
                                 className="h-9 px-3 text-xs text-white/60 hover:text-white shrink-0"
                               >
-                                {copied ? '?' : (lang === 'ar' ? '���' : 'Copy')}
+                                {copied ? '✅' : (lang === 'ar' ? 'نسخ' : 'Copy')}
                               </Button>
                             </div>
                           </div>
@@ -1582,7 +1582,7 @@ function AddFundsView() {
                           <div className="p-3 rounded-lg bg-orange-500/10 border border-orange-500/20">
                             <p className="text-orange-200 text-xs text-center">
                               ?? {lang === 'ar'
-                                ? `���� ��� ${cryptoPayment.payCurrency.toUpperCase()} ��� ��� �������. ���� ����� ������ �������� ��� �������.`
+                                ? `أرسل فقط ${cryptoPayment.payCurrency.toUpperCase()} إلى هذا العنوان. سيتم تحديث الرصيد تلقائياً بعد التأكيد.`
                                 : `Only send ${cryptoPayment.payCurrency.toUpperCase()} to this address. Balance will update automatically after confirmation.`}
                             </p>
                           </div>
@@ -1590,7 +1590,7 @@ function AddFundsView() {
                           {/* Animated waiting indicator */}
                           <div className="flex items-center justify-center gap-2 text-white/40 text-sm py-2">
                             <span className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse" />
-                            {lang === 'ar' ? '��� ������ �� 10 ����� ��������...' : 'Auto-checking every 10 seconds...'}
+                            {lang === 'ar' ? 'فحص تلقائي كل 10 ثوانٍ...' : 'Auto-checking every 10 seconds...'}
                           </div>
 
                           {/* Cancel Button */}
@@ -1599,7 +1599,7 @@ function AddFundsView() {
                             variant="ghost"
                             className="w-full mt-2 text-white/40 hover:text-white/70 hover:bg-white/5 border border-white/10"
                           >
-                            {lang === 'ar' ? '? �����' : '? Cancel'}
+                            {lang === 'ar' ? '❌ إلغاء' : '❌ Cancel'}
                           </Button>
                         </>
                       )}
@@ -1608,13 +1608,13 @@ function AddFundsView() {
                       {(paymentStatus === 'finished' || paymentStatus === 'confirmed' || paymentStatus === 'partially_paid') && (
                         <div className="text-center py-4">
                           <p className="text-green-300 text-lg font-bold mb-2">
-                            ?? {lang === 'ar' ? `�� ����� $${cryptoPayment.priceAmount} ������!` : `$${cryptoPayment.priceAmount} added to your balance!`}
+                            🎉 {lang === 'ar' ? `تم إضافة $${cryptoPayment.priceAmount} لرصيدك!` : `$${cryptoPayment.priceAmount} added to your balance!`}
                           </p>
                           <Button
                             onClick={() => { setCryptoPayment(null); setAutoAmount(''); setPaymentStatus(''); }}
                             className="mt-2 bg-white/10 hover:bg-white/20 text-white"
                           >
-                            {lang === 'ar' ? '���� �����' : 'New Payment'}
+                            {lang === 'ar' ? 'دفعة جديدة' : 'New Payment'}
                           </Button>
                         </div>
                       )}
@@ -1647,7 +1647,7 @@ function AddFundsView() {
                   {acStep === 'phone' && (
                     <div className="space-y-3">
                       <label className="block font-body text-white/80 mb-1">
-                        {lang === 'ar' ? '?? ��� ������ (�������)' : '?? Phone Number (Asiacell)'}
+                        {lang === 'ar' ? '📱 رقم الهاتف (آسياسيل)' : '📱 Phone Number (Asiacell)'}
                       </label>
                       <Input
                         value={acPhone}
@@ -1683,9 +1683,9 @@ function AddFundsView() {
                         {acLoading ? (
                           <span className="flex items-center gap-2">
                             <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                            {lang === 'ar' ? '���� �������...' : 'Sending...'}
+                            {lang === 'ar' ? 'جاري الإرسال...' : 'Sending...'}
                           </span>
-                        ) : (lang === 'ar' ? '����� ��� ������' : 'Send OTP')}
+                        ) : (lang === 'ar' ? 'إرسال رمز التحقق' : 'Send OTP')}
                       </Button>
                     </div>
                   )}
@@ -1694,7 +1694,7 @@ function AddFundsView() {
                   {acStep === 'otp' && (
                     <div className="space-y-3">
                       <label className="block font-body text-white/80 mb-1">
-                        {lang === 'ar' ? '?? ���� ��� ������ ������ ���' : '?? Enter OTP sent to'} <span className="text-cyan-400 font-mono" dir="ltr">{acPhone}</span>
+                        {lang === 'ar' ? '🔢 أدخل رمز التحقق المرسل إلى' : '🔢 Enter OTP sent to'} <span className="text-cyan-400 font-mono" dir="ltr">{acPhone}</span>
                       </label>
                       <Input
                         value={acOtp}
@@ -1729,9 +1729,9 @@ function AddFundsView() {
                         {acLoading ? (
                           <span className="flex items-center gap-2">
                             <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                            {lang === 'ar' ? '���� ������...' : 'Verifying...'}
+                            {lang === 'ar' ? 'جاري التحقق...' : 'Verifying...'}
                           </span>
-                        ) : (lang === 'ar' ? '����� �����' : 'Verify OTP')}
+                        ) : (lang === 'ar' ? 'تأكيد التحقق' : 'Verify OTP')}
                       </Button>
                     </div>
                   )}
@@ -1740,20 +1740,20 @@ function AddFundsView() {
                   {acStep === 'amount' && (
                     <div className="space-y-3">
                       <div className="p-3 rounded-lg bg-green-500/10 border border-green-500/20 text-center">
-                        <p className="text-green-300 text-sm">? {lang === 'ar' ? '�� ������ �����!' : 'Verified successfully!'}</p>
+                        <p className="text-green-300 text-sm">✅ {lang === 'ar' ? 'تم التحقق بنجاح!' : 'Verified successfully!'}</p>
                       </div>
                       <label className="block font-body text-white/80 mb-1">
-                        {lang === 'ar' ? '?? ��� ��������' : '?? Username'}
+                        {lang === 'ar' ? '👤 اسم المستخدم' : '👤 Username'}
                       </label>
                       <Input
                         value={acUsername || user?.username || ''}
                         onChange={e => setAcUsername(e.target.value)}
                         className="bg-white/5 border-white/10 text-white focus:border-cyan-500/50 text-center"
-                        placeholder={lang === 'ar' ? '��� ��������' : 'Your username'}
+                        placeholder={lang === 'ar' ? 'اسم المستخدم' : 'Your username'}
                         dir="ltr"
                       />
                       <label className="block font-body text-white/80 mb-1">
-                        {lang === 'ar' ? '?? ������ �������� ������� (IQD)' : '?? Amount in Iraqi Dinar (IQD)'}
+                        {lang === 'ar' ? '💰 المبلغ بالدينار العراقي (IQD)' : '💰 Amount in Iraqi Dinar (IQD)'}
                       </label>
                       <Input
                         type="number"
@@ -1811,9 +1811,9 @@ function AddFundsView() {
                         {acLoading ? (
                           <span className="flex items-center gap-2">
                             <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                            {lang === 'ar' ? '���� �������...' : 'Processing...'}
+                            {lang === 'ar' ? 'جاري المعالجة...' : 'Processing...'}
                           </span>
-                        ) : (lang === 'ar' ? `����� ${acAmount ? parseInt(acAmount).toLocaleString() : '0'} IQD` : `Transfer ${acAmount ? parseInt(acAmount).toLocaleString() : '0'} IQD`)}
+                        ) : (lang === 'ar' ? `تحويل ${acAmount ? parseInt(acAmount).toLocaleString() : '0'} IQD` : `Transfer ${acAmount ? parseInt(acAmount).toLocaleString() : '0'} IQD`)}
                       </Button>
                     </div>
                   )}
@@ -1824,12 +1824,12 @@ function AddFundsView() {
                       <div className="p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/20 text-center">
                         <p className="text-yellow-300 text-sm">
                           ?? {lang === 'ar'
-                            ? `���� ����� ${parseInt(acAmount).toLocaleString()} IQD ($${(parseInt(acAmount) / 1000).toFixed(2)})`
+                            ? `جاري تحويل ${parseInt(acAmount).toLocaleString()} IQD ($${(parseInt(acAmount) / 1000).toFixed(2)})`
                             : `Transferring ${parseInt(acAmount).toLocaleString()} IQD ($${(parseInt(acAmount) / 1000).toFixed(2)})`}
                         </p>
                       </div>
                       <label className="block font-body text-white/80 mb-1">
-                        {lang === 'ar' ? '? ���� ��� �������' : '?? Enter confirmation OTP'}
+                        {lang === 'ar' ? '🔐 أدخل رمز التأكيد' : '🔐 Enter confirmation OTP'}
                       </label>
                       <Input
                         value={acConfirmOtp}
@@ -1866,9 +1866,9 @@ function AddFundsView() {
                         {acLoading ? (
                           <span className="flex items-center gap-2">
                             <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                            {lang === 'ar' ? '���� �������...' : 'Confirming...'}
+                            {lang === 'ar' ? 'جاري التأكيد...' : 'Confirming...'}
                           </span>
-                        ) : (lang === 'ar' ? '����� �������' : 'Confirm Transfer')}
+                        ) : (lang === 'ar' ? 'تأكيد التحويل' : 'Confirm Transfer')}
                       </Button>
                     </div>
                   )}
@@ -1880,7 +1880,7 @@ function AddFundsView() {
                         <span className="text-3xl">??</span>
                       </div>
                       <p className="text-green-300 text-lg font-bold">
-                        {lang === 'ar' ? `�� ����� $${acCredited} ������!` : `$${acCredited} added to your balance!`}
+                        {lang === 'ar' ? `تم إضافة $${acCredited} لرصيدك!` : `$${acCredited} added to your balance!`}
                       </p>
                       <p className="text-white/40 text-sm">
                         {parseInt(acAmount).toLocaleString()} IQD ? ${acCredited}
@@ -1892,7 +1892,7 @@ function AddFundsView() {
                         }}
                         className="mt-2 bg-white/10 hover:bg-white/20 text-white"
                       >
-                        {lang === 'ar' ? '����� �����' : 'New Transfer'}
+                        {lang === 'ar' ? 'تحويل جديد' : 'New Transfer'}
                       </Button>
                     </div>
                   )}
@@ -1907,7 +1907,7 @@ function AddFundsView() {
                       variant="ghost"
                       className="w-full text-white/40 hover:text-white/70 hover:bg-white/5 border border-white/10"
                     >
-                      {lang === 'ar' ? '? �����' : '? Cancel'}
+                      {lang === 'ar' ? '❌ إلغاء' : '❌ Cancel'}
                     </Button>
                   )}
                 </div>

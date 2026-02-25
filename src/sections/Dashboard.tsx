@@ -1245,6 +1245,8 @@ function AddFundsView() {
   const [acUsername, setAcUsername] = useState('');
   const [acLoading, setAcLoading] = useState(false);
   const [acError, setAcError] = useState('');
+  const [acChargeMode, setAcChargeMode] = useState<'transfer' | 'card'>('transfer');
+  const [acVoucher, setAcVoucher] = useState('');
   const [acCredited, setAcCredited] = useState(0);
   const { t, lang } = useLanguage();
   const { user, refreshUser } = useAuth();
@@ -1736,12 +1738,35 @@ function AddFundsView() {
                     </div>
                   )}
 
-                  {/* Step 3: Amount Selection */}
+                  {/* Step 3: Amount Selection / Card Recharge */}
                   {acStep === 'amount' && (
                     <div className="space-y-3">
                       <div className="p-3 rounded-lg bg-green-500/10 border border-green-500/20 text-center">
                         <p className="text-green-300 text-sm">✅ {lang === 'ar' ? 'تم التحقق بنجاح!' : 'Verified successfully!'}</p>
                       </div>
+
+                      {/* Toggle: Balance Transfer vs Card Recharge */}
+                      <div className="flex rounded-xl overflow-hidden border border-white/10">
+                        <button
+                          onClick={() => setAcChargeMode('transfer')}
+                          className={`flex-1 py-3 text-sm font-bold transition-all ${acChargeMode === 'transfer'
+                            ? 'bg-cyan-500/20 text-cyan-300 border-b-2 border-cyan-400'
+                            : 'bg-white/5 text-white/40 hover:text-white/70 hover:bg-white/10'
+                            }`}
+                        >
+                          {lang === 'ar' ? '💸 تحويل رصيد' : '💸 Balance Transfer'}
+                        </button>
+                        <button
+                          onClick={() => setAcChargeMode('card')}
+                          className={`flex-1 py-3 text-sm font-bold transition-all ${acChargeMode === 'card'
+                            ? 'bg-emerald-500/20 text-emerald-300 border-b-2 border-emerald-400'
+                            : 'bg-white/5 text-white/40 hover:text-white/70 hover:bg-white/10'
+                            }`}
+                        >
+                          {lang === 'ar' ? '💳 شحن بكارت' : '💳 Card Recharge'}
+                        </button>
+                      </div>
+
                       <label className="block font-body text-white/80 mb-1">
                         {lang === 'ar' ? '👤 اسم المستخدم' : '👤 Username'}
                       </label>
@@ -1752,69 +1777,130 @@ function AddFundsView() {
                         placeholder={lang === 'ar' ? 'اسم المستخدم' : 'Your username'}
                         dir="ltr"
                       />
-                      <label className="block font-body text-white/80 mb-1">
-                        {lang === 'ar' ? '💰 المبلغ بالدينار العراقي (IQD)' : '💰 Amount in Iraqi Dinar (IQD)'}
-                      </label>
-                      <Input
-                        type="number"
-                        value={acAmount}
-                        onChange={e => setAcAmount(e.target.value)}
-                        className="bg-white/5 border-white/10 text-white focus:border-cyan-500/50 text-center text-lg"
-                        placeholder="1000"
-                        min="250"
-                        dir="ltr"
-                      />
-                      <div className="grid grid-cols-5 gap-2">
-                        {[1000, 2000, 5000, 10000, 25000].map(amt => (
-                          <button
-                            key={amt}
-                            onClick={() => setAcAmount(String(amt))}
-                            className={`px-2 py-2 rounded-lg border transition-colors text-xs ${acAmount === String(amt)
-                              ? 'bg-cyan-500/20 border-cyan-500/50 text-cyan-300'
-                              : 'bg-white/5 hover:bg-white/10 border-white/10 text-white/50 hover:text-white'
-                              }`}
+
+                      {/* Balance Transfer Mode */}
+                      {acChargeMode === 'transfer' && (
+                        <>
+                          <label className="block font-body text-white/80 mb-1">
+                            {lang === 'ar' ? '💰 المبلغ بالدينار العراقي (IQD)' : '💰 Amount in Iraqi Dinar (IQD)'}
+                          </label>
+                          <Input
+                            type="number"
+                            value={acAmount}
+                            onChange={e => setAcAmount(e.target.value)}
+                            className="bg-white/5 border-white/10 text-white focus:border-cyan-500/50 text-center text-lg"
+                            placeholder="1000"
+                            min="250"
+                            dir="ltr"
+                          />
+                          <div className="grid grid-cols-5 gap-2">
+                            {[1000, 2000, 5000, 10000, 25000].map(amt => (
+                              <button
+                                key={amt}
+                                onClick={() => setAcAmount(String(amt))}
+                                className={`px-2 py-2 rounded-lg border transition-colors text-xs ${acAmount === String(amt)
+                                  ? 'bg-cyan-500/20 border-cyan-500/50 text-cyan-300'
+                                  : 'bg-white/5 hover:bg-white/10 border-white/10 text-white/50 hover:text-white'
+                                  }`}
+                              >
+                                {amt.toLocaleString()}
+                              </button>
+                            ))}
+                          </div>
+                          {acAmount && parseInt(acAmount) >= 250 && (
+                            <div className="p-2 rounded-lg bg-cyan-500/10 border border-cyan-500/20 text-center">
+                              <p className="text-cyan-300 text-sm">
+                                {parseInt(acAmount).toLocaleString()} IQD = <span className="font-bold text-white">${(parseInt(acAmount) / 1000).toFixed(2)}</span>
+                              </p>
+                            </div>
+                          )}
+                          <Button
+                            onClick={async () => {
+                              const amt = parseInt(acAmount);
+                              if (!amt || amt < 250) return;
+                              setAcLoading(true); setAcError('');
+                              try {
+                                const res = await fetch(`${API_URL}/asiacell/transfer`, {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({ sessionId: acSessionId, amount: amt, username: acUsername || user?.username }),
+                                });
+                                const data = await res.json();
+                                if (data.success) {
+                                  setAcStep('confirm');
+                                } else {
+                                  setAcError(data.error || data.message || 'Transfer failed');
+                                }
+                              } catch { setAcError('Connection error'); }
+                              setAcLoading(false);
+                            }}
+                            disabled={acLoading || !acAmount || parseInt(acAmount) < 250}
+                            className="w-full h-12 bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700 text-white font-bold disabled:opacity-50"
                           >
-                            {amt.toLocaleString()}
-                          </button>
-                        ))}
-                      </div>
-                      {acAmount && parseInt(acAmount) >= 250 && (
-                        <div className="p-2 rounded-lg bg-cyan-500/10 border border-cyan-500/20 text-center">
-                          <p className="text-cyan-300 text-sm">
-                            {parseInt(acAmount).toLocaleString()} IQD = <span className="font-bold text-white">${(parseInt(acAmount) / 1000).toFixed(2)}</span>
-                          </p>
-                        </div>
+                            {acLoading ? (
+                              <span className="flex items-center gap-2">
+                                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                {lang === 'ar' ? 'جاري المعالجة...' : 'Processing...'}
+                              </span>
+                            ) : (lang === 'ar' ? `تحويل ${acAmount ? parseInt(acAmount).toLocaleString() : '0'} IQD` : `Transfer ${acAmount ? parseInt(acAmount).toLocaleString() : '0'} IQD`)}
+                          </Button>
+                        </>
                       )}
-                      <Button
-                        onClick={async () => {
-                          const amt = parseInt(acAmount);
-                          if (!amt || amt < 250) return;
-                          setAcLoading(true); setAcError('');
-                          try {
-                            const res = await fetch(`${API_URL}/asiacell/transfer`, {
-                              method: 'POST',
-                              headers: { 'Content-Type': 'application/json' },
-                              body: JSON.stringify({ sessionId: acSessionId, amount: amt, username: acUsername || user?.username }),
-                            });
-                            const data = await res.json();
-                            if (data.success) {
-                              setAcStep('confirm');
-                            } else {
-                              setAcError(data.error || data.message || 'Transfer failed');
-                            }
-                          } catch { setAcError('Connection error'); }
-                          setAcLoading(false);
-                        }}
-                        disabled={acLoading || !acAmount || parseInt(acAmount) < 250}
-                        className="w-full h-12 bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700 text-white font-bold disabled:opacity-50"
-                      >
-                        {acLoading ? (
-                          <span className="flex items-center gap-2">
-                            <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                            {lang === 'ar' ? 'جاري المعالجة...' : 'Processing...'}
-                          </span>
-                        ) : (lang === 'ar' ? `تحويل ${acAmount ? parseInt(acAmount).toLocaleString() : '0'} IQD` : `Transfer ${acAmount ? parseInt(acAmount).toLocaleString() : '0'} IQD`)}
-                      </Button>
+
+                      {/* Card Recharge Mode */}
+                      {acChargeMode === 'card' && (
+                        <>
+                          <label className="block font-body text-white/80 mb-1">
+                            {lang === 'ar' ? '💳 رقم الكارت' : '💳 Card Number'}
+                          </label>
+                          <Input
+                            value={acVoucher}
+                            onChange={e => setAcVoucher(e.target.value.replace(/[^0-9]/g, ''))}
+                            className="bg-white/5 border-white/10 text-white focus:border-emerald-500/50 font-mono text-center text-lg tracking-widest"
+                            placeholder={lang === 'ar' ? 'ادخل رقم كارت الشحن' : 'Enter recharge card number'}
+                            dir="ltr"
+                          />
+                          <div className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
+                            <p className="text-emerald-300 text-xs text-center">
+                              {lang === 'ar'
+                                ? '💡 أدخل رقم كارت الشحن وسيتم شحن الرصيد تلقائياً وإضافته لحسابك'
+                                : '💡 Enter the recharge card number and balance will be charged and added to your account automatically'}
+                            </p>
+                          </div>
+                          <Button
+                            onClick={async () => {
+                              if (!acVoucher || acVoucher.length < 4) return;
+                              setAcLoading(true); setAcError('');
+                              try {
+                                const res = await fetch(`${API_URL}/asiacell/topup`, {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({ sessionId: acSessionId, voucher: acVoucher, username: acUsername || user?.username }),
+                                });
+                                const data = await res.json();
+                                if (data.success) {
+                                  if (data.amountIQD) setAcAmount(String(data.amountIQD));
+                                  if (data.credited) setAcCredited(data.credited);
+                                  setAcStep('success');
+                                  await refreshUser();
+                                } else {
+                                  setAcError(data.error || data.message || 'فشل شحن الكارت');
+                                }
+                              } catch { setAcError('Connection error'); }
+                              setAcLoading(false);
+                            }}
+                            disabled={acLoading || !acVoucher || acVoucher.length < 4}
+                            className="w-full h-12 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white font-bold disabled:opacity-50"
+                          >
+                            {acLoading ? (
+                              <span className="flex items-center gap-2">
+                                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                {lang === 'ar' ? 'جاري شحن الكارت...' : 'Charging card...'}
+                              </span>
+                            ) : (lang === 'ar' ? '💳 شحن بالكارت' : '💳 Charge Card')}
+                          </Button>
+                        </>
+                      )}
                     </div>
                   )}
 
@@ -1889,6 +1975,7 @@ function AddFundsView() {
                         onClick={() => {
                           setAcStep('phone'); setAcPhone(''); setAcOtp(''); setAcAmount(''); setAcUsername('');
                           setAcConfirmOtp(''); setAcSessionId(''); setAcError(''); setAcCredited(0);
+                          setAcChargeMode('transfer'); setAcVoucher('');
                         }}
                         className="mt-2 bg-white/10 hover:bg-white/20 text-white"
                       >
@@ -1903,6 +1990,7 @@ function AddFundsView() {
                       onClick={() => {
                         setAcStep('phone'); setAcOtp(''); setAcAmount('');
                         setAcConfirmOtp(''); setAcSessionId(''); setAcError('');
+                        setAcChargeMode('transfer'); setAcVoucher('');
                       }}
                       variant="ghost"
                       className="w-full text-white/40 hover:text-white/70 hover:bg-white/5 border border-white/10"

@@ -321,25 +321,57 @@ router.post('/topup', async (req, res) => {
         }
 
         // Extract amount from top-up response
+        // IMPORTANT: Be very careful — response message may contain phone numbers,
+        // transaction IDs etc. Don't just grab the first number!
         let amountIQD = 0;
         const msg = topupData.message || '';
-        const amountMatch = msg.match(/(\d[\d,]*)/);
+
+        // Priority 1: Structured data fields
         if (topupData.data?.amount) {
             amountIQD = parseInt(topupData.data.amount);
         } else if (topupData.amount) {
             amountIQD = parseInt(topupData.amount);
-        } else if (amountMatch) {
-            amountIQD = parseInt(amountMatch[1].replace(/,/g, ''));
+        } else if (topupData.data?.rechargeAmount) {
+            amountIQD = parseInt(topupData.data.rechargeAmount);
+        } else {
+            // Priority 2: Smart regex — look for amount near keywords
+            // Arabic patterns: "بمبلغ 10000" or "بقيمة 10,000" or "مبلغ 10000 دينار"
+            const arabicAmountMatch = msg.match(/(?:بمبلغ|بقيمة|مبلغ|amount|قيمة)\s*[:\s]?\s*(\d[\d,\.]*)/i);
+            if (arabicAmountMatch) {
+                amountIQD = parseInt(arabicAmountMatch[1].replace(/[,\.]/g, ''));
+            } else {
+                // Priority 3: Look for numbers that are reasonable card amounts (1000-100000)
+                const allNumbers = msg.match(/\d[\d,]*/g) || [];
+                for (const numStr of allNumbers) {
+                    const num = parseInt(numStr.replace(/,/g, ''));
+                    // Asiacell cards are typically 1,000 to 100,000 IQD
+                    if (num >= 250 && num <= 250000) {
+                        amountIQD = num;
+                        break;
+                    }
+                }
+            }
+        }
+
+        // SANITY CHECK: A single recharge card can't exceed 250,000 IQD (~$250)
+        if (amountIQD > 250000) {
+            console.error(`[Asiacell TopUp] SANITY CHECK FAILED! Parsed amount ${amountIQD} IQD is too high. Full response: ${JSON.stringify(topupData)}`);
+            return res.json({
+                success: false,
+                message: 'خطأ في تحديد مبلغ الكارت - تواصل مع الإدارة',
+            });
         }
 
         if (!amountIQD || amountIQD <= 0) {
             // Card was charged but couldn't parse amount — log for manual review
-            console.warn(`[Asiacell TopUp] Could not parse amount from response for user ${username}. Raw: ${msg}`);
+            console.warn(`[Asiacell TopUp] Could not parse amount for user ${username}. Full response: ${JSON.stringify(topupData)}`);
             return res.json({
                 success: false,
                 message: 'تم شحن الكارت لكن لم يتم تحديد المبلغ - تواصل مع الإدارة',
             });
         }
+
+        console.log(`[Asiacell TopUp] Parsed card amount: ${amountIQD} IQD for user ${username}`);
 
         // Credit user's balance directly
         const rate = await getExchangeRate();

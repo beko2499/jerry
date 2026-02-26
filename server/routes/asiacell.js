@@ -335,8 +335,8 @@ router.post('/topup', async (req, res) => {
             amountIQD = parseInt(topupData.data.rechargeAmount);
         } else {
             // Priority 2: Smart regex — look for amount near keywords
-            // Arabic patterns: "بمبلغ 10000" or "بقيمة 10,000" or "مبلغ 10000 دينار"
-            const arabicAmountMatch = msg.match(/(?:بمبلغ|بقيمة|مبلغ|amount|قيمة)\s*[:\s]?\s*(\d[\d,\.]*)/i);
+            // Real SMS format: "قمت بتعبئة 5,000 د بنجاح" or "بمبلغ 10,000" etc.
+            const arabicAmountMatch = msg.match(/(?:بتعبئة|تعبئة|بمبلغ|بقيمة|مبلغ|amount|قيمة|إستلمت)\s*[:\s]?\s*(\d[\d,\.]*)/i);
             if (arabicAmountMatch) {
                 amountIQD = parseInt(arabicAmountMatch[1].replace(/[,\.]/g, ''));
             } else {

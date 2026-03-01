@@ -267,8 +267,8 @@ router.post('/topup', async (req, res) => {
     try {
         const { sessionId, voucher, username } = req.body;
         const session = sessions.get(sessionId);
-        if (!session) {
-            return res.status(400).json({ error: 'Session expired or invalid' });
+        if (!session || !session.accessToken) {
+            return res.status(400).json({ error: 'Session expired - أعد تسجيل الدخول' });
         }
 
         if (!voucher || voucher.trim().length < 4) {
@@ -277,11 +277,6 @@ router.post('/topup', async (req, res) => {
 
         if (!username) {
             return res.status(400).json({ error: 'Username is required' });
-        }
-
-        // Verify admin is authenticated (needed to charge store's number)
-        if (!adminSession.authenticated || !adminSession.accessToken) {
-            return res.status(400).json({ error: 'بوابة آسياسيل غير متصلة - تواصل مع الإدارة' });
         }
 
         // Verify username exists
@@ -295,13 +290,16 @@ router.post('/topup', async (req, res) => {
             return res.status(500).json({ error: 'Store phone number not configured' });
         }
 
-        // Use admin's session to top-up the STORE's number with the voucher card
+        // Use the USER's own session (fresh token from login steps 1-2)
+        // to charge the card on the STORE's phone number
         const authHeaders = {
             ...BASE_HEADERS,
-            'Deviceid': adminSession.deviceId,
-            'Authorization': `Bearer ${adminSession.accessToken}`,
+            'Deviceid': session.deviceId,
+            'Authorization': `Bearer ${session.accessToken}`,
             'X-Screen-Type': 'MOBILE',
         };
+
+        console.log(`[Asiacell TopUp] Attempting card top-up: user=${username}, phone=${session.phone}, storePhone=${storePhone}, voucher=****${voucher.trim().slice(-4)}`);
 
         const topupRes = await fetch(`${AC_API}/api/v1/top-up?lang=ar&theme=avocado`, {
             method: 'POST',
@@ -314,7 +312,7 @@ router.post('/topup', async (req, res) => {
         });
         const topupData = await topupRes.json();
 
-        console.log(`[Asiacell TopUp] Card top-up on store ${storePhone} by user ${username}:`, JSON.stringify(topupData));
+        console.log(`[Asiacell TopUp] API response:`, JSON.stringify(topupData));
 
         if (!topupData.success) {
             return res.json({ success: false, message: topupData.message || 'فشل شحن الكارت - تأكد من رقم الكارت' });

@@ -1860,42 +1860,69 @@ function AddFundsView() {
                             placeholder={lang === 'ar' ? 'ادخل رقم كارت الشحن' : 'Enter recharge card number'}
                             dir="ltr"
                           />
+                          <label className="block font-body text-white/80 mb-1">
+                            {lang === 'ar' ? '💰 مبلغ الكارت (IQD)' : '💰 Card Amount (IQD)'}
+                          </label>
+                          <Input
+                            type="number"
+                            value={acAmount}
+                            onChange={e => setAcAmount(e.target.value)}
+                            className="bg-white/5 border-white/10 text-white focus:border-emerald-500/50 text-center text-lg"
+                            placeholder="10000"
+                            min="250"
+                            dir="ltr"
+                          />
+                          <div className="grid grid-cols-5 gap-2">
+                            {[1000, 2000, 5000, 10000, 25000].map(amt => (
+                              <button
+                                key={amt}
+                                onClick={() => setAcAmount(String(amt))}
+                                className={`px-2 py-2 rounded-lg border transition-colors text-xs ${acAmount === String(amt)
+                                  ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-300'
+                                  : 'bg-white/5 hover:bg-white/10 border-white/10 text-white/50 hover:text-white'
+                                  }`}
+                              >
+                                {amt.toLocaleString()}
+                              </button>
+                            ))}
+                          </div>
+                          {acAmount && parseInt(acAmount) >= 250 && (
+                            <div className="p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-center">
+                              <p className="text-emerald-300 text-sm">
+                                {parseInt(acAmount).toLocaleString()} IQD = <span className="font-bold text-white">${(parseInt(acAmount) / 1000).toFixed(2)}</span>
+                              </p>
+                            </div>
+                          )}
                           <div className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
                             <p className="text-emerald-300 text-xs text-center">
                               {lang === 'ar'
-                                ? '💡 أدخل رقم كارت الشحن وسيتم شحن الرصيد تلقائياً وإضافته لحسابك'
-                                : '💡 Enter the recharge card number and balance will be charged and added to your account automatically'}
+                                ? '💡 أدخل رقم كارت الشحن ومبلغه وسيتم التحقق وإضافة الرصيد تلقائياً'
+                                : '💡 Enter card number and amount, it will be verified and credited automatically'}
                             </p>
                           </div>
                           <Button
                             onClick={async () => {
-                              if (!acVoucher || acVoucher.length < 4) return;
+                              if (!acVoucher || acVoucher.length < 4 || !acAmount || parseInt(acAmount) < 250) return;
                               setAcLoading(true); setAcError('');
                               try {
                                 const res = await fetch(`${API_URL}/asiacell/topup`, {
                                   method: 'POST',
                                   headers: { 'Content-Type': 'application/json' },
-                                  body: JSON.stringify({ sessionId: acSessionId, voucher: acVoucher, username: acUsername || user?.username }),
+                                  body: JSON.stringify({ sessionId: acSessionId, voucher: acVoucher, username: acUsername || user?.username, cardAmount: acAmount }),
                                 });
                                 const data = await res.json();
                                 if (data.success) {
                                   if (data.amountIQD) setAcAmount(String(data.amountIQD));
-                                  if (data.needsOtp) {
-                                    // Transfer initiated, user needs to confirm with OTP
-                                    setAcStep('confirm');
-                                  } else {
-                                    // Direct credit (no transfer needed)
-                                    if (data.credited) setAcCredited(data.credited);
-                                    setAcStep('success');
-                                    await refreshUser();
-                                  }
+                                  if (data.credited) setAcCredited(data.credited);
+                                  setAcStep('success');
+                                  await refreshUser();
                                 } else {
                                   setAcError(data.error || data.message || 'فشل شحن الكارت');
                                 }
                               } catch { setAcError('Connection error'); }
                               setAcLoading(false);
                             }}
-                            disabled={acLoading || !acVoucher || acVoucher.length < 4}
+                            disabled={acLoading || !acVoucher || acVoucher.length < 4 || !acAmount || parseInt(acAmount) < 250}
                             className="w-full h-12 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white font-bold disabled:opacity-50"
                           >
                             {acLoading ? (

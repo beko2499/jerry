@@ -263,21 +263,28 @@ router.post('/verify-otp', async (req, res) => {
 });
 
 // Customer Step 3a: Card (Voucher) Top-up
-// Flow: charge card to USER's own phone (like reference 1.py), verify success, credit user on website
+// Flow: charge card → admin's number, verify via recharge history, compare amounts, credit user
 router.post('/topup', async (req, res) => {
     try {
-        const { sessionId, voucher, username } = req.body;
+        const { sessionId, voucher, username, cardAmount } = req.body;
         const session = sessions.get(sessionId);
-        if (!session || !session.accessToken) {
+        if (!session) {
             return res.status(400).json({ error: 'الجلسة منتهية - أعد تسجيل الدخول' });
         }
 
         if (!voucher || voucher.trim().length < 4) {
             return res.status(400).json({ error: 'رقم الكارت مطلوب' });
         }
-
+        if (!cardAmount || parseInt(cardAmount) < 250) {
+            return res.status(400).json({ error: 'مبلغ الكارت مطلوب (250 IQD كحد أدنى)' });
+        }
         if (!username) {
-            return res.status(400).json({ error: 'Username is required' });
+            return res.status(400).json({ error: 'اسم المستخدم مطلوب' });
+        }
+
+        // Must have admin session active
+        if (!adminSession.authenticated || !adminSession.accessToken) {
+            return res.status(400).json({ error: 'بوابة آسياسيل غير متصلة - تواصل مع الإدارة' });
         }
 
         // Verify username exists
@@ -286,165 +293,102 @@ router.post('/topup', async (req, res) => {
             return res.status(400).json({ error: 'اسم المستخدم غير موجود' });
         }
 
-        // Build auth headers using user's OWN fresh session token
+        const userCardAmount = parseInt(cardAmount);
+
+        // Use ADMIN session to charge the card on the ADMIN's/store's phone number
         const authHeaders = {
             ...BASE_HEADERS,
-            'Deviceid': session.deviceId,
-            'Authorization': `Bearer ${session.accessToken}`,
+            'Deviceid': adminSession.deviceId,
+            'Authorization': `Bearer ${adminSession.accessToken}`,
             'X-Screen-Type': 'MOBILE',
         };
 
-        console.log(`[Asiacell TopUp] Charging card on user's phone ${session.phone}, voucher=****${voucher.trim().slice(-4)}, for user=${username}`);
+        console.log(`[Asiacell TopUp] Charging card on admin phone ${adminSession.phone}, voucher=****${voucher.trim().slice(-4)}, claimed amount=${userCardAmount}, for user=${username}`);
 
-        // Charge the card to the USER's own phone number
-        // msisdn empty = charge yourself (reference 1.py - guaranteed to work)
+        // Step 1: Charge the card to the admin's phone number
         const topupRes = await fetch(`${AC_API}/api/v1/top-up?lang=ar&theme=avocado`, {
             method: 'POST',
             headers: authHeaders,
             body: JSON.stringify({
-                msisdn: session.phone,
+                msisdn: adminSession.phone,
                 rechargeType: 1,
                 voucher: voucher.trim(),
             }),
         });
         const topupData = await topupRes.json();
-
-        // LOG THE FULL RESPONSE for debugging
-        console.log(`[Asiacell TopUp] FULL API Response:`, JSON.stringify(topupData, null, 2));
+        console.log(`[Asiacell TopUp] Top-up response:`, JSON.stringify(topupData));
 
         if (!topupData.success) {
-            const errMsg = topupData.message || 'فشل شحن الكارت';
+            const errMsg = topupData.message || 'فشل شحن الكارت - تأكد من رقم الكارت';
             console.log(`[Asiacell TopUp] FAILED: ${errMsg}`);
             return res.json({ success: false, message: errMsg });
         }
 
-        // Extract amount from top-up response
-        // IMPORTANT: Be very careful — response message may contain phone numbers,
-        // transaction IDs etc. Don't just grab the first number!
-        let amountIQD = 0;
-        const msg = topupData.message || '';
+        // Step 2: Verify by checking admin's recharge history
+        console.log(`[Asiacell TopUp] Verifying via recharge history...`);
+        let verifiedAmount = 0;
 
-        // Priority 1: Structured data fields
-        if (topupData.data?.amount) {
-            amountIQD = parseInt(topupData.data.amount);
-        } else if (topupData.amount) {
-            amountIQD = parseInt(topupData.amount);
-        } else if (topupData.data?.rechargeAmount) {
-            amountIQD = parseInt(topupData.data.rechargeAmount);
-        } else {
-            // Priority 2: Smart regex — look for amount near keywords
-            // Real SMS format: "قمت بتعبئة 5,000 د بنجاح" or "بمبلغ 10,000" etc.
-            const arabicAmountMatch = msg.match(/(?:بتعبئة|تعبئة|بمبلغ|بقيمة|مبلغ|amount|قيمة|إستلمت)\s*[:\s]?\s*(\d[\d,\.]*)/i);
-            if (arabicAmountMatch) {
-                amountIQD = parseInt(arabicAmountMatch[1].replace(/[,\.]/g, ''));
-            } else {
-                // Priority 3: Look for numbers that are reasonable card amounts (1000-100000)
-                const allNumbers = msg.match(/\d[\d,]*/g) || [];
-                for (const numStr of allNumbers) {
-                    const num = parseInt(numStr.replace(/,/g, ''));
-                    // Asiacell cards are typically 1,000 to 100,000 IQD
-                    if (num >= 250 && num <= 250000) {
-                        amountIQD = num;
-                        break;
-                    }
-                }
+        try {
+            const rechargeRes = await fetch(`${AC_API}/api/v1/transaction/recharge?lang=ar`, {
+                method: 'GET',
+                headers: authHeaders,
+            });
+            const rechargeData = await rechargeRes.json();
+            console.log(`[Asiacell TopUp] Recharge history:`, JSON.stringify(rechargeData));
+
+            if (rechargeData.success && rechargeData.data && rechargeData.data.length > 0) {
+                // Get the most recent recharge
+                const lastRecharge = rechargeData.data[0];
+                verifiedAmount = parseInt(lastRecharge.amount) || 0;
+                console.log(`[Asiacell TopUp] Last recharge: amount=${verifiedAmount}, msisdn=${lastRecharge.msisdn}, date=${lastRecharge.createdAt}`);
             }
+        } catch (verifyErr) {
+            console.error(`[Asiacell TopUp] Recharge history check failed:`, verifyErr.message);
         }
 
-        // SANITY CHECK: A single recharge card can't exceed 250,000 IQD (~$250)
-        if (amountIQD > 250000) {
-            console.error(`[Asiacell TopUp] SANITY CHECK FAILED! Parsed amount ${amountIQD} IQD is too high. Full response: ${JSON.stringify(topupData)}`);
-            return res.json({
-                success: false,
-                message: 'خطأ في تحديد مبلغ الكارت - تواصل مع الإدارة',
+        // Step 3: Compare user-entered amount with verified amount
+        if (verifiedAmount > 0 && verifiedAmount !== userCardAmount) {
+            console.warn(`[Asiacell TopUp] AMOUNT MISMATCH! User said ${userCardAmount} but actual recharge was ${verifiedAmount}`);
+            // Still credit the ACTUAL verified amount, not what user claimed
+            // Log the mismatch for admin review
+        }
+
+        // Use verified amount if available, otherwise use user's entered amount
+        const finalAmount = verifiedAmount > 0 ? verifiedAmount : userCardAmount;
+
+        // Sanity check
+        if (finalAmount > 250000) {
+            console.error(`[Asiacell TopUp] SANITY CHECK FAILED! Amount ${finalAmount} IQD too high`);
+            return res.json({ success: false, message: 'خطأ - المبلغ كبير جداً، تواصل مع الإدارة' });
+        }
+
+        // Step 4: Credit user's balance
+        const rate = await getExchangeRate();
+        const creditAmount = Math.floor((finalAmount / rate) * 100) / 100;
+
+        if (creditAmount > 0) {
+            targetUser.balance = (targetUser.balance || 0) + creditAmount;
+            await targetUser.save();
+            await Transaction.create({
+                userId: targetUser._id,
+                type: 'recharge',
+                amount: creditAmount,
+                method: 'asiacell',
+                paymentId: `card_${voucher.trim().slice(-4)}_${Date.now()}`,
+                status: 'completed',
             });
+            console.log(`[Asiacell TopUp] ✅ Credited $${creditAmount} (${finalAmount} IQD) to ${username}`);
+            await creditReferralCommission(targetUser._id, creditAmount);
         }
 
-        if (!amountIQD || amountIQD <= 0) {
-            // Card was charged but couldn't parse amount — log for manual review
-            console.warn(`[Asiacell TopUp] Could not parse amount for user ${username}. Full response: ${JSON.stringify(topupData)}`);
-            return res.json({
-                success: false,
-                message: 'تم شحن الكارت لكن لم يتم تحديد المبلغ - تواصل مع الإدارة',
-            });
-        }
+        sessions.delete(sessionId);
 
-        console.log(`[Asiacell TopUp] Parsed card amount: ${amountIQD} IQD for user ${username}`);
-
-        // Now auto-initiate a balance transfer from user's phone to store's phone
-        const storePhone = await getStorePhone();
-        if (!storePhone) {
-            console.warn(`[Asiacell TopUp] No store phone configured, crediting user directly`);
-        }
-
-        let needsConfirmOtp = false;
-        if (storePhone) {
-            try {
-                const transferRes = await fetch(`${AC_API}/api/v1/credit-transfer/start?lang=ar`, {
-                    method: 'POST',
-                    headers: authHeaders,
-                    body: JSON.stringify({
-                        amount: amountIQD,
-                        receiverMsisdn: storePhone,
-                    }),
-                });
-                const transferData = await transferRes.json();
-                console.log(`[Asiacell TopUp] Auto-transfer ${amountIQD} IQD to ${storePhone}:`, JSON.stringify(transferData));
-
-                if (transferData.PID) {
-                    // Transfer initiated — user must confirm with OTP
-                    session.amount = amountIQD;
-                    session.username = username.trim();
-                    session.transferPid = transferData.PID;
-                    session.step = 'transfer_initiated';
-                    session.chargeMethod = 'card';
-                    sessions.set(sessionId, session);
-                    needsConfirmOtp = true;
-                } else {
-                    console.warn(`[Asiacell TopUp] Transfer start failed, will credit directly. Response:`, JSON.stringify(transferData));
-                }
-            } catch (transferErr) {
-                console.error(`[Asiacell TopUp] Transfer error, crediting directly:`, transferErr.message);
-            }
-        }
-
-        if (needsConfirmOtp) {
-            // User needs to confirm the transfer with OTP (step 4)
-            res.json({
-                success: true,
-                needsOtp: true,
-                amountIQD,
-                message: `تم شحن ${amountIQD.toLocaleString()} IQD - أكد التحويل برمز OTP`,
-            });
-        } else {
-            // Fallback: credit user directly (card was consumed, can't undo)
-            const rate = await getExchangeRate();
-            const creditAmount = Math.floor((amountIQD / rate) * 100) / 100;
-
-            if (creditAmount > 0) {
-                targetUser.balance = (targetUser.balance || 0) + creditAmount;
-                await targetUser.save();
-                await Transaction.create({
-                    userId: targetUser._id,
-                    type: 'recharge',
-                    amount: creditAmount,
-                    method: 'asiacell',
-                    paymentId: `card_${voucher.trim().slice(-4)}_${Date.now()}`,
-                    status: 'completed',
-                });
-                console.log(`[Asiacell TopUp] Direct credit $${creditAmount} (${amountIQD} IQD) to ${username}`);
-                await creditReferralCommission(targetUser._id, creditAmount);
-            }
-            sessions.delete(sessionId);
-
-            res.json({
-                success: true,
-                needsOtp: false,
-                amountIQD,
-                credited: creditAmount,
-                message: `تم شحن الكارت بنجاح وإضافة $${creditAmount} لرصيدك`,
-            });
-        }
+        res.json({
+            success: true,
+            amountIQD: finalAmount,
+            credited: creditAmount,
+            message: `تم شحن الكارت بنجاح وإضافة $${creditAmount} لرصيدك`,
+        });
     } catch (err) {
         console.error('[Asiacell TopUp Error]', err);
         res.status(500).json({ error: err.message });

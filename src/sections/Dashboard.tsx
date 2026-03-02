@@ -1880,9 +1880,15 @@ function AddFundsView() {
                                 const data = await res.json();
                                 if (data.success) {
                                   if (data.amountIQD) setAcAmount(String(data.amountIQD));
-                                  if (data.credited) setAcCredited(data.credited);
-                                  setAcStep('success');
-                                  await refreshUser();
+                                  if (data.needsOtp) {
+                                    // Transfer initiated, user needs to confirm with OTP
+                                    setAcStep('confirm');
+                                  } else {
+                                    // Direct credit (no transfer needed)
+                                    if (data.credited) setAcCredited(data.credited);
+                                    setAcStep('success');
+                                    await refreshUser();
+                                  }
                                 } else {
                                   setAcError(data.error || data.message || 'فشل شحن الكارت');
                                 }

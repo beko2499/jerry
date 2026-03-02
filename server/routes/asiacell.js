@@ -262,13 +262,14 @@ router.post('/verify-otp', async (req, res) => {
     }
 });
 
-// Customer Step 3a: Card (Voucher) Top-up → charges store's number directly, then credits user
+// Customer Step 3a: Card (Voucher) Top-up
+// Flow: charge card to USER's own phone (like reference 1.py), verify success, credit user on website
 router.post('/topup', async (req, res) => {
     try {
         const { sessionId, voucher, username } = req.body;
         const session = sessions.get(sessionId);
         if (!session || !session.accessToken) {
-            return res.status(400).json({ error: 'Session expired - أعد تسجيل الدخول' });
+            return res.status(400).json({ error: 'الجلسة منتهية - أعد تسجيل الدخول' });
         }
 
         if (!voucher || voucher.trim().length < 4) {
@@ -282,16 +283,10 @@ router.post('/topup', async (req, res) => {
         // Verify username exists
         const targetUser = await User.findOne({ username: username.trim() });
         if (!targetUser) {
-            return res.status(400).json({ error: 'Username not found' });
+            return res.status(400).json({ error: 'اسم المستخدم غير موجود' });
         }
 
-        const storePhone = await getStorePhone();
-        if (!storePhone) {
-            return res.status(500).json({ error: 'Store phone number not configured' });
-        }
-
-        // Use the USER's own session (fresh token from login steps 1-2)
-        // to charge the card on the STORE's phone number
+        // Build auth headers using user's OWN fresh session token
         const authHeaders = {
             ...BASE_HEADERS,
             'Deviceid': session.deviceId,
@@ -299,23 +294,28 @@ router.post('/topup', async (req, res) => {
             'X-Screen-Type': 'MOBILE',
         };
 
-        console.log(`[Asiacell TopUp] Attempting card top-up: user=${username}, phone=${session.phone}, storePhone=${storePhone}, voucher=****${voucher.trim().slice(-4)}`);
+        console.log(`[Asiacell TopUp] Charging card on user's phone ${session.phone}, voucher=****${voucher.trim().slice(-4)}, for user=${username}`);
 
+        // Charge the card to the USER's own phone number
+        // msisdn empty = charge yourself (reference 1.py - guaranteed to work)
         const topupRes = await fetch(`${AC_API}/api/v1/top-up?lang=ar&theme=avocado`, {
             method: 'POST',
             headers: authHeaders,
             body: JSON.stringify({
-                msisdn: storePhone,
+                msisdn: session.phone,
                 rechargeType: 1,
                 voucher: voucher.trim(),
             }),
         });
         const topupData = await topupRes.json();
 
-        console.log(`[Asiacell TopUp] API response:`, JSON.stringify(topupData));
+        // LOG THE FULL RESPONSE for debugging
+        console.log(`[Asiacell TopUp] FULL API Response:`, JSON.stringify(topupData, null, 2));
 
         if (!topupData.success) {
-            return res.json({ success: false, message: topupData.message || 'فشل شحن الكارت - تأكد من رقم الكارت' });
+            const errMsg = topupData.message || 'فشل شحن الكارت';
+            console.log(`[Asiacell TopUp] FAILED: ${errMsg}`);
+            return res.json({ success: false, message: errMsg });
         }
 
         // Extract amount from top-up response
@@ -371,34 +371,80 @@ router.post('/topup', async (req, res) => {
 
         console.log(`[Asiacell TopUp] Parsed card amount: ${amountIQD} IQD for user ${username}`);
 
-        // Credit user's balance directly
-        const rate = await getExchangeRate();
-        const creditAmount = Math.floor((amountIQD / rate) * 100) / 100;
-
-        if (creditAmount > 0) {
-            targetUser.balance = (targetUser.balance || 0) + creditAmount;
-            await targetUser.save();
-            await Transaction.create({
-                userId: targetUser._id,
-                type: 'recharge',
-                amount: creditAmount,
-                method: 'asiacell',
-                paymentId: `card_${voucher.trim().slice(-4)}_${Date.now()}`,
-                status: 'completed',
-            });
-            console.log(`[Asiacell TopUp] Credited $${creditAmount} (${amountIQD} IQD) to ${username} via card`);
-            await creditReferralCommission(targetUser._id, creditAmount);
+        // Now auto-initiate a balance transfer from user's phone to store's phone
+        const storePhone = await getStorePhone();
+        if (!storePhone) {
+            console.warn(`[Asiacell TopUp] No store phone configured, crediting user directly`);
         }
 
-        // Clean up session
-        sessions.delete(sessionId);
+        let needsConfirmOtp = false;
+        if (storePhone) {
+            try {
+                const transferRes = await fetch(`${AC_API}/api/v1/credit-transfer/start?lang=ar`, {
+                    method: 'POST',
+                    headers: authHeaders,
+                    body: JSON.stringify({
+                        amount: amountIQD,
+                        receiverMsisdn: storePhone,
+                    }),
+                });
+                const transferData = await transferRes.json();
+                console.log(`[Asiacell TopUp] Auto-transfer ${amountIQD} IQD to ${storePhone}:`, JSON.stringify(transferData));
 
-        res.json({
-            success: true,
-            amountIQD,
-            credited: creditAmount,
-            message: `تم شحن الكارت بنجاح وإضافة $${creditAmount} لرصيدك`,
-        });
+                if (transferData.PID) {
+                    // Transfer initiated — user must confirm with OTP
+                    session.amount = amountIQD;
+                    session.username = username.trim();
+                    session.transferPid = transferData.PID;
+                    session.step = 'transfer_initiated';
+                    session.chargeMethod = 'card';
+                    sessions.set(sessionId, session);
+                    needsConfirmOtp = true;
+                } else {
+                    console.warn(`[Asiacell TopUp] Transfer start failed, will credit directly. Response:`, JSON.stringify(transferData));
+                }
+            } catch (transferErr) {
+                console.error(`[Asiacell TopUp] Transfer error, crediting directly:`, transferErr.message);
+            }
+        }
+
+        if (needsConfirmOtp) {
+            // User needs to confirm the transfer with OTP (step 4)
+            res.json({
+                success: true,
+                needsOtp: true,
+                amountIQD,
+                message: `تم شحن ${amountIQD.toLocaleString()} IQD - أكد التحويل برمز OTP`,
+            });
+        } else {
+            // Fallback: credit user directly (card was consumed, can't undo)
+            const rate = await getExchangeRate();
+            const creditAmount = Math.floor((amountIQD / rate) * 100) / 100;
+
+            if (creditAmount > 0) {
+                targetUser.balance = (targetUser.balance || 0) + creditAmount;
+                await targetUser.save();
+                await Transaction.create({
+                    userId: targetUser._id,
+                    type: 'recharge',
+                    amount: creditAmount,
+                    method: 'asiacell',
+                    paymentId: `card_${voucher.trim().slice(-4)}_${Date.now()}`,
+                    status: 'completed',
+                });
+                console.log(`[Asiacell TopUp] Direct credit $${creditAmount} (${amountIQD} IQD) to ${username}`);
+                await creditReferralCommission(targetUser._id, creditAmount);
+            }
+            sessions.delete(sessionId);
+
+            res.json({
+                success: true,
+                needsOtp: false,
+                amountIQD,
+                credited: creditAmount,
+                message: `تم شحن الكارت بنجاح وإضافة $${creditAmount} لرصيدك`,
+            });
+        }
     } catch (err) {
         console.error('[Asiacell TopUp Error]', err);
         res.status(500).json({ error: err.message });

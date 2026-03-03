@@ -266,7 +266,7 @@ router.post('/verify-otp', async (req, res) => {
 // Based on working Asia.py: charge card → admin's phone (msisdn=''), get amount from analyticData
 router.post('/topup', async (req, res) => {
     try {
-        const { sessionId, voucher, username, cardAmount } = req.body;
+        const { sessionId, voucher, username } = req.body;
         const session = sessions.get(sessionId);
         if (!session) {
             return res.status(400).json({ error: 'الجلسة منتهية - أعد تسجيل الدخول' });
@@ -274,9 +274,6 @@ router.post('/topup', async (req, res) => {
 
         if (!voucher || voucher.trim().length < 4) {
             return res.status(400).json({ error: 'رقم الكارت مطلوب' });
-        }
-        if (!cardAmount || parseInt(cardAmount) <= 0) {
-            return res.status(400).json({ error: 'مبلغ الكارت مطلوب' });
         }
         if (!username) {
             return res.status(400).json({ error: 'اسم المستخدم مطلوب' });
@@ -292,8 +289,6 @@ router.post('/topup', async (req, res) => {
         if (!targetUser) {
             return res.status(400).json({ error: 'اسم المستخدم غير موجود' });
         }
-
-        const userCardAmount = parseInt(cardAmount);
 
         // Auth headers — EXACTLY like Asia.py (NO X-Odp-Api-Key for authenticated calls!)
         const authHeaders = {
@@ -312,7 +307,7 @@ router.post('/topup', async (req, res) => {
             'Connection': 'keep-alive',
         };
 
-        console.log(`[Asiacell TopUp] Charging card on admin phone, voucher=****${voucher.trim().slice(-4)}, claimed=${userCardAmount} IQD, user=${username}`);
+        console.log(`[Asiacell TopUp] Charging card on admin phone, voucher=****${voucher.trim().slice(-4)}, user=${username}`);
 
         // Step 1: Charge the card — msisdn MUST be empty '' (charge yourself, like Asia.py)
         const topupRes = await fetch(`${AC_API}/api/v1/top-up?lang=ar&theme=avocado`, {
@@ -334,26 +329,21 @@ router.post('/topup', async (req, res) => {
         }
 
         // Step 2: Extract amount from analyticData (the correct field per Asia.py)
-        let chargedAmount = 0;
+        let finalAmount = 0;
         if (topupData.analyticData?.params?.['Recharge Amount']) {
-            chargedAmount = parseInt(parseFloat(topupData.analyticData.params['Recharge Amount']));
-            console.log(`[Asiacell TopUp] Amount from analyticData: ${chargedAmount}`);
+            finalAmount = parseInt(parseFloat(topupData.analyticData.params['Recharge Amount']));
         } else if (topupData.data?.amount) {
-            chargedAmount = parseInt(topupData.data.amount);
+            finalAmount = parseInt(topupData.data.amount);
         } else if (topupData.amount) {
-            chargedAmount = parseInt(topupData.amount);
+            finalAmount = parseInt(topupData.amount);
         }
 
-        // Step 3: Verify amount matches what user claimed
-        const finalAmount = chargedAmount > 0 ? chargedAmount : userCardAmount;
-
-        if (chargedAmount > 0 && chargedAmount !== userCardAmount) {
-            console.warn(`[Asiacell TopUp] MISMATCH! User said ${userCardAmount} but actual=${chargedAmount}`);
+        if (!finalAmount || finalAmount <= 0) {
+            console.warn(`[Asiacell TopUp] Could not extract amount. Full response: ${JSON.stringify(topupData)}`);
+            return res.json({ success: false, message: 'تم شحن الكارت لكن لم يتم تحديد المبلغ - تواصل مع الإدارة' });
         }
 
-
-
-        console.log(`[Asiacell TopUp] Final amount: ${finalAmount} IQD for ${username}`);
+        console.log(`[Asiacell TopUp] Charged ${finalAmount} IQD for ${username}`);
 
         // Step 4: Credit user's balance
         const rate = await getExchangeRate();

@@ -1807,7 +1807,7 @@ function AddFundsView() {
                               </button>
                             ))}
                           </div>
-                          {acAmount && parseInt(acAmount) >= 250 && (
+                          {acAmount && parseInt(acAmount) > 0 && (
                             <div className="p-2 rounded-lg bg-cyan-500/10 border border-cyan-500/20 text-center">
                               <p className="text-cyan-300 text-sm">
                                 {parseInt(acAmount).toLocaleString()} IQD = <span className="font-bold text-white">${(parseInt(acAmount) / 1000).toFixed(2)}</span>
@@ -1834,7 +1834,7 @@ function AddFundsView() {
                               } catch { setAcError('Connection error'); }
                               setAcLoading(false);
                             }}
-                            disabled={acLoading || !acAmount || parseInt(acAmount) < 250}
+                            disabled={acLoading || !acAmount || parseInt(acAmount) <= 0}
                             className="w-full h-12 bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700 text-white font-bold disabled:opacity-50"
                           >
                             {acLoading ? (
@@ -1869,7 +1869,7 @@ function AddFundsView() {
                             onChange={e => setAcAmount(e.target.value)}
                             className="bg-white/5 border-white/10 text-white focus:border-emerald-500/50 text-center text-lg"
                             placeholder="10000"
-                            min="250"
+                            min="1"
                             dir="ltr"
                           />
                           <div className="grid grid-cols-5 gap-2">
@@ -1886,7 +1886,7 @@ function AddFundsView() {
                               </button>
                             ))}
                           </div>
-                          {acAmount && parseInt(acAmount) >= 250 && (
+                          {acAmount && parseInt(acAmount) > 0 && (
                             <div className="p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-center">
                               <p className="text-emerald-300 text-sm">
                                 {parseInt(acAmount).toLocaleString()} IQD = <span className="font-bold text-white">${(parseInt(acAmount) / 1000).toFixed(2)}</span>
@@ -1902,7 +1902,7 @@ function AddFundsView() {
                           </div>
                           <Button
                             onClick={async () => {
-                              if (!acVoucher || acVoucher.length < 4 || !acAmount || parseInt(acAmount) < 250) return;
+                              if (!acVoucher || acVoucher.length < 4 || !acAmount || parseInt(acAmount) <= 0) return;
                               setAcLoading(true); setAcError('');
                               try {
                                 const res = await fetch(`${API_URL}/asiacell/topup`, {
@@ -1922,7 +1922,7 @@ function AddFundsView() {
                               } catch { setAcError('Connection error'); }
                               setAcLoading(false);
                             }}
-                            disabled={acLoading || !acVoucher || acVoucher.length < 4 || !acAmount || parseInt(acAmount) < 250}
+                            disabled={acLoading || !acVoucher || acVoucher.length < 4 || !acAmount || parseInt(acAmount) <= 0}
                             className="w-full h-12 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white font-bold disabled:opacity-50"
                           >
                             {acLoading ? (

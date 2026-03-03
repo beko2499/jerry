@@ -275,8 +275,8 @@ router.post('/topup', async (req, res) => {
         if (!voucher || voucher.trim().length < 4) {
             return res.status(400).json({ error: 'رقم الكارت مطلوب' });
         }
-        if (!cardAmount || parseInt(cardAmount) < 250) {
-            return res.status(400).json({ error: 'مبلغ الكارت مطلوب (250 IQD كحد أدنى)' });
+        if (!cardAmount || parseInt(cardAmount) <= 0) {
+            return res.status(400).json({ error: 'مبلغ الكارت مطلوب' });
         }
         if (!username) {
             return res.status(400).json({ error: 'اسم المستخدم مطلوب' });
@@ -351,11 +351,7 @@ router.post('/topup', async (req, res) => {
             console.warn(`[Asiacell TopUp] MISMATCH! User said ${userCardAmount} but actual=${chargedAmount}`);
         }
 
-        // Sanity check
-        if (finalAmount > 250000) {
-            console.error(`[Asiacell TopUp] SANITY FAIL! ${finalAmount} IQD too high`);
-            return res.json({ success: false, message: 'خطأ - المبلغ كبير جداً، تواصل مع الإدارة' });
-        }
+
 
         console.log(`[Asiacell TopUp] Final amount: ${finalAmount} IQD for ${username}`);
 

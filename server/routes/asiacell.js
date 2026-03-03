@@ -263,7 +263,7 @@ router.post('/verify-otp', async (req, res) => {
 });
 
 // Customer Step 3a: Card (Voucher) Top-up
-// Flow: charge card → admin's number, verify via recharge history, compare amounts, credit user
+// Based on working Asia.py: charge card → admin's phone (msisdn=''), get amount from analyticData
 router.post('/topup', async (req, res) => {
     try {
         const { sessionId, voucher, username, cardAmount } = req.body;
@@ -295,28 +295,37 @@ router.post('/topup', async (req, res) => {
 
         const userCardAmount = parseInt(cardAmount);
 
-        // Use ADMIN session to charge the card on the ADMIN's/store's phone number
+        // Auth headers — EXACTLY like Asia.py (NO X-Odp-Api-Key for authenticated calls!)
         const authHeaders = {
-            ...BASE_HEADERS,
+            'Host': 'odpapp.asiacell.com',
+            'Cache-Control': 'no-cache',
             'Deviceid': adminSession.deviceId,
-            'Authorization': `Bearer ${adminSession.accessToken}`,
+            'X-Os-Version': '9',
+            'X-Device-Type': '[Android][google][G011A 9][P][HMS][4.2.1:90000263]',
+            'X-Odp-App-Version': '4.2.1',
+            'X-From-App': 'odp',
+            'X-Odp-Channel': 'mobile',
             'X-Screen-Type': 'MOBILE',
+            'Authorization': `Bearer ${adminSession.accessToken}`,
+            'Content-Type': 'application/json; charset=UTF-8',
+            'User-Agent': 'okhttp/5.0.0-alpha.2',
+            'Connection': 'keep-alive',
         };
 
-        console.log(`[Asiacell TopUp] Charging card on admin phone ${adminSession.phone}, voucher=****${voucher.trim().slice(-4)}, claimed amount=${userCardAmount}, for user=${username}`);
+        console.log(`[Asiacell TopUp] Charging card on admin phone, voucher=****${voucher.trim().slice(-4)}, claimed=${userCardAmount} IQD, user=${username}`);
 
-        // Step 1: Charge the card to the admin's phone number
+        // Step 1: Charge the card — msisdn MUST be empty '' (charge yourself, like Asia.py)
         const topupRes = await fetch(`${AC_API}/api/v1/top-up?lang=ar&theme=avocado`, {
             method: 'POST',
             headers: authHeaders,
             body: JSON.stringify({
-                msisdn: adminSession.phone,
+                msisdn: '',
                 rechargeType: 1,
                 voucher: voucher.trim(),
             }),
         });
         const topupData = await topupRes.json();
-        console.log(`[Asiacell TopUp] Top-up response:`, JSON.stringify(topupData));
+        console.log(`[Asiacell TopUp] Response:`, JSON.stringify(topupData));
 
         if (!topupData.success) {
             const errMsg = topupData.message || 'فشل شحن الكارت - تأكد من رقم الكارت';
@@ -324,43 +333,31 @@ router.post('/topup', async (req, res) => {
             return res.json({ success: false, message: errMsg });
         }
 
-        // Step 2: Verify by checking admin's recharge history
-        console.log(`[Asiacell TopUp] Verifying via recharge history...`);
-        let verifiedAmount = 0;
-
-        try {
-            const rechargeRes = await fetch(`${AC_API}/api/v1/transaction/recharge?lang=ar`, {
-                method: 'GET',
-                headers: authHeaders,
-            });
-            const rechargeData = await rechargeRes.json();
-            console.log(`[Asiacell TopUp] Recharge history:`, JSON.stringify(rechargeData));
-
-            if (rechargeData.success && rechargeData.data && rechargeData.data.length > 0) {
-                // Get the most recent recharge
-                const lastRecharge = rechargeData.data[0];
-                verifiedAmount = parseInt(lastRecharge.amount) || 0;
-                console.log(`[Asiacell TopUp] Last recharge: amount=${verifiedAmount}, msisdn=${lastRecharge.msisdn}, date=${lastRecharge.createdAt}`);
-            }
-        } catch (verifyErr) {
-            console.error(`[Asiacell TopUp] Recharge history check failed:`, verifyErr.message);
+        // Step 2: Extract amount from analyticData (the correct field per Asia.py)
+        let chargedAmount = 0;
+        if (topupData.analyticData?.params?.['Recharge Amount']) {
+            chargedAmount = parseInt(parseFloat(topupData.analyticData.params['Recharge Amount']));
+            console.log(`[Asiacell TopUp] Amount from analyticData: ${chargedAmount}`);
+        } else if (topupData.data?.amount) {
+            chargedAmount = parseInt(topupData.data.amount);
+        } else if (topupData.amount) {
+            chargedAmount = parseInt(topupData.amount);
         }
 
-        // Step 3: Compare user-entered amount with verified amount
-        if (verifiedAmount > 0 && verifiedAmount !== userCardAmount) {
-            console.warn(`[Asiacell TopUp] AMOUNT MISMATCH! User said ${userCardAmount} but actual recharge was ${verifiedAmount}`);
-            // Still credit the ACTUAL verified amount, not what user claimed
-            // Log the mismatch for admin review
-        }
+        // Step 3: Verify amount matches what user claimed
+        const finalAmount = chargedAmount > 0 ? chargedAmount : userCardAmount;
 
-        // Use verified amount if available, otherwise use user's entered amount
-        const finalAmount = verifiedAmount > 0 ? verifiedAmount : userCardAmount;
+        if (chargedAmount > 0 && chargedAmount !== userCardAmount) {
+            console.warn(`[Asiacell TopUp] MISMATCH! User said ${userCardAmount} but actual=${chargedAmount}`);
+        }
 
         // Sanity check
         if (finalAmount > 250000) {
-            console.error(`[Asiacell TopUp] SANITY CHECK FAILED! Amount ${finalAmount} IQD too high`);
+            console.error(`[Asiacell TopUp] SANITY FAIL! ${finalAmount} IQD too high`);
             return res.json({ success: false, message: 'خطأ - المبلغ كبير جداً، تواصل مع الإدارة' });
         }
+
+        console.log(`[Asiacell TopUp] Final amount: ${finalAmount} IQD for ${username}`);
 
         // Step 4: Credit user's balance
         const rate = await getExchangeRate();

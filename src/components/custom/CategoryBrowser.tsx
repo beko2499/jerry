@@ -13,6 +13,7 @@ interface Category {
     nameKey: string;
     name: string;
     image?: string;
+    description?: string;
     parentId: string | null;
 }
 
@@ -54,18 +55,21 @@ export default function CategoryBrowser({ initialCategoryId, initialCategoryName
     // Data
     const [subCategories, setSubCategories] = useState<Category[]>([]);
     const [services, setServices] = useState<Service[]>([]);
+    const [currentCategoryDescription, setCurrentCategoryDescription] = useState('');
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const fetchData = async () => {
             setLoading(true);
             try {
-                const [catsRes, svcsRes] = await Promise.all([
+                const [catsRes, svcsRes, catDetailRes] = await Promise.all([
                     fetch(`${API_URL}/categories?parentId=${currentId}`).then(r => r.json()),
                     fetch(`${API_URL}/services?categoryId=${currentId}`).then(r => r.json()),
+                    fetch(`${API_URL}/categories/${currentId}`).then(r => r.ok ? r.json() : null),
                 ]);
                 setSubCategories(catsRes);
                 setServices(svcsRes);
+                setCurrentCategoryDescription(catDetailRes?.description || '');
             } catch (err) { console.error(err); }
             setLoading(false);
         };
@@ -212,8 +216,15 @@ export default function CategoryBrowser({ initialCategoryId, initialCategoryName
                         </div>
                     )}
 
+                    {/* Category Description */}
+                    {currentCategoryDescription && (
+                        <div className="mt-8 p-5 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm">
+                            <p className="text-white/70 text-sm md:text-base leading-relaxed whitespace-pre-wrap">{currentCategoryDescription}</p>
+                        </div>
+                    )}
+
                     {/* Empty State */}
-                    {subCategories.length === 0 && services.length === 0 && (
+                    {subCategories.length === 0 && services.length === 0 && !currentCategoryDescription && (
                         <div className="text-center py-16 text-white/30">
                             <Folder className="w-12 h-12 mx-auto mb-3 opacity-50" />
                             <p className="text-lg font-medium">{t.emptyFolder || 'هذا القسم فارغ'}</p>

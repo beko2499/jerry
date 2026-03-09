@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📘 دليل إدارة مشروع Jerry Store</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+
+        :root {
+            --bg: #0f0f1a;
+            --card: #1a1a2e;
+            --border: #2a2a4a;
+            --text: #e0e0f0;
+            --muted: #8888aa;
+            --cyan: #00d4ff;
+            --purple: #a855f7;
+            --green: #22c55e;
+            --yellow: #fbbf24;
+            --red: #ef4444;
+            --pink: #ec4899;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.8;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 2.2em;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--cyan), var(--purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: var(--muted);
+            margin-bottom: 40px;
+            font-size: 1em;
+        }
+
+        /* Table of Contents */
+        .toc {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px 30px;
+            margin-bottom: 40px;
+        }
+
+        .toc h2 {
+            font-size: 1.2em;
+            color: var(--cyan);
+            margin-bottom: 12px;
+        }
+
+        .toc ol {
+            padding-right: 20px;
+        }
+
+        .toc li {
+            padding: 4px 0;
+            color: var(--muted);
+        }
+
+        .toc a {
+            color: var(--text);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .toc a:hover {
+            color: var(--cyan);
+        }
+
+        /* Sections */
+        .section {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+
+        h2 {
+            font-size: 1.5em;
+            font-weight: 700;
+            color: var(--cyan);
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--border);
+        }
+
+        h3 {
+            font-size: 1.15em;
+            font-weight: 700;
+            color: var(--purple);
+            margin: 20px 0 10px;
+        }
+
+        h4 {
+            font-size: 1em;
+            color: var(--yellow);
+            margin: 15px 0 8px;
+        }
+
+        p,
+        li {
+            color: var(--text);
+            font-size: 0.95em;
+        }
+
+        ol,
+        ul {
+            padding-right: 24px;
+            margin-bottom: 10px;
+        }
+
+        li {
+            margin-bottom: 4px;
+        }
+
+        /* Code blocks */
+        pre {
+            background: #0d0d1a;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px 20px;
+            margin: 12px 0;
+            overflow-x: auto;
+            direction: ltr;
+            text-align: left;
+        }
+
+        code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85em;
+            color: var(--green);
+        }
+
+        pre code {
+            color: #c8d6e5;
+        }
+
+        .comment {
+            color: #6c7a89;
+        }
+
+        .cmd {
+            color: var(--green);
+        }
+
+        /* Inline code */
+        p code,
+        li code,
+        td code {
+            background: rgba(0, 212, 255, 0.1);
+            color: var(--cyan);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.85em;
+        }
+
+        /* Warning boxes */
+        .warning {
+            background: rgba(251, 191, 36, 0.1);
+            border: 1px solid rgba(251, 191, 36, 0.3);
+            border-radius: 10px;
+            padding: 12px 16px;
+            margin: 12px 0;
+            color: var(--yellow);
+            font-size: 0.9em;
+        }
+
+        .info {
+            background: rgba(0, 212, 255, 0.08);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            border-radius: 10px;
+            padding: 12px 16px;
+            margin: 12px 0;
+            color: var(--cyan);
+            font-size: 0.9em;
+        }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 12px 0;
+            font-size: 0.9em;
+        }
+
+        th {
+            background: rgba(168, 85, 247, 0.15);
+            color: var(--purple);
+            padding: 10px 14px;
+            text-align: right;
+            border-bottom: 2px solid var(--border);
+        }
+
+        td {
+            padding: 8px 14px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        tr:hover td {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        /* Structure tree */
+        .tree {
+            background: #0d0d1a;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px 24px;
+            margin: 12px 0;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.78em;
+            line-height: 1.7;
+            direction: ltr;
+            text-align: left;
+            overflow-x: auto;
+            white-space: pre;
+        }
+
+        .tree .folder {
+            color: var(--purple);
+            font-weight: 500;
+        }
+
+        .tree .file {
+            color: var(--cyan);
+        }
+
+        .tree .desc {
+            color: var(--muted);
+        }
+
+        .tree .emoji {
+            font-family: 'Tajawal', sans-serif;
+        }
+
+        /* Steps */
+        .step {
+            background: rgba(0, 212, 255, 0.05);
+            border-right: 3px solid var(--cyan);
+            padding: 12px 16px;
+            margin: 10px 0;
+            border-radius: 0 10px 10px 0;
+        }
+
+        .step-num {
+            display: inline-block;
+            background: var(--cyan);
+            color: var(--bg);
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 24px;
+            font-weight: 700;
+            font-size: 0.8em;
+            margin-left: 8px;
+        }
+
+        strong {
+            color: var(--text);
+        }
+
+        hr {
+            border: none;
+            border-top: 1px solid var(--border);
+            margin: 30px 0;
+        }
+
+        /* PDF button */
+        .pdf-btn {
+            position: fixed;
+            bottom: 30px;
+            left: 30px;
+            z-index: 9999;
+            background: linear-gradient(135deg, var(--cyan), var(--purple));
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 50px;
+            font-family: 'Tajawal', sans-serif;
+            font-size: 1em;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(0, 212, 255, 0.3);
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .pdf-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 30px rgba(0, 212, 255, 0.5);
+        }
+
+        .pdf-btn:disabled {
+            opacity: 0.5;
+            cursor: wait;
+        }
+
+        .pdf-btn svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        @media print {
+            .pdf-btn {
+                display: none !important;
+            }
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+</head>
+
+<body>
+    <!-- زر تحميل PDF -->
+    <button class="pdf-btn" onclick="downloadPDF()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+            <polyline points="7 10 12 15 17 10" />
+            <line x1="12" y1="15" x2="12" y2="3" />
+        </svg>
+        تحميل PDF
+    </button>
+    <div class="container" id="content">
+
+        <h1>📘 دليل إدارة مشروع Jerry Store</h1>
+        <p class="subtitle">دليل شامل لجميع الأوامر والإعدادات اللازمة لإدارة المشروع</p>
+
+        <!-- جدول المحتويات -->
+        <div class="toc">
+            <h2>📋 المحتويات</h2>
+            <ol>
+                <li><a href="#sec1">نقل المشروع لريبو جديد</a></li>
+                <li><a href="#sec2">أوامر Git الأساسية</a></li>
+                <li><a href="#sec3">رفع التعديلات للسيرفر</a></li>
+                <li><a href="#sec4">إدارة السيرفر</a></li>
+                <li><a href="#sec5">نشر المشروع على سيرفر جديد</a></li>
+                <li><a href="#sec6">حل المشاكل الشائعة</a></li>
+                <li><a href="#sec7">هيكل المشروع</a></li>
+                <li><a href="#sec8">ملخص سريع</a></li>
+            </ol>
+        </div>
+
+        <!-- ===== القسم 1 ===== -->
+        <div class="section" id="sec1">
+            <h2>1. 🚀 نقل المشروع لريبو جديد</h2>
+
+            <h3>الخطوة 1: إنشاء ريبو جديد على GitHub</h3>
+            <ol>
+                <li>اذهب إلى <code>https://github.com/new</code></li>
+                <li>اكتب اسم الريبو (مثلاً <code>jerry-store</code>)</li>
+                <li>اختر <strong>Private</strong> (خاص)</li>
+                <li><strong>لا تضف</strong> README أو .gitignore</li>
+                <li>اضغط <strong>Create repository</strong></li>
+            </ol>
+
+            <h3>الخطوة 2: نقل الكود للريبو الجديد</h3>
+            <pre><code><span class="comment"># اضف الكود للريبو من داخل فجول استديو عن طريق الترمنل</span>
+git remote add origin https://github.com/USERNAME/REPO-NAME.git
+
+<span class="comment"># ارفع الكود</span>
+git branch -M master
+git push -u origin master</code></pre>
+
+            <div class="warning">⚠️ <strong>استبدل</strong> <code>USERNAME</code> باسم حسابك و <code>REPO-NAME</code>
+                باسم الريبو الجديد</div>
+
+            <h3>الخطوة 3: تحديث رابط الريبو على السيرفر</h3>
+            <pre><code><span class="comment"># على السيرفر</span>
+cd /var/www/followerjerry.com
+git remote set-url origin https://github.com/USERNAME/REPO-NAME.git</code></pre>
+        </div>
+
+        <!-- ===== القسم 2 ===== -->
+        <div class="section" id="sec2">
+            <h2>2. 📝 أوامر Git الأساسية</h2>
+
+            <h3>بعد كل تعديل على الكود:</h3>
+            <pre><code><span class="comment"># 1. عرض الملفات المعدّلة</span>
+git status
+
+<span class="comment"># 2. إضافة جميع التعديلات</span>
+git add -A
+
+<span class="comment"># 3. حفظ التعديلات مع وصف</span>
+git commit -m "وصف التعديل هنا"
+
+<span class="comment"># 4. رفع التعديلات لـ GitHub</span>
+git push origin master</code></pre>
+
+            <h3>أمر مختصر (الكل في سطر واحد):</h3>
+            <pre><code>git add -A && git commit -m "وصف التعديل" && git push origin master</code></pre>
+
+            <h3>أوامر إضافية مفيدة:</h3>
+            <pre><code><span class="comment"># عرض سجل التعديلات</span>
+git log --oneline -10
+
+<span class="comment"># التراجع عن آخر تعديل (قبل الرفع)</span>
+git reset --soft HEAD~1
+
+<span class="comment"># تحميل آخر نسخة من GitHub</span>
+git pull origin master
+
+<span class="comment"># إجبار الرفع (يستبدل كل شيء على GitHub)</span>
+git push origin master --force</code></pre>
+        </div>
+
+        <!-- ===== القسم 3 ===== -->
+        <div class="section" id="sec3">
+            <h2>3. 🔄 رفع التعديلات للسيرفر</h2>
+
+            <p>بعد رفع التعديلات لـ GitHub، شغّل هذه الأوامر على السيرفر:</p>
+            <pre><code><span class="comment"># الاتصال بالسيرفر عبر SSH</span>
+ssh root@173.212.206.92</code></pre>
+
+            <h3>إذا عدّلت الواجهة الأمامية (Frontend) فقط:</h3>
+            <pre><code>cd /var/www/followerjerry.com
+git fetch origin && git reset --hard origin/master
+npm run build</code></pre>
+
+            <h3>إذا عدّلت السيرفر (Backend) فقط:</h3>
+            <pre><code>cd /var/www/followerjerry.com
+git fetch origin && git reset --hard origin/master
+pm2 restart jerry-api</code></pre>
+
+            <h3>إذا عدّلت الاثنين معاً:</h3>
+            <pre><code>cd /var/www/followerjerry.com
+git fetch origin && git reset --hard origin/master
+npm run build
+pm2 restart jerry-api</code></pre>
+
+            <h3>أمر شامل (نسخ ولصق):</h3>
+            <pre><code>cd /var/www/followerjerry.com && git fetch origin && git reset --hard origin/master && npm run build && pm2 restart jerry-api</code></pre>
+        </div>
+
+        <!-- ===== القسم 4 ===== -->
+        <div class="section" id="sec4">
+            <h2>4. 🖥️ إدارة السيرفر</h2>
+
+            <h3>PM2 — إدارة عملية السيرفر:</h3>
+            <pre><code><span class="comment"># عرض حالة التطبيقات</span>
+pm2 status
+
+<span class="comment"># إعادة تشغيل</span>
+pm2 restart jerry-api
+
+<span class="comment"># إيقاف</span>
+pm2 stop jerry-api
+
+<span class="comment"># تشغيل</span>
+pm2 start jerry-api
+
+<span class="comment"># عرض السجلات (الأخطاء والرسائل)</span>
+pm2 logs jerry-api
+
+<span class="comment"># عرض آخر 50 سطر من السجلات</span>
+pm2 logs jerry-api --lines 50
+
+<span class="comment"># مسح السجلات</span>
+pm2 flush</code></pre>
+
+            <h3>Nginx — إدارة الويب سيرفر:</h3>
+            <pre><code><span class="comment"># إعادة تحميل الإعدادات</span>
+nginx -t && systemctl reload nginx
+
+<span class="comment"># إعادة تشغيل Nginx</span>
+systemctl restart nginx
+
+<span class="comment"># عرض حالة Nginx</span>
+systemctl status nginx
+
+<span class="comment"># عرض إعدادات الموقع</span>
+cat /etc/nginx/sites-available/followerjerry.com</code></pre>
+
+            <h3>MongoDB — قاعدة البيانات:</h3>
+            <pre><code><span class="comment"># عرض حالة MongoDB</span>
+systemctl status mongod
+
+<span class="comment"># الدخول لقاعدة البيانات</span>
+mongosh jerry
+
+<span class="comment"># عرض عدد المستخدمين</span>
+mongosh jerry --eval "db.users.countDocuments()"
+
+<span class="comment"># عرض عدد الطلبات</span>
+mongosh jerry --eval "db.orders.countDocuments()"
+
+<span class="comment"># نسخة احتياطية</span>
+mongodump --db jerry --out /root/backup_$(date +%Y%m%d)
+
+<span class="comment"># استعادة نسخة احتياطية</span>
+mongorestore --db jerry /root/backup_YYYYMMDD/jerry</code></pre>
+
+            <h3>SSL — شهادة الأمان:</h3>
+            <pre><code><span class="comment"># تجديد شهادة SSL</span>
+certbot renew
+
+<span class="comment"># التحقق من تاريخ انتهاء الشهادة</span>
+certbot certificates</code></pre>
+        </div>
+
+        <!-- ===== القسم 5 ===== -->
+        <div class="section" id="sec5">
+            <h2>5. 🆕 نشر المشروع على سيرفر جديد</h2>
+
+            <h3>المتطلبات:</h3>
+            <ul>
+                <li>سيرفر Ubuntu 20+ (VPS)</li>
+                <li>دومين يشير للسيرفر</li>
+            </ul>
+
+            <h3>الخطوة 1: عدّل السكربتات في الريبو أولاً</h3>
+            <p>افتح ملف <code>deploy_app.sh</code> في VS Code وعدّل هذه المتغيرات:</p>
+            <pre><code>REPO="https://github.com/USERNAME/REPO-NAME.git"    <span class="comment"># رابط الريبو الجديد</span>
+APP_DIR="/var/www/yourdomain.com"                     <span class="comment"># مسار التطبيق</span>
+DOMAIN="yourdomain.com"                               <span class="comment"># الدومين</span>
+SERVER_IP="YOUR_SERVER_IP"                            <span class="comment"># عنوان IP السيرفر</span></code></pre>
+            <p>ثم ارفع التعديلات لـ GitHub:</p>
+            <pre><code>git add -A && git commit -m "update deploy config" && git push origin master</code></pre>
+
+            <h3>الخطوة 2: اتصل بالسيرفر وشغّل السكربتات مباشرة من GitHub</h3>
+            <pre><code><span class="comment"># 1. الاتصال بالسيرفر</span>
+ssh root@IP_ADDRESS
+
+<span class="comment"># 2. تشغيل سكربت إعداد السيرفر (يثبت Node.js, MongoDB, Nginx, PM2)</span>
+curl -sL https://raw.githubusercontent.com/USERNAME/REPO-NAME/master/setup_server.sh | bash
+
+<span class="comment"># 3. تشغيل سكربت نشر التطبيق (ينسخ المشروع ويبنيه ويشغله)</span>
+curl -sL https://raw.githubusercontent.com/USERNAME/REPO-NAME/master/deploy_app.sh | bash</code></pre>
+
+            <div class="warning">⚠️ <strong>استبدل</strong> <code>USERNAME/REPO-NAME</code> برابط الريبو الخاص بك</div>
+
+            <div class="warning">⚠️ إذا الريبو <strong>خاص (Private)</strong>، استخدم token:<br>
+                <pre style="margin-top:8px"><code>curl -sL -H "Authorization: token YOUR_GITHUB_TOKEN" \
+  https://raw.githubusercontent.com/USERNAME/REPO-NAME/master/setup_server.sh | bash</code></pre>
+                للحصول على token: GitHub → Settings → Developer settings → Personal access tokens → Generate new token
+            </div>
+
+            <h3>الخطوة 3: تعديل ملف .env على السيرفر (إذا لزم الأمر)</h3>
+            <pre><code>nano /var/www/yourdomain.com/server/.env</code></pre>
+
+            <h4>المتغيرات المهمة:</h4>
+            <table>
+                <thead>
+                    <tr>
+                        <th>المتغير</th>
+                        <th>الوصف</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>MONGO_URI</code></td>
+                        <td>رابط قاعدة البيانات</td>
+                    </tr>
+                    <tr>
+                        <td><code>PORT</code></td>
+                        <td>بورت السيرفر (5000)</td>
+                    </tr>
+                    <tr>
+                        <td><code>JWT_SECRET</code></td>
+                        <td>مفتاح سري للتشفير (غيّره!)</td>
+                    </tr>
+                    <tr>
+                        <td><code>APP_URL</code></td>
+                        <td>رابط الموقع</td>
+                    </tr>
+                    <tr>
+                        <td><code>NOWPAYMENTS_API_KEY</code></td>
+                        <td>مفتاح بوابة الدفع</td>
+                    </tr>
+                    <tr>
+                        <td><code>EMAIL_USER</code></td>
+                        <td>إيميل الإشعارات</td>
+                    </tr>
+                    <tr>
+                        <td><code>EMAIL_PASS</code></td>
+                        <td>كلمة مرور التطبيق للإيميل</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- ===== القسم 6 ===== -->
+        <div class="section" id="sec6">
+            <h2>6. 🔧 حل المشاكل الشائعة</h2>
+
+            <h3>الموقع لا يفتح:</h3>
+            <pre><code><span class="comment"># تحقق من PM2</span>
+pm2 status
+<span class="comment"># إذا stopped:</span>
+pm2 restart jerry-api
+
+<span class="comment"># تحقق من Nginx</span>
+systemctl status nginx
+<span class="comment"># إذا فيه مشكلة:</span>
+nginx -t    <span class="comment"># يعرض الخطأ</span>
+systemctl restart nginx</code></pre>
+
+            <h3>خطأ 502 Bad Gateway:</h3>
+            <pre><code><span class="comment"># السيرفر الخلفي متوقف</span>
+pm2 restart jerry-api
+pm2 logs jerry-api --lines 20</code></pre>
+
+            <h3>خطأ 504 Gateway Timeout:</h3>
+            <pre><code><span class="comment"># طلب يأخذ وقت طويل - تحقق من MongoDB</span>
+systemctl status mongod
+<span class="comment"># إذا متوقف:</span>
+systemctl start mongod</code></pre>
+
+            <h3>الصور لا تظهر:</h3>
+            <pre><code><span class="comment"># تأكد من وجود مجلد uploads</span>
+mkdir -p /var/www/followerjerry.com/server/uploads
+chmod 755 /var/www/followerjerry.com/server/uploads
+
+<span class="comment"># تأكد من proxy في Nginx</span>
+grep -A3 "uploads" /etc/nginx/sites-available/followerjerry.com</code></pre>
+
+            <h3>نسيت كلمة مرور الأدمن:</h3>
+            <pre><code><span class="comment"># على السيرفر</span>
+cd /var/www/followerjerry.com/server
+node seed.js
+<span class="comment"># يعيد تعيين: admin / admin123</span></code></pre>
+
+            <h3>المساحة ممتلئة على السيرفر:</h3>
+            <pre><code><span class="comment"># عرض المساحة</span>
+df -h
+
+<span class="comment"># مسح سجلات PM2</span>
+pm2 flush
+
+<span class="comment"># مسح سجلات النظام</span>
+journalctl --vacuum-size=50M</code></pre>
+        </div>
+
+        <!-- ===== القسم 7 ===== -->
+        <div class="section" id="sec7">
+            <h2>7. 📁 هيكل المشروع</h2>
+
+            <div class="tree">jerry/
+                │
+                ├── 📁 <span class="folder">server/</span> <span class="desc"># ⚙️ السيرفر الخلفي (Node.js +
+                    Express)</span>
+                │ │
+                │ ├── <span class="file">index.js</span> <span class="desc"># 🚀 نقطة البداية — يشغل السيرفر ويوصل
+                    بقاعدة البيانات</span>
+                │ ├── <span class="file">seed.js</span> <span class="desc"># 🌱 يزرع بيانات أولية (حساب أدمن +
+                    إعدادات)</span>
+                │ ├── <span class="file">migrate-services.js</span> <span class="desc"># 🔄 سكربت هجرة — يعطي
+                    serviceNumber للخدمات القديمة</span>
+                │ ├── <span class="file">.env</span> <span class="desc"># 🔐 متغيرات البيئة (كلمات سر، مفاتيح API) —
+                    سري!</span>
+                │ ├── <span class="file">package.json</span> <span class="desc"># 📦 تبعيات السيرفر</span>
+                │ │
+                │ ├── 📁 <span class="folder">models/</span> <span class="desc"># 🗃️ نماذج قاعدة البيانات</span>
+                │ │ ├── <span class="file">User.js</span> <span class="desc"># 👤 المستخدمين (اسم، إيميل، رصيد، كلمة
+                    سر)</span>
+                │ │ ├── <span class="file">Order.js</span> <span class="desc"># 🛒 الطلبات (خدمة، كمية، سعر،
+                    حالة)</span>
+                │ │ ├── <span class="file">Service.js</span> <span class="desc"># 📄 الخدمات (اسم، سعر، معرف المزود، رقم
+                    تسلسلي)</span>
+                │ │ ├── <span class="file">Category.js</span> <span class="desc"># 📁 الأقسام (اسم، صورة، قسم أب)</span>
+                │ │ ├── <span class="file">Provider.js</span> <span class="desc"># 🏭 المزودين (اسم، رابط API، مفتاح
+                    API)</span>
+                │ │ ├── <span class="file">Gateway.js</span> <span class="desc"># 💳 بوابات الدفع (نوع، إعدادات،
+                    حالة)</span>
+                │ │ ├── <span class="file">Coupon.js</span> <span class="desc"># 🎟️ كوبونات الخصم (كود، قيمة،
+                    صلاحية)</span>
+                │ │ ├── <span class="file">Notification.js</span> <span class="desc"># 🔔 الإشعارات (عنوان، محتوى،
+                    مجدولة/فورية)</span>
+                │ │ ├── <span class="file">Ticket.js</span> <span class="desc"># 🎫 تذاكر الدعم (مستخدم، رسائل،
+                    حالة)</span>
+                │ │ ├── <span class="file">Transaction.js</span> <span class="desc"># 💰 المعاملات المالية (إيداع، سحب،
+                    مبلغ)</span>
+                │ │ └── <span class="file">Settings.js</span> <span class="desc"># ⚙️ إعدادات الموقع (اسم، وصف،
+                    شعار)</span>
+                │ │
+                │ ├── 📁 <span class="folder">routes/</span> <span class="desc"># 🛤️ مسارات API (نقاط الوصول)</span>
+                │ │ ├── <span class="file">auth.js</span> <span class="desc"># 🔑 تسجيل دخول، تسجيل، نسيت كلمة
+                    المرور</span>
+                │ │ ├── <span class="file">orders.js</span> <span class="desc"># 🛒 إنشاء طلب، عرض طلبات، إلغاء</span>
+                │ │ ├── <span class="file">services.js</span> <span class="desc"># 📄 عرض/إضافة/تعديل/حذف خدمات</span>
+                │ │ ├── <span class="file">categories.js</span> <span class="desc"># 📁 عرض/إضافة/تعديل/حذف أقسام</span>
+                │ │ ├── <span class="file">providers.js</span> <span class="desc"># 🏭 إدارة المزودين + استيراد
+                    خدمات</span>
+                │ │ ├── <span class="file">gateways.js</span> <span class="desc"># 💳 إدارة بوابات الدفع</span>
+                │ │ ├── <span class="file">coupons.js</span> <span class="desc"># 🎟️ إدارة كوبونات الخصم</span>
+                │ │ ├── <span class="file">stats.js</span> <span class="desc"># 📊 إحصائيات (مستخدمين، طلبات،
+                    أرباح)</span>
+                │ │ ├── <span class="file">settings.js</span> <span class="desc"># ⚙️ إعدادات الموقع العامة</span>
+                │ │ ├── <span class="file">tickets.js</span> <span class="desc"># 🎫 تذاكر الدعم الفني</span>
+                │ │ ├── <span class="file">notifications.js</span> <span class="desc"># 🔔 إدارة الإشعارات</span>
+                │ │ ├── <span class="file">referrals.js</span> <span class="desc"># 🤝 نظام الإحالات والعمولات</span>
+                │ │ ├── <span class="file">upload.js</span> <span class="desc"># 📤 رفع الصور</span>
+                │ │ ├── <span class="file">backup.js</span> <span class="desc"># 💾 نسخ احتياطي واستعادة</span>
+                │ │ ├── <span class="file">apiv2.js</span> <span class="desc"># 🔌 API خارجي (للعملاء يتصلون من
+                    برامجهم)</span>
+                │ │ ├── <span class="file">nowpayments.js</span> <span class="desc"># ₿ بوابة دفع العملات الرقمية</span>
+                │ │ └── <span class="file">asiacell.js</span> <span class="desc"># 📱 بوابة دفع آسيا سيل</span>
+                │ │
+                │ ├── 📁 <span class="folder">utils/</span> <span class="desc"># 🔧 أدوات مساعدة</span>
+                │ │ ├── <span class="file">smmApi.js</span> <span class="desc"># 🌐 الاتصال بـ API المزود (طلبات،
+                    أرصدة)</span>
+                │ │ ├── <span class="file">email.js</span> <span class="desc"># 📧 إرسال إيميلات (تأكيد، استعادة كلمة
+                    مرور)</span>
+                │ │ └── <span class="file">referral.js</span> <span class="desc"># 🤝 حساب عمولات الإحالة</span>
+                │ │
+                │ ├── 📁 <span class="folder">middleware/</span> <span class="desc"># 🛡️ وسطاء</span>
+                │ │ └── <span class="file">authMiddleware.js</span> <span class="desc"># 🔒 التحقق من صلاحيات
+                    المستخدم/الأدمن</span>
+                │ │
+                │ └── 📁 <span class="folder">uploads/</span> <span class="desc"># 🖼️ الصور المرفوعة (صور
+                    الأقسام)</span>
+                │
+                ├── 📁 <span class="folder">src/</span> <span class="desc"># 🎨 الواجهة الأمامية (React +
+                    TypeScript)</span>
+                │ │
+                │ ├── 📁 <span class="folder">sections/</span> <span class="desc"># 📱 الصفحات الرئيسية</span>
+                │ │ ├── <span class="file">LandingPage.tsx</span> <span class="desc"># 🏠 الصفحة الرئيسية
+                    (الترحيب)</span>
+                │ │ ├── <span class="file">AuthPage.tsx</span> <span class="desc"># 🔐 تسجيل الدخول والتسجيل</span>
+                │ │ ├── <span class="file">Dashboard.tsx</span> <span class="desc"># 📊 لوحة تحكم المستخدم + المتجر +
+                    الطلبات</span>
+                │ │ │
+                │ │ └── 📁 <span class="folder">Admin/</span> <span class="desc"># 👑 لوحة الأدمن</span>
+                │ │ ├── <span class="file">AdminLogin.tsx</span> <span class="desc"># 🔑 تسجيل دخول الأدمن</span>
+                │ │ ├── <span class="file">AdminDashboard.tsx</span> <span class="desc"># 📋 الصفحة الرئيسية
+                    للأدمن</span>
+                │ │ │
+                │ │ └── 📁 <span class="folder">views/</span> <span class="desc"># 📄 صفحات الأدمن الفرعية</span>
+                │ │ ├── <span class="file">StatsView.tsx</span> <span class="desc"># 📊 الإحصائيات والتقارير</span>
+                │ │ ├── <span class="file">ServicesView.tsx</span> <span class="desc"># 📄 إدارة الخدمات والأقسام</span>
+                │ │ ├── <span class="file">ProvidersView.tsx</span> <span class="desc"># 🏭 إدارة المزودين واستيراد
+                    خدمات</span>
+                │ │ ├── <span class="file">GatewaysView.tsx</span> <span class="desc"># 💳 إدارة بوابات الدفع</span>
+                │ │ ├── <span class="file">CouponsView.tsx</span> <span class="desc"># 🎟️ إدارة الكوبونات</span>
+                │ │ ├── <span class="file">ContentView.tsx</span> <span class="desc"># 📝 إدارة المحتوى (شروط،
+                    عنا)</span>
+                │ │ ├── <span class="file">NotificationsView.tsx</span> <span class="desc"># 🔔 إدارة الإشعارات</span>
+                │ │ ├── <span class="file">SupportView.tsx</span> <span class="desc"># 💬 إدارة عامة للدعم</span>
+                │ │ ├── <span class="file">TicketsView.tsx</span> <span class="desc"># 🎫 إدارة تذاكر الدعم</span>
+                │ │ └── <span class="file">AdminSettingsView.tsx</span> <span class="desc"># ⚙️ إعدادات الموقع
+                    والإحالات</span>
+                │ │
+                │ ├── 📁 <span class="folder">components/</span> <span class="desc"># 🧩 مكونات قابلة لإعادة
+                    الاستخدام</span>
+                │ │ ├── 📁 <span class="folder">custom/</span> <span class="desc"># 🎨 مكونات مخصصة</span>
+                │ │ │ ├── <span class="file">Header.tsx</span> <span class="desc"># 📱 الشريط العلوي + القائمة
+                    (هاتف)</span>
+                │ │ │ ├── <span class="file">Sidebar.tsx</span> <span class="desc"># 🖥️ الشريط الجانبي (كمبيوتر)</span>
+                │ │ │ ├── <span class="file">CategoryBrowser.tsx</span> <span class="desc"># 📁 متصفح الأقسام في
+                    المتجر</span>
+                │ │ │ └── <span class="file">ServicesList.tsx</span> <span class="desc"># 📄 قائمة الخدمات</span>
+                │ │ │
+                │ │ └── 📁 <span class="folder">ui/</span> <span class="desc"># 🎯 مكونات UI أساسية (أزرار، حقول،
+                    بطاقات)</span>
+                │ │
+                │ ├── 📁 <span class="folder">contexts/</span> <span class="desc"># 🌍 سياقات React (بيانات
+                    مشتركة)</span>
+                │ │ ├── <span class="file">LanguageContext.tsx</span> <span class="desc"># 🌐 نظام اللغات (عربي/إنجليزي)
+                    + الترجمات</span>
+                │ │ └── <span class="file">AuthContext.tsx</span> <span class="desc"># 🔑 حالة تسجيل الدخول ومعلومات
+                    المستخدم</span>
+                │ │
+                │ └── 📁 <span class="folder">lib/</span> <span class="desc"># 📚 دوال مساعدة</span>
+                │ ├── <span class="file">api.ts</span> <span class="desc"># 🌐 دوال الاتصال بالسيرفر (apiFetch,
+                    adminFetch)</span>
+                │ ├── <span class="file">formatPrice.ts</span> <span class="desc"># 💲 تنسيق الأسعار</span>
+                │ └── <span class="file">utils.ts</span> <span class="desc"># 🔧 دوال متنوعة</span>
+                │
+                ├── 📁 <span class="folder">dist/</span> <span class="desc"># 📦 ملفات البناء (npm run build)</span>
+                │
+                ├── <span class="file">deploy_app.sh</span> <span class="desc"># 🚀 سكربت نشر التطبيق على السيرفر</span>
+                ├── <span class="file">setup_server.sh</span> <span class="desc"># 🖥️ سكربت إعداد السيرفر</span>
+                ├── <span class="file">PROJECT_GUIDE.md</span> <span class="desc"># 📘 دليل الإدارة</span>
+                ├── <span class="file">package.json</span> <span class="desc"># 📦 تبعيات الواجهة الأمامية</span>
+                ├── <span class="file">vite.config.ts</span> <span class="desc"># ⚡ إعدادات أداة البناء</span>
+                ├── <span class="file">tsconfig.json</span> <span class="desc"># 📝 إعدادات TypeScript</span>
+                ├── <span class="file">index.html</span> <span class="desc"># 🌐 صفحة HTML الرئيسية</span>
+                └── <span class="file">.gitignore</span> <span class="desc"># 🚫 ملفات يتجاهلها Git</span></div>
+        </div>
+
+        <!-- ===== القسم 8 ===== -->
+        <div class="section" id="sec8">
+            <h2>8. 📌 ملخص سريع</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>المهمة</th>
+                        <th>الأمر</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>رفع تعديل</td>
+                        <td><code>git add -A && git commit -m "msg" && git push origin master</code></td>
+                    </tr>
+                    <tr>
+                        <td>تحديث السيرفر</td>
+                        <td><code>cd /var/www/followerjerry.com && git fetch origin && git reset --hard origin/master && npm run build && pm2 restart jerry-api</code>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>عرض السجلات</td>
+                        <td><code>pm2 logs jerry-api</code></td>
+                    </tr>
+                    <tr>
+                        <td>إعادة التشغيل</td>
+                        <td><code>pm2 restart jerry-api</code></td>
+                    </tr>
+                    <tr>
+                        <td>نسخة احتياطية</td>
+                        <td><code>mongodump --db jerry --out /root/backup_$(date +%Y%m%d)</code></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <p style="text-align: center; color: var(--muted); margin-top: 40px; font-size: 0.85em;">
+            Jerry Store — دليل الإدارة • تم إنشاؤه في فبراير 2026
+        </p>
+
+    </div>
+
+    <script>
+        function downloadPDF() {
+            const btn = document.querySelector('.pdf-btn');
+            btn.disabled = true;
+            btn.innerHTML = '⏳ جاري التحميل...';
+
+            const element = document.getElementById('content');
+            const opt = {
+                margin: [10, 10, 10, 10],
+                filename: 'Jerry_Store_Guide.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: {
+                    scale: 2,
+                    useCORS: true,
+                    backgroundColor: '#0f0f1a',
+                    logging: false
+                },
+                jsPDF: {
+                    unit: 'mm',
+                    format: 'a4',
+                    orientation: 'portrait'
+                },
+                pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+            };
+
+            html2pdf().set(opt).from(element).save().then(() => {
+                btn.disabled = false;
+                btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> تحميل PDF';
+            });
+        }
+    </script>
+</body>
+
+</html>

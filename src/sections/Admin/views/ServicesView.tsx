@@ -32,6 +32,7 @@ interface Category {
     nameKey: string;
     name: string;
     image?: string;
+    description?: string;
     parentId: string | null;
     order: number;
 }
@@ -72,6 +73,7 @@ export default function ServicesView() {
     const [editingServiceId, setEditingServiceId] = useState<string | null>(null);
     const [newFolderName, setNewFolderName] = useState('');
     const [newFolderImage, setNewFolderImage] = useState('');
+    const [newFolderDescription, setNewFolderDescription] = useState('');
     const [uploading, setUploading] = useState(false);
     const folderImageRef = useRef<HTMLInputElement>(null);
     const [newService, setNewService] = useState<Partial<Service>>({
@@ -150,7 +152,7 @@ export default function ServicesView() {
             const res = await adminFetch(`/categories/${editingFolderId}`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name: newFolderName, nameKey: newFolderName, image: newFolderImage })
+                body: JSON.stringify({ name: newFolderName, nameKey: newFolderName, image: newFolderImage, description: newFolderDescription })
             });
             const updated = await res.json();
             setSubCategories(prev => prev.map(c => c._id === editingFolderId ? updated : c));
@@ -161,7 +163,7 @@ export default function ServicesView() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     name: newFolderName, nameKey: newFolderName,
-                    image: newFolderImage, parentId: currentParentId
+                    image: newFolderImage, description: newFolderDescription, parentId: currentParentId
                 })
             });
             const created = await res.json();
@@ -171,6 +173,7 @@ export default function ServicesView() {
         setIsAddingFolder(false);
         setNewFolderName('');
         setNewFolderImage('');
+        setNewFolderDescription('');
     };
 
     const handleDeleteFolder = async (e: React.MouseEvent, folderId: string) => {
@@ -185,6 +188,7 @@ export default function ServicesView() {
         setEditingFolderId(cat._id);
         setNewFolderName(cat.name || cat.nameKey);
         setNewFolderImage(cat.image || '');
+        setNewFolderDescription(cat.description || '');
         setIsAddingFolder(true);
     };
 
@@ -250,7 +254,7 @@ export default function ServicesView() {
                     {pathStack.length > 0 ? pathStack[pathStack.length - 1].name : t.serviceManager}
                 </h2>
                 <div className="flex gap-3 w-full md:w-auto">
-                    <Button onClick={() => { setIsAddingFolder(true); setEditingFolderId(null); setNewFolderName(''); setNewFolderImage(''); }} className="flex-1 md:flex-none bg-purple-600 hover:bg-purple-700 text-white gap-2 text-xs md:text-sm">
+                    <Button onClick={() => { setIsAddingFolder(true); setEditingFolderId(null); setNewFolderName(''); setNewFolderImage(''); setNewFolderDescription(''); }} className="flex-1 md:flex-none bg-purple-600 hover:bg-purple-700 text-white gap-2 text-xs md:text-sm">
                         <Plus className="w-3.5 h-3.5" /> {t.addFolder}
                     </Button>
                     {currentParentId && (
@@ -297,6 +301,13 @@ export default function ServicesView() {
                             )}
                         </div>
                     </div>
+                    <textarea
+                        placeholder={lang === 'ar' ? 'الشرح (يظهر للمستخدم داخل القسم)' : 'Description (shown to user inside category)'}
+                        value={newFolderDescription}
+                        onChange={e => setNewFolderDescription(e.target.value)}
+                        rows={3}
+                        className="w-full bg-black/30 border border-white/10 text-white text-sm rounded-lg px-3 py-2 resize-y placeholder:text-white/30"
+                    />
                     <div className="flex gap-3">
                         <Button onClick={handleCreateFolder} className="bg-green-600 hover:bg-green-700 text-white text-sm gap-1"><Plus className="w-3.5 h-3.5" /> {editingFolderId ? t.saveChanges : t.create}</Button>
                         <Button variant="ghost" onClick={() => { setIsAddingFolder(false); setEditingFolderId(null); }} className="text-white/60 text-sm">{t.cancel}</Button>

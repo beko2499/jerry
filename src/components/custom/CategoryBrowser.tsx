@@ -14,6 +14,7 @@ interface Category {
     name: string;
     image?: string;
     description?: string;
+    descriptionMedia?: string[];
     parentId: string | null;
 }
 
@@ -56,6 +57,7 @@ export default function CategoryBrowser({ initialCategoryId, initialCategoryName
     const [subCategories, setSubCategories] = useState<Category[]>([]);
     const [services, setServices] = useState<Service[]>([]);
     const [currentCategoryDescription, setCurrentCategoryDescription] = useState('');
+    const [currentCategoryMedia, setCurrentCategoryMedia] = useState<string[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -70,6 +72,7 @@ export default function CategoryBrowser({ initialCategoryId, initialCategoryName
                 setSubCategories(catsRes);
                 setServices(svcsRes);
                 setCurrentCategoryDescription(catDetailRes?.description || '');
+                setCurrentCategoryMedia(catDetailRes?.descriptionMedia || []);
             } catch (err) { console.error(err); }
             setLoading(false);
         };
@@ -217,14 +220,28 @@ export default function CategoryBrowser({ initialCategoryId, initialCategoryName
                     )}
 
                     {/* Category Description */}
-                    {currentCategoryDescription && (
-                        <div className="mt-8 p-5 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm">
-                            <p className="text-white/70 text-sm md:text-base leading-relaxed whitespace-pre-wrap">{currentCategoryDescription}</p>
+                    {(currentCategoryDescription || currentCategoryMedia.length > 0) && (
+                        <div className="mt-8 p-5 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm space-y-4">
+                            {currentCategoryDescription && (
+                                <p className="text-white/70 text-sm md:text-base leading-relaxed whitespace-pre-wrap">{currentCategoryDescription}</p>
+                            )}
+                            {currentCategoryMedia.length > 0 && (
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {currentCategoryMedia.map((url, i) => {
+                                        const isVideo = /\.(mp4|webm|mov)$/i.test(url);
+                                        return isVideo ? (
+                                            <video key={i} src={getImageFullUrl(url)} controls className="w-full rounded-xl border border-white/10" />
+                                        ) : (
+                                            <img key={i} src={getImageFullUrl(url)} alt="" className="w-full rounded-xl border border-white/10 object-cover" />
+                                        );
+                                    })}
+                                </div>
+                            )}
                         </div>
                     )}
 
                     {/* Empty State */}
-                    {subCategories.length === 0 && services.length === 0 && !currentCategoryDescription && (
+                    {subCategories.length === 0 && services.length === 0 && !currentCategoryDescription && currentCategoryMedia.length === 0 && (
                         <div className="text-center py-16 text-white/30">
                             <Folder className="w-12 h-12 mx-auto mb-3 opacity-50" />
                             <p className="text-lg font-medium">{t.emptyFolder || 'هذا القسم فارغ'}</p>

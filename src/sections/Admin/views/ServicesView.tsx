@@ -33,6 +33,7 @@ interface Category {
     name: string;
     image?: string;
     description?: string;
+    descriptionMedia?: string[];
     parentId: string | null;
     order: number;
 }
@@ -74,8 +75,10 @@ export default function ServicesView() {
     const [newFolderName, setNewFolderName] = useState('');
     const [newFolderImage, setNewFolderImage] = useState('');
     const [newFolderDescription, setNewFolderDescription] = useState('');
+    const [newFolderMedia, setNewFolderMedia] = useState<string[]>([]);
     const [uploading, setUploading] = useState(false);
     const folderImageRef = useRef<HTMLInputElement>(null);
+    const descMediaRef = useRef<HTMLInputElement>(null);
     const [newService, setNewService] = useState<Partial<Service>>({
         name: '', price: 0, min: 100, max: 1000, description: '',
         providerId: '', providerServiceId: '', speed: '', dropRate: '', guarantee: '', startTime: ''
@@ -152,7 +155,7 @@ export default function ServicesView() {
             const res = await adminFetch(`/categories/${editingFolderId}`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name: newFolderName, nameKey: newFolderName, image: newFolderImage, description: newFolderDescription })
+                body: JSON.stringify({ name: newFolderName, nameKey: newFolderName, image: newFolderImage, description: newFolderDescription, descriptionMedia: newFolderMedia })
             });
             const updated = await res.json();
             setSubCategories(prev => prev.map(c => c._id === editingFolderId ? updated : c));
@@ -163,7 +166,7 @@ export default function ServicesView() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     name: newFolderName, nameKey: newFolderName,
-                    image: newFolderImage, description: newFolderDescription, parentId: currentParentId
+                    image: newFolderImage, description: newFolderDescription, descriptionMedia: newFolderMedia, parentId: currentParentId
                 })
             });
             const created = await res.json();
@@ -174,6 +177,7 @@ export default function ServicesView() {
         setNewFolderName('');
         setNewFolderImage('');
         setNewFolderDescription('');
+        setNewFolderMedia([]);
     };
 
     const handleDeleteFolder = async (e: React.MouseEvent, folderId: string) => {
@@ -189,6 +193,7 @@ export default function ServicesView() {
         setNewFolderName(cat.name || cat.nameKey);
         setNewFolderImage(cat.image || '');
         setNewFolderDescription(cat.description || '');
+        setNewFolderMedia(cat.descriptionMedia || []);
         setIsAddingFolder(true);
     };
 
@@ -254,7 +259,7 @@ export default function ServicesView() {
                     {pathStack.length > 0 ? pathStack[pathStack.length - 1].name : t.serviceManager}
                 </h2>
                 <div className="flex gap-3 w-full md:w-auto">
-                    <Button onClick={() => { setIsAddingFolder(true); setEditingFolderId(null); setNewFolderName(''); setNewFolderImage(''); setNewFolderDescription(''); }} className="flex-1 md:flex-none bg-purple-600 hover:bg-purple-700 text-white gap-2 text-xs md:text-sm">
+                    <Button onClick={() => { setIsAddingFolder(true); setEditingFolderId(null); setNewFolderName(''); setNewFolderImage(''); setNewFolderDescription(''); setNewFolderMedia([]); }} className="flex-1 md:flex-none bg-purple-600 hover:bg-purple-700 text-white gap-2 text-xs md:text-sm">
                         <Plus className="w-3.5 h-3.5" /> {t.addFolder}
                     </Button>
                     {currentParentId && (
@@ -308,6 +313,38 @@ export default function ServicesView() {
                         rows={3}
                         className="w-full bg-black/30 border border-white/10 text-white text-sm rounded-lg px-3 py-2 resize-y placeholder:text-white/30"
                     />
+                    {/* Description Media Upload */}
+                    <div>
+                        <input ref={descMediaRef} type="file" accept="image/*,video/*" className="hidden" onChange={e => {
+                            const file = e.target.files?.[0];
+                            if (file) handleImageUpload(file, url => setNewFolderMedia(prev => [...prev, url]));
+                        }} />
+                        <div className="flex items-center gap-3 flex-wrap">
+                            <button
+                                onClick={() => descMediaRef.current?.click()}
+                                disabled={uploading}
+                                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/20 transition-colors text-sm disabled:opacity-50"
+                            >
+                                {uploading ? <span className="animate-spin">⏳</span> : <Upload className="w-4 h-4" />}
+                                {lang === 'ar' ? 'رفع صورة/فيديو للشرح' : 'Upload media for description'}
+                            </button>
+                            {newFolderMedia.map((url, i) => {
+                                const isVideo = /\.(mp4|webm|mov)$/i.test(url);
+                                return (
+                                    <div key={i} className="relative">
+                                        {isVideo ? (
+                                            <video src={getImageFullUrl(url)} className="w-16 h-16 object-cover rounded-lg border border-white/10" />
+                                        ) : (
+                                            <img src={getImageFullUrl(url)} alt="" className="w-16 h-16 object-cover rounded-lg border border-white/10" />
+                                        )}
+                                        <button onClick={() => setNewFolderMedia(prev => prev.filter((_, idx) => idx !== i))} className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center">
+                                            <X className="w-3 h-3 text-white" />
+                                        </button>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
                     <div className="flex gap-3">
                         <Button onClick={handleCreateFolder} className="bg-green-600 hover:bg-green-700 text-white text-sm gap-1"><Plus className="w-3.5 h-3.5" /> {editingFolderId ? t.saveChanges : t.create}</Button>
                         <Button variant="ghost" onClick={() => { setIsAddingFolder(false); setEditingFolderId(null); }} className="text-white/60 text-sm">{t.cancel}</Button>

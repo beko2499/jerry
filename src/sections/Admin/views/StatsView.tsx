@@ -69,7 +69,7 @@ export default function StatsView() {
     ];
 
     // Editable counter keys (stat.key -> API key mapping)
-    const editableCounterMap: Record<string, string> = { users: 'totalUsers', orders: 'totalOrders', active: 'activeNow' };
+    const editableCounterMap: Record<string, string> = { users: 'totalUsers', orders: 'totalOrders', revenue: 'totalRevenue', rechargeRevenue: 'rechargeRevenue', active: 'activeNow' };
     const editableCounterKeys = Object.keys(editableCounterMap);
 
     const handleLongPressStart = useCallback((statKey: string, label: string, value: string) => {

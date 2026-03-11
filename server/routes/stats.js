@@ -51,11 +51,20 @@ router.get('/', requireAdmin, async (req, res) => {
             .limit(5)
             .populate('userId', 'username firstName');
 
+        // Check for stat overrides
+        const Settings = require('../models/Settings');
+        const overrideKeys = ['totalUsers', 'totalOrders', 'activeNow'];
+        const overrides = await Settings.find({ key: { $in: overrideKeys.map(k => `stat_override_${k}`) } });
+        const overrideMap = {};
+        for (const o of overrides) {
+            overrideMap[o.key.replace('stat_override_', '')] = o.value;
+        }
+
         res.json({
-            totalUsers,
-            totalOrders,
+            totalUsers: overrideMap.totalUsers ?? totalUsers,
+            totalOrders: overrideMap.totalOrders ?? totalOrders,
             totalRevenue: `$${totalRevenue.toFixed(2)}`,
-            activeNow,
+            activeNow: overrideMap.activeNow ?? activeNow,
             // Order revenue breakdown
             completedRevenue: completedRevenue.toFixed(2),
             pendingRevenue: (pendingRevenue + processingRevenue).toFixed(2),
@@ -70,6 +79,24 @@ router.get('/', requireAdmin, async (req, res) => {
                 time: o.createdAt
             }))
         });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Update stat counter override
+router.patch('/override', requireAdmin, async (req, res) => {
+    try {
+        const { key, value } = req.body;
+        if (!key || value === undefined) return res.status(400).json({ error: 'key and value required' });
+        
+        const Settings = require('../models/Settings');
+        await Settings.findOneAndUpdate(
+            { key: `stat_override_${key}` },
+            { value: Number(value) },
+            { upsert: true, new: true }
+        );
+        res.json({ success: true, key, value: Number(value) });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }

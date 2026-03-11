@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Users, ShoppingCart, DollarSign, Activity, ArrowLeft, Search, Mail, Phone, Calendar, Hash, CheckCircle, Clock, XCircle, CreditCard, Wallet, X, Edit3, Trash2, Ban, ShieldCheck, Save } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -31,6 +31,12 @@ export default function StatsView() {
     const [editForm, setEditForm] = useState({ firstName: '', lastName: '', phone: '', email: '', balance: '' });
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
+    // Counter quick-edit state
+    const [editingCounter, setEditingCounter] = useState<{ key: string; label: string; value: string } | null>(null);
+    const [counterEditValue, setCounterEditValue] = useState('');
+    const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const longPressTriggered = useRef(false);
+
     useEffect(() => {
         adminFetch(`/stats`).then(r => r.json()).then(setData).catch(console.error);
     }, []);
@@ -61,6 +67,42 @@ export default function StatsView() {
         { key: 'rechargeRevenue' as DetailView, label: t.rechargeRevenue || 'إيرادات الشحن', value: `$${data.rechargeRevenue}`, icon: Wallet, color: 'text-amber-400', bg: 'bg-amber-500/10 border-amber-500/20', hoverBorder: 'hover:border-amber-500/50' },
         { key: 'active' as DetailView, label: t.activeNow, value: data.activeNow.toLocaleString(), icon: Activity, color: 'text-red-400', bg: 'bg-red-500/10 border-red-500/20', hoverBorder: 'hover:border-red-500/50' },
     ];
+
+    // Editable counter keys (only these can be overridden)
+    const editableCounterKeys = ['totalUsers', 'totalOrders', 'activeNow'];
+
+    const handleLongPressStart = useCallback((statKey: string, label: string, value: string) => {
+        longPressTriggered.current = false;
+        longPressTimer.current = setTimeout(() => {
+            longPressTriggered.current = true;
+            const numVal = value.replace(/[^0-9]/g, '');
+            setEditingCounter({ key: statKey, label, value: numVal });
+            setCounterEditValue(numVal);
+        }, 500);
+    }, []);
+
+    const handleLongPressEnd = useCallback(() => {
+        if (longPressTimer.current) {
+            clearTimeout(longPressTimer.current);
+            longPressTimer.current = null;
+        }
+    }, []);
+
+    const handleSaveCounter = async () => {
+        if (!editingCounter) return;
+        try {
+            await adminFetch(`/stats/override`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ key: editingCounter.key, value: parseInt(counterEditValue) || 0 }),
+            });
+            // Refresh stats
+            const res = await adminFetch(`/stats`);
+            const newData = await res.json();
+            setData(newData);
+            setEditingCounter(null);
+        } catch (err) { console.error(err); }
+    };
 
     const timeAgo = (time: string) => {
         const diff = Date.now() - new Date(time).getTime();
@@ -516,8 +558,16 @@ export default function StatsView() {
                     return (
                         <Card
                             key={index}
-                            onClick={() => handleCardClick(stat.key)}
-                            className={`p-3 md:p-6 border ${stat.bg} backdrop-blur-sm cursor-pointer transition-all duration-300 ${stat.hoverBorder} hover:scale-[1.03] active:scale-[0.98]`}
+                            onClick={() => {
+                                if (longPressTriggered.current) return;
+                                handleCardClick(stat.key);
+                            }}
+                            onMouseDown={() => editableCounterKeys.includes(stat.key as string) && handleLongPressStart(stat.key as string, stat.label, stat.value)}
+                            onMouseUp={handleLongPressEnd}
+                            onMouseLeave={handleLongPressEnd}
+                            onTouchStart={() => editableCounterKeys.includes(stat.key as string) && handleLongPressStart(stat.key as string, stat.label, stat.value)}
+                            onTouchEnd={handleLongPressEnd}
+                            className={`p-3 md:p-6 border ${stat.bg} backdrop-blur-sm cursor-pointer transition-all duration-300 ${stat.hoverBorder} hover:scale-[1.03] active:scale-[0.98] select-none`}
                         >
                             <div className="flex justify-between items-start">
                                 <div>
@@ -551,6 +601,41 @@ export default function StatsView() {
                     )}
                 </div>
             </Card>
+
+            {/* Counter Quick-Edit Modal */}
+            {editingCounter && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setEditingCounter(null)}>
+                    <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
+                    <div className="relative w-full max-w-sm bg-[#0d0d1a] border border-white/10 rounded-2xl shadow-2xl p-6 space-y-4" onClick={e => e.stopPropagation()}>
+                        <div className="flex items-center justify-between">
+                            <h3 className="text-white font-bold text-lg flex items-center gap-2">
+                                <Edit3 className="w-5 h-5 text-cyan-400" />
+                                {isRTL ? 'تعديل العداد' : 'Edit Counter'}
+                            </h3>
+                            <button onClick={() => setEditingCounter(null)} className="p-1.5 rounded-lg hover:bg-white/10 transition-colors">
+                                <X className="w-4 h-4 text-white/50" />
+                            </button>
+                        </div>
+                        <p className="text-white/50 text-sm">{editingCounter.label}</p>
+                        <Input
+                            type="number"
+                            value={counterEditValue}
+                            onChange={e => setCounterEditValue(e.target.value)}
+                            className="bg-black/40 border-white/10 text-white text-lg text-center h-12 font-mono"
+                            dir="ltr"
+                            autoFocus
+                        />
+                        <div className="flex gap-3">
+                            <Button onClick={handleSaveCounter} className="flex-1 bg-green-600 hover:bg-green-700 text-white gap-2">
+                                <Save className="w-4 h-4" /> {isRTL ? 'حفظ' : 'Save'}
+                            </Button>
+                            <Button onClick={() => setEditingCounter(null)} variant="ghost" className="flex-1 text-white/60">
+                                {isRTL ? 'إلغاء' : 'Cancel'}
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

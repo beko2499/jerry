@@ -28,6 +28,7 @@ app.use('/api/settings', require('./routes/settings'));
 app.use('/api/stats', require('./routes/stats'));
 app.use('/api/upload', require('./routes/upload'));
 app.use('/api/coupons', require('./routes/coupons'));
+app.use('/api/promocodes', require('./routes/promocodes'));
 app.use('/api/nowpayments', require('./routes/nowpayments'));
 app.use('/api/asiacell', require('./routes/asiacell'));
 app.use('/api/notifications', require('./routes/notifications'));

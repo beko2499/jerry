@@ -68,8 +68,9 @@ export default function StatsView() {
         { key: 'active' as DetailView, label: t.activeNow, value: data.activeNow.toLocaleString(), icon: Activity, color: 'text-red-400', bg: 'bg-red-500/10 border-red-500/20', hoverBorder: 'hover:border-red-500/50' },
     ];
 
-    // Editable counter keys (only these can be overridden)
-    const editableCounterKeys = ['totalUsers', 'totalOrders', 'activeNow'];
+    // Editable counter keys (stat.key -> API key mapping)
+    const editableCounterMap: Record<string, string> = { users: 'totalUsers', orders: 'totalOrders', active: 'activeNow' };
+    const editableCounterKeys = Object.keys(editableCounterMap);
 
     const handleLongPressStart = useCallback((statKey: string, label: string, value: string) => {
         longPressTriggered.current = false;
@@ -91,10 +92,11 @@ export default function StatsView() {
     const handleSaveCounter = async () => {
         if (!editingCounter) return;
         try {
+            const apiKey = editableCounterMap[editingCounter.key] || editingCounter.key;
             await adminFetch(`/stats/override`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ key: editingCounter.key, value: parseInt(counterEditValue) || 0 }),
+                body: JSON.stringify({ key: apiKey, value: parseInt(counterEditValue) || 0 }),
             });
             // Refresh stats
             const res = await adminFetch(`/stats`);

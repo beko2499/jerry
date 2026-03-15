@@ -582,9 +582,9 @@ function ServiceDetailsView({ serviceId, serviceData, onBack }: ServiceDetailsVi
     setPromoApplied(false);
     setPromoDiscount(0);
     try {
-      const res = await fetch(`${API_URL}/promocodes/validate`, {
+      const res = await apiFetch(`/promocodes/validate`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('token')}` },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ code: couponCode.trim(), userId: user?._id, categoryId: serviceData?.categoryId }),
       });
       const data = await res.json();

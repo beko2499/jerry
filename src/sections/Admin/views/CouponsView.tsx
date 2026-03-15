@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Ticket, Copy, Trash2, Check, Plus, Percent, Tag, FolderOpen, ToggleLeft, ToggleRight } from 'lucide-react';
+import { Ticket, Copy, Trash2, Check, Plus, Percent, Tag, FolderOpen, ToggleLeft, ToggleRight, ChevronDown } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -57,6 +57,7 @@ export default function CouponsView() {
     const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
     const [allCategories, setAllCategories] = useState<CategoryOption[]>([]);
     const [isCreatingPromo, setIsCreatingPromo] = useState(false);
+    const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
 
     useEffect(() => {
         fetchCoupons();
@@ -86,15 +87,9 @@ export default function CouponsView() {
 
     const fetchCategories = async () => {
         try {
-            const res = await fetch(`${API_URL}/categories?root=true`);
-            const rootCats = await res.json();
-            const allCats: CategoryOption[] = [...rootCats];
-            for (const cat of rootCats) {
-                const subRes = await fetch(`${API_URL}/categories?parentId=${cat._id}`);
-                const subCats = await subRes.json();
-                allCats.push(...subCats);
-            }
-            setAllCategories(allCats);
+            const res = await fetch(`${API_URL}/categories`);
+            const cats = await res.json();
+            setAllCategories(cats);
         } catch (err) {
             console.error(err);
         }
@@ -335,28 +330,57 @@ export default function CouponsView() {
                                 <FolderOpen className="w-3.5 h-3.5" />
                                 {isRTL ? 'استهداف أقسام معينة (اختياري — اتركه فارغاً لكل الأقسام)' : 'Target specific categories (optional — leave empty for all)'}
                             </label>
-                            <div className="flex flex-wrap gap-2">
-                                {allCategories.map(cat => {
-                                    const isSelected = selectedCategories.includes(cat._id);
-                                    return (
-                                        <button
-                                            key={cat._id}
-                                            onClick={() => toggleCategory(cat._id)}
-                                            className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
-                                                isSelected
-                                                    ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-400'
-                                                    : 'bg-white/5 border-white/10 text-white/50 hover:border-white/30'
-                                            }`}
-                                        >
-                                            {isSelected && <span className="mr-1">✓</span>}
-                                            {cat.name || cat.nameKey}
-                                        </button>
-                                    );
-                                })}
-                                {allCategories.length === 0 && (
-                                    <p className="text-white/30 text-xs">{isRTL ? 'لا توجد أقسام' : 'No categories'}</p>
+                            <div className="relative">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
+                                    className="w-full flex items-center justify-between px-4 py-2.5 rounded-xl bg-black/30 border border-white/10 text-sm text-white/70 hover:border-white/20 transition-all"
+                                >
+                                    <span>
+                                        {selectedCategories.length === 0
+                                            ? (isRTL ? '🌐 كل الأقسام' : '🌐 All categories')
+                                            : (isRTL ? `${selectedCategories.length} قسم محدد` : `${selectedCategories.length} selected`)}
+                                    </span>
+                                    <ChevronDown className={`w-4 h-4 transition-transform ${showCategoryDropdown ? 'rotate-180' : ''}`} />
+                                </button>
+                                {showCategoryDropdown && (
+                                    <div className="absolute z-50 mt-1 w-full max-h-52 overflow-y-auto rounded-xl bg-[#0d0d1a] border border-white/10 shadow-2xl">
+                                        {allCategories.length === 0 ? (
+                                            <p className="text-white/30 text-xs p-3 text-center">{isRTL ? 'لا توجد أقسام' : 'No categories'}</p>
+                                        ) : (
+                                            allCategories.map(cat => {
+                                                const isSelected = selectedCategories.includes(cat._id);
+                                                return (
+                                                    <button
+                                                        key={cat._id}
+                                                        type="button"
+                                                        onClick={() => toggleCategory(cat._id)}
+                                                        className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-all hover:bg-white/5 ${isSelected ? 'bg-emerald-500/10 text-emerald-400' : 'text-white/70'}`}
+                                                    >
+                                                        <span className={`w-4 h-4 rounded border flex items-center justify-center text-[10px] ${isSelected ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-white/20'}`}>
+                                                            {isSelected && '✓'}
+                                                        </span>
+                                                        {cat.name || cat.nameKey}
+                                                    </button>
+                                                );
+                                            })
+                                        )}
+                                    </div>
                                 )}
                             </div>
+                            {selectedCategories.length > 0 && (
+                                <div className="flex flex-wrap gap-1.5 mt-2">
+                                    {selectedCategories.map(catId => {
+                                        const cat = allCategories.find(c => c._id === catId);
+                                        return cat ? (
+                                            <span key={catId} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs bg-emerald-500/15 text-emerald-400 border border-emerald-500/20">
+                                                {cat.name || cat.nameKey}
+                                                <button onClick={() => toggleCategory(catId)} className="hover:text-white transition-colors">×</button>
+                                            </span>
+                                        ) : null;
+                                    })}
+                                </div>
+                            )}
                         </div>
 
                         <div className="flex gap-3">

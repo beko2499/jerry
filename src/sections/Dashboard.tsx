@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { apiFetch, API_URL } from '@/lib/api';
 import { formatPrice, $price } from '@/lib/formatPrice';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -547,7 +547,7 @@ const allTelegramServices = [
 // Service Details View Component
 interface ServiceDetailsViewProps {
   serviceId: string;
-  serviceData?: { name: string; price: number; min: number; max: number; description?: string; speed?: string; dropRate?: string; guarantee?: string; startTime?: string; serviceNumber?: number };
+  serviceData?: { name: string; price: number; min: number; max: number; description?: string; speed?: string; dropRate?: string; guarantee?: string; startTime?: string; serviceNumber?: number; categoryId?: string };
   onBack: () => void;
 }
 
@@ -556,9 +556,13 @@ function ServiceDetailsView({ serviceId, serviceData, onBack }: ServiceDetailsVi
   const [link, setLink] = useState('');
   const [hasCoupon, setHasCoupon] = useState(false);
   const [couponCode, setCouponCode] = useState('');
+  const [promoDiscount, setPromoDiscount] = useState(0);
+  const [promoValidating, setPromoValidating] = useState(false);
+  const [promoError, setPromoError] = useState('');
+  const [promoApplied, setPromoApplied] = useState(false);
   const [orderLoading, setOrderLoading] = useState(false);
   const [orderResult, setOrderResult] = useState<{ success: boolean; message: string; orderId?: string } | null>(null);
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const { user, refreshUser } = useAuth();
 
   // Use dynamic service data from API if available, fallback to hardcoded
@@ -569,6 +573,39 @@ function ServiceDetailsView({ serviceId, serviceData, onBack }: ServiceDetailsVi
   const serviceMax = serviceData?.max ?? hardcodedService?.max ?? 10000;
   const serviceDesc = serviceData?.description || hardcodedService?.description || '';
   const totalPrice = Math.round((quantity / 1000) * servicePrice * 1000000) / 1000000;
+  const discountedPrice = promoApplied ? Math.round(totalPrice * (1 - promoDiscount / 100) * 1000000) / 1000000 : totalPrice;
+
+  const validatePromoCode = async () => {
+    if (!couponCode.trim()) return;
+    setPromoValidating(true);
+    setPromoError('');
+    setPromoApplied(false);
+    setPromoDiscount(0);
+    try {
+      const res = await fetch(`${API_URL}/promocodes/validate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('token')}` },
+        body: JSON.stringify({ code: couponCode.trim(), userId: user?._id, categoryId: serviceData?.categoryId }),
+      });
+      const data = await res.json();
+      if (res.ok && data.valid) {
+        setPromoDiscount(data.discountPercent);
+        setPromoApplied(true);
+      } else {
+        const errMap: Record<string, string> = {
+          invalid_code: lang === 'ar' ? 'رمز غير صالح' : 'Invalid code',
+          expired: lang === 'ar' ? 'الرمز منتهي الصلاحية' : 'Code expired',
+          max_uses_reached: lang === 'ar' ? 'تم استخدام الرمز بالكامل' : 'Max uses reached',
+          already_used: lang === 'ar' ? 'لقد استخدمت هذا الرمز مسبقاً' : 'Already used',
+          not_applicable: lang === 'ar' ? 'الرمز لا ينطبق على هذا القسم' : 'Not applicable to this category',
+        };
+        setPromoError(errMap[data.error] || data.error || (lang === 'ar' ? 'رمز غير صالح' : 'Invalid code'));
+      }
+    } catch {
+      setPromoError(lang === 'ar' ? 'خطأ في الاتصال' : 'Connection error');
+    }
+    setPromoValidating(false);
+  };
 
   const handleSubmitOrder = async () => {
     if (!user) return;
@@ -576,7 +613,7 @@ function ServiceDetailsView({ serviceId, serviceData, onBack }: ServiceDetailsVi
       setOrderResult({ success: false, message: t.invalidQuantity || `الكمية يجب أن تكون بين ${serviceMin} و ${serviceMax}` });
       return;
     }
-    if ((user.balance || 0) < totalPrice) {
+    if ((user.balance || 0) < discountedPrice) {
       setOrderResult({ success: false, message: t.insufficientBalance || 'الرصيد غير كافي' });
       return;
     }
@@ -592,8 +629,9 @@ function ServiceDetailsView({ serviceId, serviceData, onBack }: ServiceDetailsVi
           serviceId: serviceData ? serviceId : '',
           serviceName,
           quantity,
-          price: totalPrice,
+          price: discountedPrice,
           link,
+          promoCode: promoApplied ? couponCode.trim() : undefined,
         }),
       });
       const data = await res.json();
@@ -734,12 +772,30 @@ function ServiceDetailsView({ serviceId, serviceData, onBack }: ServiceDetailsVi
                   <label htmlFor="coupon" className="text-sm text-white/70 cursor-pointer select-none">{t.promoCode}</label>
                 </div>
                 {hasCoupon && (
-                  <Input
-                    value={couponCode}
-                    onChange={(e) => setCouponCode(e.target.value)}
-                    placeholder={t.enterPromo}
-                    className="mt-2 bg-black/30 border-white/10 text-white focus:border-cyan-500/50 h-10 font-body placeholder:text-white/20"
-                  />
+                  <div className="mt-2 space-y-2">
+                    <div className="flex gap-2">
+                      <Input
+                        value={couponCode}
+                        onChange={(e) => { setCouponCode(e.target.value); setPromoApplied(false); setPromoError(''); setPromoDiscount(0); }}
+                        placeholder={t.enterPromo}
+                        className="flex-1 bg-black/30 border-white/10 text-white focus:border-cyan-500/50 h-10 font-mono placeholder:text-white/20"
+                        dir="ltr"
+                      />
+                      <Button
+                        onClick={validatePromoCode}
+                        disabled={promoValidating || !couponCode.trim()}
+                        className="bg-emerald-600 hover:bg-emerald-700 text-white text-sm h-10 px-4 disabled:opacity-50"
+                      >
+                        {promoValidating ? '...' : (lang === 'ar' ? 'تطبيق' : 'Apply')}
+                      </Button>
+                    </div>
+                    {promoError && (
+                      <p className="text-red-400 text-xs bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-1.5">❌ {promoError}</p>
+                    )}
+                    {promoApplied && (
+                      <p className="text-emerald-400 text-xs bg-emerald-500/10 border border-emerald-500/20 rounded-lg px-3 py-1.5">✅ {lang === 'ar' ? `تم تطبيق خصم ${promoDiscount}%` : `${promoDiscount}% discount applied`}</p>
+                    )}
+                  </div>
                 )}
               </div>
 
@@ -753,12 +809,19 @@ function ServiceDetailsView({ serviceId, serviceData, onBack }: ServiceDetailsVi
                   <span className="text-white/60">{t.pricePer1000}</span>
                   <span className="text-white font-mono">{$price(servicePrice)}</span>
                 </div>
-                <div className="border-t border-cyan-500/20 pt-2 flex justify-between items-center">
-                  <span className="text-cyan-200 font-bold">{t.totalCost}</span>
-                  <div className="flex items-end gap-2">
-                    <span className="text-xs text-cyan-300/50 line-through mb-1">{$price(totalPrice * 1.01)}</span>
-                    <span className="text-2xl font-bold text-cyan-400 font-mono">{$price(totalPrice)}</span>
+                <div className="border-t border-cyan-500/20 pt-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-cyan-200 font-bold">{t.totalCost}</span>
+                    <div className="flex flex-col items-end">
+                      {promoApplied && (
+                        <span className="text-sm text-red-400/70 line-through font-mono">{$price(totalPrice)}</span>
+                      )}
+                      <span className="text-2xl font-bold text-cyan-400 font-mono">{$price(discountedPrice)}</span>
+                    </div>
                   </div>
+                  {promoApplied && (
+                    <p className="text-emerald-400 text-[10px] text-end mt-1">{lang === 'ar' ? `خصم ${promoDiscount}%` : `${promoDiscount}% off`}</p>
+                  )}
                 </div>
               </div>
 

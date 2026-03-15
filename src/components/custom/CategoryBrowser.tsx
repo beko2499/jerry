@@ -25,6 +25,7 @@ interface Service {
     min: number;
     max: number;
     description: string;
+    categoryId?: string;
     speed?: string;
     dropRate?: string;
     guarantee?: string;

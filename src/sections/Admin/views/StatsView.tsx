@@ -41,6 +41,16 @@ export default function StatsView() {
         adminFetch(`/stats`).then(r => r.json()).then(setData).catch(console.error);
     }, []);
 
+    // Live refresh active users every 10s
+    useEffect(() => {
+        const interval = setInterval(() => {
+            adminFetch(`/stats/active-now`).then(r => r.json()).then(d => {
+                if (d.activeNow !== undefined) setData(prev => prev ? { ...prev, activeNow: d.activeNow } : prev);
+            }).catch(() => {});
+        }, 10000);
+        return () => clearInterval(interval);
+    }, []);
+
     const fetchUsers = async () => {
         const res = await adminFetch(`/auth/users`);
         const data = await res.json();

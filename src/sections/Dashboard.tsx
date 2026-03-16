@@ -2307,6 +2307,14 @@ export default function Dashboard() {
   const [browseCategoryName, setBrowseCategoryName] = useState('');
   const [showMobileMenu, setShowMobileMenu] = useState(false);
 
+  // Heartbeat: ping server every 30s to track active users
+  useEffect(() => {
+    const sendHeartbeat = () => apiFetch('/stats/heartbeat', { method: 'POST' }).catch(() => {});
+    sendHeartbeat(); // send immediately on mount
+    const interval = setInterval(sendHeartbeat, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
   const renderContent = () => {
     switch (activeItem) {
       case 'new-order':

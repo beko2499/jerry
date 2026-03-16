@@ -3,7 +3,32 @@ const router = express.Router();
 const User = require('../models/User');
 const Order = require('../models/Order');
 const Transaction = require('../models/Transaction');
-const { requireAdmin } = require('../middleware/authMiddleware');
+const { requireAdmin, requireAuth } = require('../middleware/authMiddleware');
+
+// In-memory active users tracker: Map<userId, lastSeenTimestamp>
+const activeUsers = new Map();
+const ACTIVE_THRESHOLD = 2 * 60 * 1000; // 2 minutes
+
+function getActiveCount() {
+    const now = Date.now();
+    let count = 0;
+    for (const [uid, ts] of activeUsers) {
+        if (now - ts > ACTIVE_THRESHOLD) activeUsers.delete(uid);
+        else count++;
+    }
+    return count;
+}
+
+// Heartbeat: users ping this every 30s
+router.post('/heartbeat', requireAuth, (req, res) => {
+    activeUsers.set(req.user._id.toString(), Date.now());
+    res.json({ ok: true });
+});
+
+// Admin: fast active count (no DB query)
+router.get('/active-now', requireAdmin, (req, res) => {
+    res.json({ activeNow: getActiveCount() });
+});
 
 // Get dashboard stats
 router.get('/', requireAdmin, async (req, res) => {
@@ -41,9 +66,7 @@ router.get('/', requireAdmin, async (req, res) => {
         const rechargeCount = rechargeAgg.length > 0 ? rechargeAgg[0].count : 0;
 
         const totalRevenue = completedRevenue + pendingRevenue + processingRevenue;
-        const activeNow = await User.countDocuments({
-            updatedAt: { $gte: new Date(Date.now() - 15 * 60 * 1000) }
-        });
+        const activeNow = getActiveCount();
 
         // Recent activity
         const recentOrders = await Order.find()

@@ -5,29 +5,24 @@ const Order = require('../models/Order');
 const Transaction = require('../models/Transaction');
 const { requireAdmin, requireAuth } = require('../middleware/authMiddleware');
 
-// In-memory active users tracker: Map<userId, lastSeenTimestamp>
-const activeUsers = new Map();
 const ACTIVE_THRESHOLD = 2 * 60 * 1000; // 2 minutes
 
-function getActiveCount() {
-    const now = Date.now();
-    let count = 0;
-    for (const [uid, ts] of activeUsers) {
-        if (now - ts > ACTIVE_THRESHOLD) activeUsers.delete(uid);
-        else count++;
-    }
-    return count;
-}
-
-// Heartbeat: users ping this every 30s
-router.post('/heartbeat', requireAuth, (req, res) => {
-    activeUsers.set(req.user._id.toString(), Date.now());
-    res.json({ ok: true });
+// Heartbeat: users ping this every 30s — update lastSeen in DB
+router.post('/heartbeat', requireAuth, async (req, res) => {
+    try {
+        await User.updateOne({ _id: req.user._id }, { lastSeen: new Date() });
+        res.json({ ok: true });
+    } catch { res.json({ ok: false }); }
 });
 
-// Admin: fast active count (no DB query)
-router.get('/active-now', requireAdmin, (req, res) => {
-    res.json({ activeNow: getActiveCount() });
+// Admin: get live active count
+router.get('/active-now', requireAdmin, async (req, res) => {
+    try {
+        const count = await User.countDocuments({
+            lastSeen: { $gte: new Date(Date.now() - ACTIVE_THRESHOLD) }
+        });
+        res.json({ activeNow: count });
+    } catch { res.json({ activeNow: 0 }); }
 });
 
 // Get dashboard stats
@@ -66,7 +61,9 @@ router.get('/', requireAdmin, async (req, res) => {
         const rechargeCount = rechargeAgg.length > 0 ? rechargeAgg[0].count : 0;
 
         const totalRevenue = completedRevenue + pendingRevenue + processingRevenue;
-        const activeNow = getActiveCount();
+        const activeNow = await User.countDocuments({
+            lastSeen: { $gte: new Date(Date.now() - ACTIVE_THRESHOLD) }
+        });
 
         // Recent activity
         const recentOrders = await Order.find()

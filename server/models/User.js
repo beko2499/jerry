@@ -18,6 +18,7 @@ const userSchema = new mongoose.Schema({
     referredBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
     referralEarnings: { type: Number, default: 0 },
     apiKey: { type: String, unique: true, sparse: true },
+    lastSeen: { type: Date, default: null },
 }, { timestamps: true });
 
 userSchema.pre('save', async function (next) {

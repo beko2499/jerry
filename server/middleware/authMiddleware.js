@@ -3,6 +3,9 @@ const User = require('../models/User');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'jerry_default_secret_change_me';
 
+// Debounce lastSeen updates: only update DB at most once per 30s per user
+const lastSeenCache = new Map(); // userId -> timestamp of last DB update
+
 // Generate JWT token
 function generateToken(user) {
     return jwt.sign(
@@ -25,6 +28,16 @@ async function requireAuth(req, res, next) {
         if (!user) return res.status(401).json({ error: 'unauthorized' });
         if (user.banned) return res.status(403).json({ error: 'banned' });
         req.user = user;
+
+        // Update lastSeen (debounced: max once per 30s per user)
+        const uid = user._id.toString();
+        const now = Date.now();
+        const lastUpdate = lastSeenCache.get(uid) || 0;
+        if (now - lastUpdate > 30000) {
+            lastSeenCache.set(uid, now);
+            User.updateOne({ _id: user._id }, { lastSeen: new Date() }).catch(() => {});
+        }
+
         next();
     } catch (err) {
         return res.status(401).json({ error: 'invalid_token' });

@@ -73,7 +73,7 @@ router.get('/', requireAdmin, async (req, res) => {
 
         // Check for stat overrides
         const Settings = require('../models/Settings');
-        const overrideKeys = ['totalUsers', 'totalOrders', 'activeNow', 'totalRevenue', 'rechargeRevenue'];
+        const overrideKeys = ['totalUsers', 'totalOrders', 'totalRevenue', 'rechargeRevenue'];
         const overrides = await Settings.find({ key: { $in: overrideKeys.map(k => `stat_override_${k}`) } });
         const overrideMap = {};
         for (const o of overrides) {
@@ -84,7 +84,7 @@ router.get('/', requireAdmin, async (req, res) => {
             totalUsers: overrideMap.totalUsers ?? totalUsers,
             totalOrders: overrideMap.totalOrders ?? totalOrders,
             totalRevenue: overrideMap.totalRevenue != null ? `$${Number(overrideMap.totalRevenue).toFixed(2)}` : `$${totalRevenue.toFixed(2)}`,
-            activeNow: overrideMap.activeNow ?? activeNow,
+            activeNow: activeNow,
             // Order revenue breakdown
             completedRevenue: completedRevenue.toFixed(2),
             pendingRevenue: (pendingRevenue + processingRevenue).toFixed(2),

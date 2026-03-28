@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Users, ShoppingCart, DollarSign, Activity, ArrowLeft, Search, Mail, Phone, Calendar, Hash, CheckCircle, Clock, XCircle, CreditCard, Wallet, X, Edit3, Trash2, Ban, ShieldCheck, Save } from 'lucide-react';
+import { Users, ShoppingCart, DollarSign, Activity, ArrowLeft, Search, Mail, Phone, Calendar, Hash, CheckCircle, Clock, XCircle, CreditCard, Wallet, X, Edit3, Trash2, Ban, ShieldCheck, Save, ReceiptText } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -30,6 +30,9 @@ export default function StatsView() {
     const [isEditing, setIsEditing] = useState(false);
     const [editForm, setEditForm] = useState({ firstName: '', lastName: '', phone: '', email: '', balance: '' });
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [userTransactions, setUserTransactions] = useState<any[]>([]);
+    const [showTransactions, setShowTransactions] = useState(false);
+    const [loadingTransactions, setLoadingTransactions] = useState(false);
 
     // Counter quick-edit state
     const [editingCounter, setEditingCounter] = useState<{ key: string; label: string; value: string } | null>(null);
@@ -167,12 +170,61 @@ export default function StatsView() {
         });
         setIsEditing(false);
         setShowDeleteConfirm(false);
+        setShowTransactions(false);
+        setUserTransactions([]);
     };
 
     const closeUserModal = () => {
         setSelectedUser(null);
         setIsEditing(false);
         setShowDeleteConfirm(false);
+        setShowTransactions(false);
+        setUserTransactions([]);
+    };
+
+    const fetchUserTransactions = async (userId: string) => {
+        setLoadingTransactions(true);
+        try {
+            const res = await adminFetch(`/auth/users/${userId}/transactions`);
+            if (res.ok) {
+                const data = await res.json();
+                setUserTransactions(data);
+            }
+        } catch (err) { console.error(err); }
+        setLoadingTransactions(false);
+    };
+
+    const handleShowTransactions = async () => {
+        if (!selectedUser) return;
+        setShowTransactions(true);
+        await fetchUserTransactions(selectedUser._id);
+    };
+
+    const getMethodLabel = (method: string) => {
+        switch (method) {
+            case 'crypto': return { label: 'كريبتو', color: 'text-orange-400 bg-orange-500/10 border-orange-500/20' };
+            case 'asiacell': return { label: 'آسياسيل', color: 'text-blue-400 bg-blue-500/10 border-blue-500/20' };
+            case 'manual': return { label: 'يدوي', color: 'text-purple-400 bg-purple-500/10 border-purple-500/20' };
+            default: return { label: method || 'غير محدد', color: 'text-white/50 bg-white/5 border-white/10' };
+        }
+    };
+
+    const getTypeLabel = (type: string) => {
+        switch (type) {
+            case 'recharge': return { label: 'شحن', color: 'text-green-400' };
+            case 'order': return { label: 'طلب', color: 'text-purple-400' };
+            case 'refund': return { label: 'استرداد', color: 'text-amber-400' };
+            default: return { label: type, color: 'text-white/50' };
+        }
+    };
+
+    const getTransactionStatusColor = (status: string) => {
+        switch (status) {
+            case 'completed': return 'text-green-400 bg-green-500/10 border-green-500/20';
+            case 'pending': return 'text-yellow-400 bg-yellow-500/10 border-yellow-500/20';
+            case 'failed': return 'text-red-400 bg-red-500/10 border-red-500/20';
+            default: return 'text-white/50 bg-white/5 border-white/10';
+        }
     };
 
     const handleSaveUser = async () => {
@@ -421,11 +473,75 @@ export default function StatsView() {
                                             </div>
                                         )}
 
+                                        {/* Transactions Log Panel */}
+                                        {showTransactions && (
+                                            <div className="space-y-3">
+                                                <div className="flex items-center justify-between">
+                                                    <h4 className="text-white font-bold text-sm flex items-center gap-2">
+                                                        <ReceiptText className="w-4 h-4 text-amber-400" />
+                                                        سجلات الشحن
+                                                    </h4>
+                                                    <button onClick={() => setShowTransactions(false)} className="text-white/40 hover:text-white/70 text-xs px-2 py-1 rounded-lg hover:bg-white/5 transition-colors">
+                                                        ← رجوع
+                                                    </button>
+                                                </div>
+
+                                                {loadingTransactions ? (
+                                                    <div className="text-center py-8">
+                                                        <div className="w-6 h-6 border-2 border-amber-400/30 border-t-amber-400 rounded-full animate-spin mx-auto mb-2" />
+                                                        <p className="text-white/30 text-xs">جاري التحميل...</p>
+                                                    </div>
+                                                ) : userTransactions.length === 0 ? (
+                                                    <div className="text-center py-8">
+                                                        <Wallet className="w-10 h-10 mx-auto mb-2 text-white/10" />
+                                                        <p className="text-white/30 text-sm">لا توجد سجلات شحن</p>
+                                                    </div>
+                                                ) : (
+                                                    <div className="space-y-2 max-h-[40vh] overflow-y-auto custom-scrollbar pr-1">
+                                                        {userTransactions.map((tx: any) => {
+                                                            const methodInfo = getMethodLabel(tx.method);
+                                                            const typeInfo = getTypeLabel(tx.type);
+                                                            const statusClr = getTransactionStatusColor(tx.status);
+                                                            return (
+                                                                <div key={tx._id} className="p-3 rounded-xl bg-white/5 border border-white/5 hover:border-white/10 transition-all">
+                                                                    <div className="flex items-center justify-between mb-2">
+                                                                        <div className="flex items-center gap-2">
+                                                                            <span className={`text-xs font-bold ${typeInfo.color}`}>{typeInfo.label}</span>
+                                                                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${methodInfo.color}`}>{methodInfo.label}</span>
+                                                                        </div>
+                                                                        <span className="text-green-400 font-bold font-mono text-sm">{$price(tx.amount)}</span>
+                                                                    </div>
+                                                                    <div className="flex items-center justify-between">
+                                                                        <span className="text-white/30 text-[11px] flex items-center gap-1">
+                                                                            <Clock className="w-3 h-3" />
+                                                                            {new Date(tx.createdAt).toLocaleDateString('ar-IQ', { year: 'numeric', month: 'short', day: 'numeric' })}
+                                                                            {' '}
+                                                                            {new Date(tx.createdAt).toLocaleTimeString('ar-IQ', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                                                                        </span>
+                                                                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${statusClr}`}>
+                                                                            {tx.status === 'completed' ? 'مكتمل' : tx.status === 'pending' ? 'معلق' : tx.status === 'failed' ? 'فشل' : tx.status}
+                                                                        </span>
+                                                                    </div>
+                                                                </div>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                )}
+
+                                                <p className="text-center text-white/15 text-[10px] pt-1">
+                                                    {userTransactions.length} سجل
+                                                </p>
+                                            </div>
+                                        )}
+
                                         {/* Action Buttons */}
-                                        {!isEditing && !showDeleteConfirm && (
-                                            <div className="grid grid-cols-3 gap-2 pt-2">
+                                        {!isEditing && !showDeleteConfirm && !showTransactions && (
+                                            <div className="grid grid-cols-4 gap-2 pt-2">
                                                 <Button onClick={() => setIsEditing(true)} className="bg-cyan-600 hover:bg-cyan-700 text-white gap-1.5 text-xs h-10">
                                                     <Edit3 className="w-3.5 h-3.5" /> تعديل
+                                                </Button>
+                                                <Button onClick={handleShowTransactions} className="bg-amber-600 hover:bg-amber-700 text-white gap-1.5 text-xs h-10">
+                                                    <ReceiptText className="w-3.5 h-3.5" /> سجلات
                                                 </Button>
                                                 <Button onClick={handleToggleBan} className={`gap-1.5 text-xs h-10 ${selectedUser.banned ? 'bg-green-600 hover:bg-green-700' : 'bg-orange-600 hover:bg-orange-700'
                                                     } text-white`}>

@@ -373,6 +373,18 @@ router.put('/users/:id', requireAdmin, async (req, res) => {
     }
 });
 
+// Get user transactions (admin)
+router.get('/users/:id/transactions', requireAdmin, async (req, res) => {
+    try {
+        const Transaction = require('../models/Transaction');
+        const transactions = await Transaction.find({ userId: req.params.id })
+            .sort({ createdAt: -1 });
+        res.json(transactions);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // Delete user (admin)
 router.delete('/users/:id', requireAdmin, async (req, res) => {
     try {
